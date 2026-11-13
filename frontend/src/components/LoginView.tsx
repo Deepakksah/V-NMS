@@ -12,6 +12,7 @@ import {
   Database
 } from 'lucide-react';
 import type { AuthSession } from '../types';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 
 interface LoginViewProps {
   onLoginSuccess: (session: AuthSession) => void;
@@ -19,12 +20,13 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase }) => {
-  const [username, setUsername] = useState('deepak.sah');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,9 +205,21 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                 }}>
                   Password
                 </label>
-                <span style={{ fontSize: '0.75rem', color: '#0284c7', cursor: 'pointer', fontWeight: 500 }}>
-                  Forgot password?
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '0.76rem',
+                    color: '#0284c7',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    padding: 0
+                  }}
+                >
+                  Forgot password? (OTP Reset)
+                </button>
               </div>
               <div style={{
                 display: 'flex',
@@ -325,7 +339,32 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               <span>Quick Test Accounts</span>
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => handleQuickFill('admin', 'admin')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  padding: '8px 10px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: username === 'admin' ? '#e0f2fe' : '#ffffff',
+                  borderColor: username === 'admin' ? '#38bdf8' : '#cbd5e1',
+                  cursor: 'pointer',
+                  textAlign: 'left'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>admin</span>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0284c7', background: '#dbeafe', padding: '1px 4px', borderRadius: '4px' }}>
+                    ROOT
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>SuperAdmin</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => handleQuickFill('deepak.sah', 'admin123')}
@@ -333,7 +372,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'flex-start',
-                  padding: '9px 12px',
+                  padding: '8px 10px',
                   borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   background: username === 'deepak.sah' ? '#e0f2fe' : '#ffffff',
@@ -344,11 +383,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>deepak.sah</span>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#0284c7', background: '#dbeafe', padding: '1px 5px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0284c7', background: '#dbeafe', padding: '1px 4px', borderRadius: '4px' }}>
                     ADMIN
                   </span>
                 </div>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>Role: SuperAdmin</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>SuperAdmin</span>
               </button>
 
               <button
@@ -358,7 +397,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'flex-start',
-                  padding: '9px 12px',
+                  padding: '8px 10px',
                   borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   background: username === 'operator' ? '#f0fdf4' : '#ffffff',
@@ -369,11 +408,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>operator</span>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '1px 4px', borderRadius: '4px' }}>
                     OP
                   </span>
                 </div>
-                <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '2px' }}>Role: Operator</span>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>Operator</span>
               </button>
             </div>
           </div>
@@ -402,6 +441,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
           </span>
         </div>
       </div>
+
+      {/* Interactive Mobile & Email OTP Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
+        onSuccess={(u, p) => {
+          setUsername(u);
+          setPassword(p);
+        }}
+        apiBase={apiBase}
+      />
     </div>
   );
 };

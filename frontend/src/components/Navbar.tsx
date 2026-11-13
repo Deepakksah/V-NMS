@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Activity, 
-  Search, 
-  RefreshCw, 
-  Plus, 
-  Server, 
-  Zap, 
+import {
+  Activity,
+  Search,
+  RefreshCw,
+  Server,
   AlertTriangle,
   LogOut,
   ChevronDown,
   UserCheck,
   Shield,
   Key,
-  FolderTree
+  KeyRound,
+  FolderTree,
+  TrendingUp,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import type { AuthUser } from '../types';
 
@@ -23,12 +25,16 @@ interface NavbarProps {
   setGlobalSearch: (search: string) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
-  onOpenAddDevice: () => void;
   totalDevices: number;
   upDevices: number;
   criticalAlertsCount: number;
   currentUser?: AuthUser | null;
   onLogout?: () => void;
+  onOpenChangePassword?: () => void;
+  onTriggerScan?: () => void;
+  isScanning?: boolean;
+  isSidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -38,12 +44,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   setGlobalSearch,
   onRefresh,
   isRefreshing,
-  onOpenAddDevice,
   totalDevices,
   upDevices,
   criticalAlertsCount,
   currentUser,
-  onLogout
+  onLogout,
+  onOpenChangePassword,
+  onTriggerScan,
+  isScanning,
+  isSidebarCollapsed,
+  onToggleSidebar
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -75,120 +85,166 @@ export const Navbar: React.FC<NavbarProps> = ({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '14px 28px',
-      borderBottom: '1px solid #e2e8f0',
-      background: '#ffffff',
-      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
+      padding: '12px 28px',
+      borderBottom: '1px solid #1e293b',
+      background: '#0b1120',
+      boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.45)',
       position: 'sticky',
       top: 0,
       zIndex: 40
     }}>
       {/* Left: Brand Identity & Active Section */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <div 
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {onToggleSidebar && (
+          <button
+            onClick={onToggleSidebar}
+            title={isSidebarCollapsed ? "Expand sidebar (Unhide names)" : "Collapse sidebar (Icons only)"}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              borderRadius: '6px',
+              border: '1px solid #334155',
+              background: isSidebarCollapsed ? '#1e293b' : '#0f172a',
+              color: isSidebarCollapsed ? '#38bdf8' : '#94a3b8',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundColor = '#1e293b';
+              e.currentTarget.style.color = '#38bdf8';
+              e.currentTarget.style.borderColor = '#0284c7';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundColor = isSidebarCollapsed ? '#1e293b' : '#0f172a';
+              e.currentTarget.style.color = isSidebarCollapsed ? '#38bdf8' : '#94a3b8';
+              e.currentTarget.style.borderColor = '#334155';
+            }}
+          >
+            {isSidebarCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+          </button>
+        )}
+
+        <div
           onClick={() => setActiveTab('dashboard')}
           style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+          title="Veracity V-NMS Enterprise Dashboard"
         >
+          {/* Official Brand Logo Capsule for Dark Mode */}
           <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #0284c7 0%, #4f46e5 100%)',
-            display: 'flex',
+            background: '#ffffff',
+            padding: '3px 8px',
+            borderRadius: '6px',
+            display: 'inline-flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)'
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
           }}>
-            <Activity size={20} color="#ffffff" />
+            <img
+              src="/Veracity_logo.png"
+              alt="Veracity"
+              style={{
+                height: '24px',
+                width: 'auto',
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
           </div>
+
+          <div style={{ width: '1px', height: '24px', background: '#334155' }} />
+
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#0f172a' }}>V-NMS</span>
+              <span style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f8fafc' }}>V-NMS</span>
               <span style={{
-                fontSize: '0.65rem',
+                fontSize: '0.64rem',
                 fontWeight: 700,
                 padding: '2px 7px',
                 borderRadius: '4px',
-                background: '#e0f2fe',
-                color: '#0369a1',
-                border: '1px solid #bae6fd'
+                background: '#082f49',
+                color: '#38bdf8',
+                border: '1px solid #0c4a6e',
+                letterSpacing: '0.04em'
               }}>
-                145 FEATURES
+                ENTERPRISE NOC
               </span>
             </div>
-            <p style={{ fontSize: '0.72rem', color: '#64748b' }}>Enterprise Network Operations Center</p>
+            <p style={{ fontSize: '0.70rem', color: '#94a3b8', margin: 0, fontWeight: 500 }}>Network Operations Center</p>
           </div>
         </div>
 
-        <div style={{ width: '1px', height: '26px', background: '#e2e8f0' }} />
+        <div style={{ width: '1px', height: '24px', background: '#1e293b' }} />
 
         {/* System Core Ticker */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.78rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#16a34a' }} />
-            <span style={{ color: '#334155', fontWeight: 600 }}>PostgreSQL 18 Connected</span>
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px rgba(16, 185, 129, 0.7)' }} />
+            <span style={{ color: '#cbd5e1', fontWeight: 600 }}>System Online</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Server size={14} color="#0284c7" />
-            <span style={{ color: '#64748b' }}>Devices:</span>
-            <span style={{ color: '#0f172a', fontWeight: 700 }}>{upDevices}/{totalDevices} UP</span>
+            <Server size={14} color="#38bdf8" />
+            <span style={{ color: '#94a3b8' }}>Devices:</span>
+            <span style={{ color: '#f8fafc', fontWeight: 700 }}>{upDevices}/{totalDevices} UP</span>
           </div>
 
           {criticalAlertsCount > 0 && (
-            <div 
+            <div
               onClick={() => setActiveTab('alerts')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
                 padding: '2px 8px',
-                background: '#fee2e2',
-                border: '1px solid #fecaca',
+                background: '#7f1d1d',
+                border: '1px solid #991b1b',
                 borderRadius: '6px',
                 cursor: 'pointer',
-                color: '#b91c1c',
+                color: '#fca5a5',
                 fontWeight: 700,
-                fontSize: '0.72rem'
+                fontSize: '0.72rem',
+                boxShadow: '0 0 8px rgba(220, 38, 38, 0.4)'
               }}
             >
-              <AlertTriangle size={13} />
+              <AlertTriangle size={13} color="#fca5a5" />
               <span>{criticalAlertsCount} Alerts</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Center: Global Search across 145 models */}
+      {/* Center: Global Search (Dark Mode Themed) */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
         padding: '7px 14px',
         borderRadius: '8px',
-        background: '#f1f5f9',
-        border: '1px solid #e2e8f0',
+        background: '#1e293b',
+        border: '1px solid #334155',
         width: '360px'
       }}>
-        <Search size={15} color="#64748b" />
-        <input 
-          type="text" 
-          placeholder="Search 145 models, devices, ports, IPs, VLANs..."
+        <Search size={15} color="#94a3b8" />
+        <input
+          type="text"
+          placeholder="Search hosts, IP, MAC, hardware, OS..."
           value={globalSearch}
           onChange={(e) => setGlobalSearch(e.target.value)}
           style={{
             background: 'transparent',
             border: 'none',
             outline: 'none',
-            color: '#0f172a',
+            color: '#f8fafc',
             fontSize: '0.84rem',
             width: '100%'
           }}
         />
         {globalSearch && (
-          <button 
+          <button
             onClick={() => setGlobalSearch('')}
-            style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.8rem' }}
+            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}
           >
             ✕
           </button>
@@ -196,35 +252,51 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Right: Actions & User Info */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <button
           onClick={onRefresh}
-          className="glass-panel"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
             padding: '7px 13px',
-            color: '#0f172a',
+            color: '#e2e8f0',
             cursor: 'pointer',
             fontSize: '0.82rem',
             fontWeight: 600,
-            background: '#ffffff'
+            background: '#1e293b',
+            border: '1px solid #334155',
+            borderRadius: '8px'
           }}
           title="Refresh All Telemetry"
         >
-          <RefreshCw size={14} color="#0284c7" className={isRefreshing ? 'animate-spin' : ''} />
+          <RefreshCw size={14} color="#38bdf8" className={isRefreshing ? 'animate-spin' : ''} />
           <span>Refresh</span>
         </button>
 
-        <button
-          onClick={onOpenAddDevice}
-          className="glow-btn"
-          style={{ padding: '7px 15px', fontSize: '0.82rem' }}
-        >
-          <Plus size={15} />
-          <span>Add Device</span>
-        </button>
+        {onTriggerScan && (
+          <button
+            onClick={onTriggerScan}
+            disabled={isScanning}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '7px 13px',
+              color: isScanning ? '#38bdf8' : '#34d399',
+              cursor: isScanning ? 'wait' : 'pointer',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              background: isScanning ? 'rgba(2, 132, 199, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+              border: `1px solid ${isScanning ? '#0284c7' : 'rgba(16, 185, 129, 0.35)'}`,
+              borderRadius: '8px'
+            }}
+            title="Scan local subnet 172.168.1.0/24 for all live devices"
+          >
+            <Activity size={14} className={isScanning ? 'animate-spin' : ''} />
+            <span>{isScanning ? 'Scanning 172.168.1.0/24...' : 'Scan Subnet'}</span>
+          </button>
+        )}
 
         <button
           onClick={() => setActiveTab('tree_view')}
@@ -234,9 +306,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             gap: '6px',
             padding: '7px 13px',
             borderRadius: '8px',
-            background: activeTab === 'tree_view' ? '#0284c7' : '#e0f2fe',
-            border: '1px solid #bae6fd',
-            color: activeTab === 'tree_view' ? '#ffffff' : '#0369a1',
+            background: activeTab === 'tree_view' ? '#0284c7' : '#1e293b',
+            border: `1px solid ${activeTab === 'tree_view' ? '#38bdf8' : '#334155'}`,
+            color: activeTab === 'tree_view' ? '#ffffff' : '#38bdf8',
             cursor: 'pointer',
             fontSize: '0.82rem',
             fontWeight: 700
@@ -247,36 +319,37 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         <button
-          onClick={() => setActiveTab('all_features')}
+          onClick={() => setActiveTab('reports')}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
             padding: '7px 13px',
             borderRadius: '8px',
-            background: '#f3e8ff',
-            border: '1px solid #d8b4fe',
-            color: '#7e22ce',
+            background: activeTab === 'reports' ? '#7e22ce' : '#1e1b4b',
+            border: `1px solid ${activeTab === 'reports' ? '#a855f7' : '#4c1d95'}`,
+            color: activeTab === 'reports' ? '#ffffff' : '#d8b4fe',
             cursor: 'pointer',
             fontSize: '0.82rem',
             fontWeight: 700
           }}
+          title="Open Performance Reports & Uptime SLA Heatmap"
         >
-          <Zap size={14} />
-          <span>145 Models</span>
+          <TrendingUp size={14} />
+          <span>Reports &amp; SLA</span>
         </button>
 
-        {/* User Profile & Session Dropdown */}
-        <div ref={dropdownRef} style={{ position: 'relative', borderLeft: '1px solid #e2e8f0', paddingLeft: '10px' }}>
+        {/* User Profile & Session Dropdown (Dark Themed) */}
+        <div ref={dropdownRef} style={{ position: 'relative', borderLeft: '1px solid #1e293b', paddingLeft: '10px' }}>
           <button
             onClick={() => setShowDropdown(!showDropdown)}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              background: showDropdown ? '#f1f5f9' : 'transparent',
+              background: showDropdown ? '#1e293b' : 'transparent',
               border: '1px solid',
-              borderColor: showDropdown ? '#cbd5e1' : 'transparent',
+              borderColor: showDropdown ? '#334155' : 'transparent',
               borderRadius: '8px',
               padding: '4px 8px',
               cursor: 'pointer',
@@ -288,73 +361,74 @@ export const Navbar: React.FC<NavbarProps> = ({
               width: '32px',
               height: '32px',
               borderRadius: '8px',
-              background: isSuperAdmin ? '#e0f2fe' : '#f0fdf4',
-              border: `1px solid ${isSuperAdmin ? '#bae6fd' : '#bbf7d0'}`,
+              background: isSuperAdmin ? '#0369a1' : '#047857',
+              border: `1px solid ${isSuperAdmin ? '#0284c7' : '#059669'}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
-              color: isSuperAdmin ? '#0284c7' : '#16a34a',
+              color: '#ffffff',
               fontSize: '0.82rem'
             }}>
               {initials}
             </div>
             <div>
-              <p style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.1 }}>{username}</p>
+              <p style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f8fafc', lineHeight: 1.1, margin: 0 }}>{username}</p>
               <p style={{
                 fontSize: '0.68rem',
-                color: isSuperAdmin ? '#0284c7' : '#16a34a',
+                color: '#38bdf8',
                 fontWeight: 600,
-                textTransform: 'capitalize'
+                textTransform: 'capitalize',
+                margin: 0
               }}>
                 {role}
               </p>
             </div>
-            <ChevronDown size={14} color="#64748b" style={{ transform: showDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+            <ChevronDown size={14} color="#94a3b8" style={{ transform: showDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
           </button>
 
-          {/* Dropdown Menu */}
+          {/* Dropdown Menu (Dark NOC Mode) */}
           {showDropdown && (
             <div style={{
               position: 'absolute',
               right: 0,
               top: 'calc(100% + 8px)',
               width: '260px',
-              backgroundColor: '#ffffff',
+              backgroundColor: '#0f172a',
               borderRadius: '12px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+              border: '1px solid #1e293b',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
               zIndex: 100,
               overflow: 'hidden'
             }}>
               {/* Profile Card Header */}
-              <div style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
+              <div style={{ padding: '14px 16px', borderBottom: '1px solid #1e293b', background: '#111827' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f172a' }}>{username}</span>
+                  <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#f8fafc' }}>{username}</span>
                   <span style={{
                     fontSize: '0.65rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     padding: '2px 6px',
                     borderRadius: '4px',
-                    background: isSuperAdmin ? '#e0f2fe' : '#dcfce7',
-                    color: isSuperAdmin ? '#0369a1' : '#15803d',
-                    border: `1px solid ${isSuperAdmin ? '#bae6fd' : '#bbf7d0'}`
+                    background: '#082f49',
+                    color: '#38bdf8',
+                    border: '1px solid #0c4a6e'
                   }}>
                     {role}
                   </span>
                 </div>
-                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: 0, wordBreak: 'break-all' }}>{email}</p>
+                <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0, wordBreak: 'break-all' }}>{email}</p>
               </div>
 
               {/* Session Information */}
-              <div style={{ padding: '10px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '0.74rem', color: '#475569' }}>
+              <div style={{ padding: '10px 16px', borderBottom: '1px solid #1e293b', fontSize: '0.74rem', color: '#cbd5e1' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
-                  <Shield size={13} color="#16a34a" />
-                  <span>Session: <strong style={{ color: '#16a34a' }}>JWT Authenticated</strong></span>
+                  <Shield size={13} color="#10b981" />
+                  <span>Session: <strong style={{ color: '#10b981' }}>JWT Authenticated</strong></span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Key size={13} color="#0284c7" />
+                  <Key size={13} color="#38bdf8" />
                   <span>Expires: <strong>24 Hours</strong></span>
                 </div>
               </div>
@@ -376,15 +450,41 @@ export const Navbar: React.FC<NavbarProps> = ({
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '0.8rem',
-                    color: '#334155',
+                    color: '#cbd5e1',
                     cursor: 'pointer',
                     textAlign: 'left'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#1e293b'}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <UserCheck size={14} color="#64748b" />
-                  <span>Account & Permissions</span>
+                  <UserCheck size={14} color="#94a3b8" />
+                  <span>Account &amp; Permissions</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowDropdown(false);
+                    if (onOpenChangePassword) onOpenChangePassword();
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 10px',
+                    background: 'none',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    color: '#38bdf8',
+                    cursor: 'pointer',
+                    textAlign: 'left'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#1e293b'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <KeyRound size={14} color="#38bdf8" />
+                  <span>Change Password (OTP)</span>
                 </button>
 
                 <button
@@ -402,15 +502,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                     border: 'none',
                     borderRadius: '6px',
                     fontSize: '0.8rem',
-                    color: '#dc2626',
+                    color: '#f87171',
                     cursor: 'pointer',
                     textAlign: 'left',
                     fontWeight: 600
                   }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)'}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <LogOut size={14} color="#dc2626" />
+                  <LogOut size={14} color="#f87171" />
                   <span>Sign Out (Logout)</span>
                 </button>
               </div>

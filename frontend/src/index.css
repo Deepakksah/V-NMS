@@ -24,6 +24,11 @@
   box-sizing: border-box;
 }
 
+svg {
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
 body {
   background-color: var(--bg-page);
   color: var(--text-main);
@@ -128,7 +133,21 @@ body {
   100% { transform: scale(0.9); opacity: 0; }
 }
 
-/* Clean Custom Scrollbars */
+/* Mobile & Android Viewport Optimization */
+@media (max-width: 768px) {
+  main {
+    padding: 10px 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  main {
+    padding: 8px 10px !important;
+  }
+}
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -142,4 +161,25 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Toast Floating Animations */
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }

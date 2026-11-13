@@ -12,7 +12,12 @@ import (
 var Pool *pgxpool.Pool
 
 func ConnectDB(connStr string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// 1. Ensure target database exists (creates vnms if not present)
+	if err := EnsureDatabaseCreated(connStr); err != nil {
+		log.Printf("[DB Notice] EnsureDatabaseCreated: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	config, err := pgxpool.ParseConfig(connStr)
@@ -35,5 +40,16 @@ func ConnectDB(connStr string) error {
 
 	Pool = pool
 	log.Println("Connected to PostgreSQL successfully")
+
+	// 2. Automatically run all table migrations
+	if err := RunAutoMigrations(); err != nil {
+		log.Printf("[DB Warning] RunAutoMigrations: %v", err)
+	}
+
+	// 3. Seed default accounts
+	if err := SeedDefaultUsers(); err != nil {
+		log.Printf("[DB Notice] SeedDefaultUsers: %v", err)
+	}
+
 	return nil
 }

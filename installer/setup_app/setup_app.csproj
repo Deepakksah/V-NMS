@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>V-NMS-Enterprise-Setup</AssemblyName>
+    <AssemblyTitle>Veracity Network Management System (V-NMS) Enterprise Setup</AssemblyTitle>
+    <Product>Veracity Network Management System</Product>
+    <Company>Veracity Systems</Company>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="C:\Users\Administrator\Downloads\postgresql-18.7-1-windows-x64.exe">
+      <LogicalName>postgresql-18.7-1-windows-x64.exe</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\V-NMS.msi">
+      <LogicalName>V-NMS.msi</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

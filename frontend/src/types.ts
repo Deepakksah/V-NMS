@@ -13,6 +13,9 @@ export interface Device {
   location?: string;
   status: boolean;
   last_ping_ms: number;
+  device_type?: string;
+  vendor?: string;
+  mac_address?: string;
   last_polled_at?: string;
   uptime_seconds?: number;
   cpu_percent?: number;
@@ -34,6 +37,18 @@ export interface AuthSession {
   tokenType: string;
   expiresIn: number;
   user: AuthUser;
+}
+
+export interface AlertRecipient {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  department: string;
+  role: string;
+  on_call_status: string;
+  created_at?: string;
+  subscription_count?: number;
 }
 
 export interface MetricDataPoint {

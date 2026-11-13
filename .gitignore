@@ -4,20 +4,37 @@
 *.dll
 *.so
 *.dylib
-backend/v-nms-server.exe
+*.msi
+*.wixpdb
+*.pdb
+
+# Build, Publish & Installer Artifacts
+bin/
+obj/
+publish/
+release/
+payload/
+installer/payload/
+installer/publish/
+installer/release/
+installer/setup_app/bin/
+installer/setup_app/obj/
+backend/vnms-server.exe
 v-nms-server.exe
+V-NMS-Enterprise-Setup.exe
+V-NMS.msi
+V-NMS.wixpdb
 
 # Dependencies
 node_modules/
 frontend/node_modules/
 
-# Production Build Artifacts
-dist/
+# Frontend Dev & Temp Dist
 frontend/dist/
-build/
 
 # Logs & Temporary files
 *.log
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

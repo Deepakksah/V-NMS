@@ -20,6 +20,9 @@ type Device struct {
 	SysName       string     `json:"sys_name"`
 	SysDescr      string     `json:"sys_descr"`
 	Location      string     `json:"location"`
+	DeviceType    string     `json:"device_type"`
+	Vendor        string     `json:"vendor"`
+	MACAddress    string     `json:"mac_address"`
 	Status        bool       `json:"status"`
 	LastPingMs    float64    `json:"last_ping_ms"`
 	LastPolledAt  *time.Time `json:"last_polled_at"`
@@ -93,10 +96,48 @@ type User struct {
 	ID           int       `json:"id"`
 	Username     string    `json:"username"`
 	Email        string    `json:"email"`
+	FullName     string    `json:"full_name"`
+	Phone        string    `json:"phone"`
+	Department   string    `json:"department"`
 	PasswordHash string    `json:"-"`
 	Role         string    `json:"role"` // "superadmin", "operator", "viewer"
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type RegisterRequest struct {
+	Username   string `json:"username" binding:"required"`
+	Email      string `json:"email" binding:"required"`
+	FullName   string `json:"full_name"`
+	Phone      string `json:"phone"`
+	Department string `json:"department"`
+	Role       string `json:"role"`
+	Password   string `json:"password" binding:"required"`
+}
+
+type AlertRecipient struct {
+	ID            int                   `json:"id"`
+	Name          string                `json:"name"`
+	Email         string                `json:"email"`
+	Phone         string                `json:"phone"`
+	Department    string                `json:"department"`
+	Role          string                `json:"role"`
+	OnCallStatus  string                `json:"on_call_status"`
+	CreatedAt     time.Time             `json:"created_at"`
+	Subscriptions []RecipientDeviceRule `json:"subscriptions,omitempty"`
+}
+
+type RecipientDeviceRule struct {
+	ID          int       `json:"id"`
+	RecipientID int       `json:"recipient_id"`
+	DeviceID    int       `json:"device_id"`
+	SendEmail   bool      `json:"send_email"`
+	SendSMS     bool      `json:"send_sms"`
+	AlertTypes  string    `json:"alert_types"`
+	CreatedAt   time.Time `json:"created_at"`
+	DeviceName  string    `json:"device_name,omitempty"`
+	DeviceIP    string    `json:"device_ip,omitempty"`
+	DeviceType  string    `json:"device_type,omitempty"`
 }
 
 type LoginRequest struct {

@@ -1,0 +1,94 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:firewall="http://wixtoolset.org/schemas/v4/wxs/firewall">
+
+  <Package Name="Veracity Network Management System (V-NMS)"
+           Manufacturer="Veracity Systems"
+           Version="1.0.0.0"
+           UpgradeCode="B68146F2-0C81-4229-BA68-809A7DF3E7C9"
+           Scope="perMachine">
+           
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="V-NMS">
+        <Component Id="MainExecutable" Guid="98C68631-E082-4EAA-B549-F02A0B71E1A1">
+          <File Id="VnmsServerExe" Source="payload\vnms-server.exe" KeyPath="yes" />
+          
+          <ServiceInstall Id="VNMSServiceInstall"
+                          Name="VNMSService"
+                          DisplayName="Veracity Network Management System (V-NMS)"
+                          Description="Enterprise NOC real-time telemetry, SNMP polling, automated subnet discovery, and incident notification engine."
+                          Type="ownProcess"
+                          Start="auto"
+                          ErrorControl="normal" />
+                          
+          <ServiceControl Id="VNMSServiceControl"
+                          Name="VNMSService"
+                          Start="install"
+                          Stop="both"
+                          Remove="uninstall"
+                          Wait="no" />
+
+          <firewall:FirewallException Id="FW8081"
+                                     Name="V-NMS Enterprise NOC"
+                                     Description="Allow inbound TCP port 8081 for V-NMS NOC Dashboard and API"
+                                     Port="8081"
+                                     Protocol="tcp"
+                                     Scope="any"
+                                     IgnoreFailure="yes" />
+        </Component>
+
+        <Component Id="ConfigFile" Guid="A736F521-1249-418E-A961-0CD3D8F4E9A2">
+          <File Id="ConfigEnv" Source="payload\config.env" KeyPath="yes" />
+        </Component>
+
+        <Component Id="BrandAssets" Guid="3F848B01-44B9-4552-8750-61F78D54A3B4">
+          <File Id="AppLogo" Source="payload\Logo.ico" KeyPath="yes" />
+          <File Id="BrandLogo" Source="payload\Veracity_logo.png" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="V-NMS">
+        <Component Id="ApplicationShortcut" Guid="C2938814-D442-47C0-896B-D976A70A11F3">
+          <Shortcut Id="ApplicationStartMenuShortcut"
+                    Name="V-NMS NOC Dashboard"
+                    Description="Open Veracity Network Management System in browser"
+                    Target="[#VnmsServerExe]"
+                    WorkingDirectory="INSTALLFOLDER"
+                    Icon="AppIcon" />
+          <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall" />
+          <RegistryValue Root="HKCU" Key="Software\Veracity\V-NMS" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="DesktopFolder">
+      <Component Id="DesktopShortcutComp" Guid="71B898A1-E72F-43BB-A0D1-1C30E4E77041">
+        <Shortcut Id="AppDesktopShortcut"
+                  Name="V-NMS NOC Dashboard"
+                  Description="Open Veracity Network Management System in browser"
+                  Target="[#VnmsServerExe]"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="AppIcon" />
+        <RegistryValue Root="HKCU" Key="Software\Veracity\V-NMS" Name="desktop_shortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </StandardDirectory>
+
+    <Icon Id="AppIcon" SourceFile="payload\Logo.ico" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <Feature Id="MainFeature" Title="V-NMS Enterprise Suite" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="ConfigFile" />
+      <ComponentRef Id="BrandAssets" />
+      <ComponentRef Id="ApplicationShortcut" />
+      <ComponentRef Id="DesktopShortcutComp" />
+    </Feature>
+  </Package>
+</Wix>
