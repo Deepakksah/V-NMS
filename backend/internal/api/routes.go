@@ -48,13 +48,15 @@ func SetupRouter() *gin.Engine {
 		api.PUT("/users/:id", HandleUpdateUser)
 		api.DELETE("/users/:id", HandleDeleteUser)
 
-		// 4. Inventory Domain (Devices, Servers, Switches, Ports, Metrics)
+		// 4. Inventory Domain (Devices, Servers, Switches, Ports, Metrics, Storage)
 		api.GET("/devices", HandleGetAllDevices)
 		api.POST("/devices", HandleAddDevice)
 		api.GET("/devices/:id/ports", HandleGetDevicePorts)
 		api.GET("/devices/:id/ping", HandlePingDevice)
 		api.POST("/devices/:id/poll", auth.AuthMiddleware(), HandlePollDevice)
 		api.GET("/devices/:id/metrics", HandleGetDeviceMetrics)
+		api.GET("/storage", HandleGetAllStorage)
+		api.GET("/disks", HandleGetAllPhysicalDisks)
 
 		// 5. Faults & Incidents Domain (Alerts, Trigger simulation)
 		api.GET("/alerts", HandleGetAllAlerts)

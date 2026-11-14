@@ -385,7 +385,7 @@ export default function App() {
           )}
 
           {activeTab === 'ports' && <PortsView />}
-          {activeTab === 'sensors' && <SensorsView />}
+          {activeTab === 'sensors' && <SensorsView apiBase={API_BASE} />}
           {activeTab === 'routing' && <RoutingView />}
           {activeTab === 'alerts' && <AlertsView realAlerts={alerts} devices={devices} />}
           {activeTab === 'alert_contacts' && (

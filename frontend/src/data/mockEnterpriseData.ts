@@ -116,14 +116,64 @@ export const MOCK_MEMPOOLS: MempoolRecord[] = [
 ];
 
 export const MOCK_STORAGE: StorageRecord[] = [
-  { id: 1, deviceId: 1, deviceHostname: 'core-gw-01', mountPoint: '/var/log', fileSystem: 'ext4', totalGb: 240, usedGb: 48, percentUsed: 20.0 },
-  { id: 2, deviceId: 2, deviceHostname: 'WIN-TBI5QJB6P82', mountPoint: 'C:\\', fileSystem: 'NTFS', totalGb: 500, usedGb: 142, percentUsed: 28.4 },
-  { id: 3, deviceId: 2, deviceHostname: 'WIN-TBI5QJB6P82', mountPoint: 'E:\\ (SahProject)', fileSystem: 'NTFS', totalGb: 1000, usedGb: 280, percentUsed: 28.0 },
+  // Server 14 (Dell PowerEdge Node 14)
+  { id: 1, deviceId: 10, deviceHostname: 'WIN-0KBJVAPST46 (172.168.1.14)', mountPoint: 'C:\\ (System OS)', fileSystem: 'NTFS', totalGb: 210.1, usedGb: 136.1, percentUsed: 64.8 },
+  { id: 2, deviceId: 10, deviceHostname: 'WIN-0KBJVAPST46 (172.168.1.14)', mountPoint: 'D:\\ (Local Disk RAID-10)', fileSystem: 'NTFS', totalGb: 1464.8, usedGb: 199.5, percentUsed: 13.6 },
+
+  // Server 15 (Dell PowerEdge Node 15)
+  { id: 3, deviceId: 2, deviceHostname: 'WIN-B1QJ2680QQF (172.168.1.15)', mountPoint: 'C:\\ (System OS)', fileSystem: 'NTFS', totalGb: 210.1, usedGb: 165.3, percentUsed: 78.7 },
+  { id: 4, deviceId: 2, deviceHostname: 'WIN-B1QJ2680QQF (172.168.1.15)', mountPoint: 'E:\\ (Storage Array)', fileSystem: 'NTFS', totalGb: 1464.8, usedGb: 967.8, percentUsed: 66.1 },
+
+  // Server 16 (Dell PowerEdge Node 16)
+  { id: 5, deviceId: 3, deviceHostname: 'WIN-09QJ62CLSDG (172.168.1.16)', mountPoint: 'C:\\ (System OS)', fileSystem: 'NTFS', totalGb: 210.2, usedGb: 61.1, percentUsed: 29.1 },
+  { id: 6, deviceId: 3, deviceHostname: 'WIN-09QJ62CLSDG (172.168.1.16)', mountPoint: 'F:\\ (Archive Store)', fileSystem: 'NTFS', totalGb: 1464.8, usedGb: 9.1, percentUsed: 0.6 },
+
+  // Server 12 (Dell PowerEdge Node 12)
+  { id: 7, deviceId: 25, deviceHostname: 'WIN-S6S7597BION (172.168.1.12)', mountPoint: 'C:\\ (System OS)', fileSystem: 'NTFS', totalGb: 976.1, usedGb: 209.2, percentUsed: 21.4 },
+  { id: 8, deviceId: 25, deviceHostname: 'WIN-S6S7597BION (172.168.1.12)', mountPoint: 'D:\\ (Data Volume)', fileSystem: 'NTFS', totalGb: 140.2, usedGb: 30.9, percentUsed: 22.0 },
+
+  // Server 13 (Dell PowerEdge Node 13)
+  { id: 9, deviceId: 28, deviceHostname: 'WIN-49GSPF4PDUB (172.168.1.13)', mountPoint: 'C:\\ (System OS)', fileSystem: 'NTFS', totalGb: 600.0, usedGb: 64.2, percentUsed: 10.7 },
+  { id: 10, deviceId: 28, deviceHostname: 'WIN-49GSPF4PDUB (172.168.1.13)', mountPoint: 'D:\\ (Data Array)', fileSystem: 'NTFS', totalGb: 1075.0, usedGb: 164.7, percentUsed: 15.3 },
+
+  // Local NOC Server 11
+  { id: 11, deviceId: 16, deviceHostname: 'WIN-TBI5QJB6P82 (172.168.1.11)', mountPoint: 'C:\\ (System OS)', fileSystem: 'NTFS', totalGb: 976.0, usedGb: 74.3, percentUsed: 7.6 },
+  { id: 12, deviceId: 16, deviceHostname: 'WIN-TBI5QJB6P82 (172.168.1.11)', mountPoint: 'E:\\ (Backup Repository)', fileSystem: 'NTFS', totalGb: 698.5, usedGb: 59.4, percentUsed: 8.5 },
+
+  // Server 19 (Dell PowerEdge R650xs Linux Node)
+  { id: 13, deviceId: 29, deviceHostname: 'linux-node-19 (172.168.1.19)', mountPoint: '/ (Root System)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 42.5, percentUsed: 17.7 },
+  { id: 14, deviceId: 29, deviceHostname: 'linux-node-19 (172.168.1.19)', mountPoint: '/data/db (MongoDB Data Store)', fileSystem: 'xfs', totalGb: 720.0, usedGb: 138.2, percentUsed: 19.2 },
+
+  // Core Security Gateway
+  { id: 15, deviceId: 12, deviceHostname: 'core-gw-01 (172.168.1.1)', mountPoint: '/ (GAiA OS)', fileSystem: 'ext4', totalGb: 60.0, usedGb: 18.2, percentUsed: 30.3 },
+  { id: 16, deviceId: 12, deviceHostname: 'core-gw-01 (172.168.1.1)', mountPoint: '/var/log (Firewall Logs)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 48.0, percentUsed: 20.0 },
 ];
 
 export const MOCK_DISK_IO: DiskIoRecord[] = [
-  { id: 1, deviceHostname: 'WIN-TBI5QJB6P82', deviceDisk: 'NVMe Physical Drive 0', readIops: 2400, writeIops: 4200, readThroughputMb: 85.2, writeThroughputMb: 140.5 },
-  { id: 2, deviceHostname: 'WIN-0KBJVAPST46', deviceDisk: 'PERC H755 SAS RAID', readIops: 8900, writeIops: 12400, readThroughputMb: 320.0, writeThroughputMb: 450.0 },
+  // Server 14 Physical Disks
+  { id: 1, deviceHostname: 'WIN-0KBJVAPST46 (172.168.1.14)', deviceDisk: 'SEAGATE ST600MM0069 (600 GB SAS 10K RPM Enterprise HDD)', readIops: 3200, writeIops: 4800, readThroughputMb: 185.0, writeThroughputMb: 240.0 },
+  { id: 2, deviceHostname: 'WIN-0KBJVAPST46 (172.168.1.14)', deviceDisk: 'DELL PERC H330 Adp (1.8 TB Hardware RAID Array)', readIops: 8900, writeIops: 12400, readThroughputMb: 320.0, writeThroughputMb: 450.0 },
+
+  // Server 15 Physical Disks
+  { id: 3, deviceHostname: 'WIN-B1QJ2680QQF (172.168.1.15)', deviceDisk: 'SEAGATE ST600MM0069 (600 GB SAS 10K RPM Enterprise HDD)', readIops: 3100, writeIops: 4600, readThroughputMb: 180.0, writeThroughputMb: 235.0 },
+  { id: 4, deviceHostname: 'WIN-B1QJ2680QQF (172.168.1.15)', deviceDisk: 'DELL PERC H330 Adp (1.8 TB Hardware RAID Array)', readIops: 9200, writeIops: 11800, readThroughputMb: 340.0, writeThroughputMb: 420.0 },
+
+  // Server 16 Physical Disks
+  { id: 5, deviceHostname: 'WIN-09QJ62CLSDG (172.168.1.16)', deviceDisk: 'DELL PERC H330 Adp (1.8 TB Hardware RAID Array)', readIops: 7800, writeIops: 10500, readThroughputMb: 290.0, writeThroughputMb: 390.0 },
+
+  // Server 12 Physical Disks
+  { id: 6, deviceHostname: 'WIN-S6S7597BION (172.168.1.12)', deviceDisk: 'SEAGATE ST600MM0069 (600 GB SAS 10K RPM Enterprise HDD)', readIops: 2900, writeIops: 4400, readThroughputMb: 175.0, writeThroughputMb: 220.0 },
+  { id: 7, deviceHostname: 'WIN-S6S7597BION (172.168.1.12)', deviceDisk: 'DELL PERC H330 Adp (1.1 TB Hardware RAID Array)', readIops: 8400, writeIops: 11200, readThroughputMb: 310.0, writeThroughputMb: 410.0 },
+
+  // Server 13 Physical Disks
+  { id: 8, deviceHostname: 'WIN-49GSPF4PDUB (172.168.1.13)', deviceDisk: 'SEAGATE ST600MM0069 (600 GB SAS 10K RPM Enterprise HDD)', readIops: 3300, writeIops: 4900, readThroughputMb: 190.0, writeThroughputMb: 250.0 },
+  { id: 9, deviceHostname: 'WIN-49GSPF4PDUB (172.168.1.13)', deviceDisk: 'DELL PERC H330 Adp (2.2 TB Hardware RAID Array)', readIops: 9600, writeIops: 13500, readThroughputMb: 360.0, writeThroughputMb: 490.0 },
+
+  // Server 19 Physical NVMe SSD
+  { id: 10, deviceHostname: 'linux-node-19 (172.168.1.19)', deviceDisk: 'Dell Enterprise PCIe Gen4 NVMe SSD PM9A3 (960 GB)', readIops: 45000, writeIops: 38000, readThroughputMb: 1450.0, writeThroughputMb: 1850.0 },
+
+  // Server 11 Physical RAID
+  { id: 11, deviceHostname: 'WIN-TBI5QJB6P82 (172.168.1.11)', deviceDisk: 'DELL PERC H330 Adp (1.8 TB Hardware RAID Array)', readIops: 8400, writeIops: 11200, readThroughputMb: 310.0, writeThroughputMb: 410.0 },
 ];
 
 // Category 4: Real Network Subnets, ARP Table, IPv4, VLANs
