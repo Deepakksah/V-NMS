@@ -6,7 +6,7 @@
   <style>
     @page {
       size: A4;
-      margin: 16mm 18mm 18mm 18mm;
+      margin: 14mm 16mm 16mm 16mm;
       @bottom-right {
         content: "Page " counter(page) " of " counter(pages);
         font-size: 8pt;
@@ -21,8 +21,8 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       color: #1e293b;
-      line-height: 1.55;
-      font-size: 9.8pt;
+      line-height: 1.5;
+      font-size: 9.2pt;
       background: #ffffff;
       margin: 0;
       padding: 0;
@@ -30,23 +30,23 @@
 
     .header-banner {
       border-bottom: 2px solid #0284c7;
-      padding-bottom: 12px;
-      margin-bottom: 18px;
+      padding-bottom: 10px;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
     }
 
     .brand-title {
-      font-size: 17pt;
+      font-size: 16pt;
       font-weight: 800;
       color: #0f172a;
-      margin: 0 0 4px 0;
+      margin: 0 0 3px 0;
       letter-spacing: -0.5px;
     }
 
     .brand-subtitle {
-      font-size: 10.5pt;
+      font-size: 9.8pt;
       color: #0284c7;
       font-weight: 600;
       margin: 0;
@@ -56,50 +56,50 @@
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
-      padding: 6px 12px;
-      font-size: 8.5pt;
+      padding: 5px 10px;
+      font-size: 8pt;
       color: #475569;
       text-align: right;
     }
 
     h2 {
-      font-size: 12pt;
+      font-size: 11.2pt;
       font-weight: 700;
       color: #0f172a;
       border-left: 4px solid #0284c7;
-      padding-left: 8px;
-      margin-top: 22px;
-      margin-bottom: 10px;
+      padding-left: 7px;
+      margin-top: 18px;
+      margin-bottom: 8px;
       page-break-after: avoid;
     }
 
     h3 {
-      font-size: 10.2pt;
+      font-size: 9.8pt;
       font-weight: 700;
       color: #1e293b;
-      margin-top: 14px;
-      margin-bottom: 6px;
+      margin-top: 12px;
+      margin-bottom: 4px;
       page-break-after: avoid;
     }
 
     p {
-      margin: 0 0 8px 0;
+      margin: 0 0 6px 0;
     }
 
     ul, ol {
-      margin: 0 0 10px 0;
-      padding-left: 20px;
+      margin: 0 0 8px 0;
+      padding-left: 18px;
     }
 
     li {
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .alert-box {
       border-radius: 6px;
-      padding: 10px 14px;
-      margin: 12px 0;
-      font-size: 9.2pt;
+      padding: 8px 12px;
+      margin: 10px 0;
+      font-size: 8.8pt;
       page-break-inside: avoid;
     }
 
@@ -115,17 +115,11 @@
       color: #166534;
     }
 
-    .alert-warning {
-      background: #fffbeb;
-      border-left: 4px solid #f59e0b;
-      color: #92400e;
-    }
-
     code {
       font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-      font-size: 8.8pt;
+      font-size: 8.4pt;
       background: #f1f5f9;
-      padding: 2px 5px;
+      padding: 2px 4px;
       border-radius: 4px;
       color: #0f172a;
       border: 1px solid #e2e8f0;
@@ -133,22 +127,22 @@
 
     pre {
       font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-      font-size: 8.5pt;
+      font-size: 8.2pt;
       background: #0f172a;
       color: #f8fafc;
-      padding: 10px 12px;
-      border-radius: 6px;
-      margin: 8px 0 12px 0;
+      padding: 8px 10px;
+      border-radius: 5px;
+      margin: 6px 0 10px 0;
       overflow-x: auto;
       page-break-inside: avoid;
-      line-height: 1.4;
+      line-height: 1.35;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 12px 0 16px 0;
-      font-size: 8.8pt;
+      margin: 10px 0 14px 0;
+      font-size: 8.2pt;
       page-break-inside: avoid;
     }
 
@@ -157,12 +151,12 @@
       color: #ffffff;
       font-weight: 700;
       text-align: left;
-      padding: 7px 10px;
+      padding: 6px 8px;
       border: 1px solid #1e293b;
     }
 
     td {
-      padding: 6px 10px;
+      padding: 5px 8px;
       border: 1px solid #cbd5e1;
       vertical-align: top;
     }
@@ -174,7 +168,7 @@
     .flowchart-svg {
       width: 100%;
       max-width: 680px;
-      margin: 12px auto;
+      margin: 10px auto;
       display: block;
       page-break-inside: avoid;
     }
@@ -185,9 +179,9 @@
 
     .footer {
       border-top: 1px solid #e2e8f0;
-      margin-top: 25px;
-      padding-top: 8px;
-      font-size: 8pt;
+      margin-top: 20px;
+      padding-top: 6px;
+      font-size: 7.8pt;
       color: #94a3b8;
       display: flex;
       justify-content: space-between;
@@ -200,62 +194,52 @@
   <div class="header-banner">
     <div>
       <div class="brand-title">VERACITY NETWORK MANAGEMENT SYSTEM (V-NMS)</div>
-      <div class="brand-subtitle">Enterprise Troubleshooting Guide: Diagnosing Missing Data & Polling Failures</div>
+      <div class="brand-subtitle">Comprehensive 20-Condition Diagnostic Guide: Missing Telemetry & Polling Failures</div>
     </div>
     <div class="meta-badge">
-      <strong>Standard Operating Procedure</strong><br/>
-      Document ID: SOP-NMS-004<br/>
-      Classification: Technical Reference
+      <strong>Enterprise Standard Operating Procedure</strong><br/>
+      Document ID: SOP-NMS-004-EN (Rev 2)<br/>
+      Scope: 20 Failure Scenarios Across 8 Layers
     </div>
   </div>
 
-  <p>When the V-NMS dashboard reports a device as <strong>Offline</strong>, <strong>Missing Ports</strong>, <strong>Blank Storage/Disk IO</strong>, or <strong>Zero Telemetry</strong>, the underlying root cause can exist across six distinct infrastructure layers. This standard operating procedure provides a comprehensive diagnostic methodology, technical root causes, and verified CLI resolutions.</p>
+  <p>When the V-NMS dashboard reports a device as <strong>Offline</strong>, <strong>Missing Ports</strong>, <strong>Blank Storage/Disk IO</strong>, or <strong>Zero Telemetry</strong>, the underlying cause exists across one of the eight infrastructure layers below. This SOP covers all 20 verified real-world conditions, technical root causes, and CLI resolutions.</p>
 
-  <!-- 30-Second Diagnostic Flowchart SVG -->
+  <!-- Flowchart SVG -->
   <h2>1. Rapid 30-Second Diagnostic Decision Flowchart</h2>
   <svg class="flowchart-svg" viewBox="0 0 700 230" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Step 1: Start -->
     <rect x="10" y="90" width="130" height="48" rx="8" fill="#0284c7"/>
     <text x="75" y="112" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle" font-family="sans-serif">Data Missing?</text>
     <text x="75" y="126" fill="#e0f2fe" font-size="9" text-anchor="middle" font-family="sans-serif">Initiate Diagnostics</text>
 
-    <!-- Arrow 1 -->
     <path d="M140 114 H170" stroke="#64748b" stroke-width="2"/>
 
-    <!-- Step 2: Ping Check -->
     <polygon points="230,70 290,114 230,158 170,114" fill="#f8fafc" stroke="#0284c7" stroke-width="2"/>
     <text x="230" y="110" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle" font-family="sans-serif">Ping Alive?</text>
     <text x="230" y="122" fill="#64748b" font-size="8" text-anchor="middle" font-family="sans-serif">(ICMP Echo)</text>
 
-    <!-- Branch NO (Down) -->
     <path d="M230 158 V190 H280" stroke="#ef4444" stroke-width="2"/>
     <rect x="280" y="172" width="180" height="38" rx="6" fill="#fef2f2" stroke="#fca5a5"/>
     <text x="370" y="188" fill="#991b1b" font-size="8.5" font-weight="bold" text-anchor="middle" font-family="sans-serif">Layer 1-3 Failure:</text>
-    <text x="370" y="200" fill="#b91c1c" font-size="8" text-anchor="middle" font-family="sans-serif">Cable / Switch Port / Routing / Firewall</text>
+    <text x="370" y="200" fill="#b91c1c" font-size="8" text-anchor="middle" font-family="sans-serif">Cable / Port / Routing / Firewall / IP Clash</text>
 
-    <!-- Branch YES (Right) -->
     <path d="M290 114 H320" stroke="#16a34a" stroke-width="2"/>
 
-    <!-- Step 3: Ports Check -->
     <polygon points="380,70 440,114 380,158 320,114" fill="#f8fafc" stroke="#16a34a" stroke-width="2"/>
     <text x="380" y="110" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle" font-family="sans-serif">Ports Open?</text>
     <text x="380" y="122" fill="#64748b" font-size="8" text-anchor="middle" font-family="sans-serif">(22/80/443)</text>
 
-    <!-- Branch NO (Down) -->
     <path d="M380 158 V190 H480" stroke="#ef4444" stroke-width="2"/>
     <rect x="480" y="172" width="200" height="38" rx="6" fill="#fffbeb" stroke="#fde68a"/>
     <text x="580" y="188" fill="#92400e" font-size="8.5" font-weight="bold" text-anchor="middle" font-family="sans-serif">Daemon / Bind Failure:</text>
-    <text x="580" y="200" fill="#b45309" font-size="8" text-anchor="middle" font-family="sans-serif">Service Inactive or Bound to 127.0.0.1</text>
+    <text x="580" y="200" fill="#b45309" font-size="8" text-anchor="middle" font-family="sans-serif">Inactive, Bound to 127.0.0.1, Disk Full</text>
 
-    <!-- Branch YES (Right) -->
     <path d="M440 114 H470" stroke="#16a34a" stroke-width="2"/>
 
-    <!-- Step 4: SNMP/Storage Check -->
     <polygon points="530,70 590,114 530,158 470,114" fill="#f8fafc" stroke="#8b5cf6" stroke-width="2"/>
     <text x="530" y="110" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle" font-family="sans-serif">SNMP / Disk?</text>
     <text x="530" y="122" fill="#64748b" font-size="8" text-anchor="middle" font-family="sans-serif">(UDP 161)</text>
 
-    <!-- Branch YES (Success) -->
     <path d="M590 114 H620" stroke="#16a34a" stroke-width="2"/>
     <rect x="620" y="94" width="70" height="40" rx="6" fill="#16a34a"/>
     <text x="655" y="118" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle" font-family="sans-serif">ALL OK</text>
@@ -267,229 +251,316 @@
   <h3>Condition 1.1: Physical Cable Disconnection, Power Loss, or Switch Port Err-Disabled</h3>
   <ul>
     <li><strong>Symptom:</strong> Target host exhibits 100% packet loss (<code>Destination Host Unreachable</code> or <code>Request timed out</code>).</li>
-    <li><strong>Root Cause:</strong> Power supply failure, disconnected patch cord, or the upstream switch port entered an <code>err-disabled</code> state due to BPDU Guard, Port Security, or link flapping.</li>
-    <li><strong>Diagnostic Command:</strong>
-      <pre>arp -a | findstr "&lt;TARGET_IP&gt;"</pre>
-      If the MAC address is absent from the ARP table, the host is not physically present on the local broadcast link.
-    </li>
-    <li><strong>Resolution Steps:</strong>
-      <ol>
-        <li>Inspect the physical Network Interface Card (NIC) link indicator LED (ensure solid amber/green link).</li>
-        <li>On the upstream managed switch (e.g., Cisco Catalyst 9300), verify the interface state:
-          <pre>show interface status | include &lt;PORT_ID&gt;
-show interface &lt;PORT_ID&gt; err-disabled</pre>
-        </li>
-        <li>Reset the disabled port:
-          <pre>configure terminal
-interface &lt;PORT_ID&gt;
- shutdown
- no shutdown
-exit</pre>
-        </li>
-      </ol>
-    </li>
+    <li><strong>Root Cause:</strong> Power supply failure, disconnected patch cord, or switch port entered <code>err-disabled</code> state.</li>
+    <li><strong>Diagnostic Command:</strong> <code>arp -a | findstr "&lt;TARGET_IP&gt;"</code></li>
+    <li><strong>Resolution:</strong> On upstream switch (Cisco Catalyst): <code>interface &lt;PORT_ID&gt;</code> &rarr; <code>shutdown</code> then <code>no shutdown</code>.</li>
   </ul>
 
   <h3>Condition 1.2: VLAN Assignment Mismatch</h3>
   <ul>
-    <li><strong>Symptom:</strong> Physical link LED is green, but the host cannot communicate with any device on the subnet.</li>
-    <li><strong>Root Cause:</strong> The switch port is assigned to an incorrect Access VLAN (e.g., the target is statically configured for <code>172.168.1.0/24</code> on VLAN 10, but the switch port is assigned to VLAN 1).</li>
-    <li><strong>Resolution Steps:</strong>
-      <pre>configure terminal
-interface &lt;PORT_ID&gt;
- switchport mode access
- switchport access vlan 10
- spanning-tree portfast
-exit</pre>
-    </li>
+    <li><strong>Symptom:</strong> Physical link LED is green, but host cannot communicate with subnet.</li>
+    <li><strong>Root Cause:</strong> Switch port assigned to wrong Access VLAN.</li>
+    <li><strong>Resolution:</strong> <code>interface &lt;PORT_ID&gt;</code> &rarr; <code>switchport access vlan 10</code>.</li>
+  </ul>
+
+  <h3>Condition 1.3: Duplicate IP Address Conflict (ARP Poisoning / IP Clash)</h3>
+  <ul>
+    <li><strong>Symptom:</strong> Telemetry flaps intermittently; MAC address in <code>arp -a</code> keeps changing.</li>
+    <li><strong>Root Cause:</strong> Two hosts configured with the identical static IP.</li>
+    <li><strong>Resolution:</strong> Trace conflicting MAC on switch via <code>show mac address-table address &lt;MAC&gt;</code> and assign a unique IP.</li>
   </ul>
 
   <!-- Category 2 -->
-  <h2>3. Category 2: Routing & Firewall Filtering Failures (Layer 3 & Layer 4)</h2>
+  <h2>3. Category 2: Network & Routing Failures (Layer 3)</h2>
 
   <h3>Condition 2.1: Missing Default Gateway or Inactive Inter-VLAN Routing</h3>
   <ul>
-    <li><strong>Symptom:</strong> V-NMS successfully discovers local subnet devices (<code>172.168.1.0/24</code>), but all targets on neighboring subnets (<code>192.168.10.0/24</code>, <code>10.0.0.0/24</code>) report 100% packet loss.</li>
-    <li><strong>Root Cause:</strong> The V-NMS host lacks a valid default gateway route, or the Core Switch / Firewall is not routing traffic across VLAN boundaries.</li>
-    <li><strong>Diagnostic Command:</strong>
-      <pre>tracert -d &lt;TARGET_IP&gt;</pre>
-    </li>
-    <li><strong>Resolution Steps:</strong> Confirm default gateway reachability (<code>172.168.1.1</code>) and verify that IP routing is globally enabled on the Core Switch:
-      <pre>show ip route
-configure terminal
-ip routing</pre>
-    </li>
+    <li><strong>Symptom:</strong> Local subnet works, but foreign subnets (<code>192.168.10.0/24</code>) report 100% loss.</li>
+    <li><strong>Resolution:</strong> Verify default route on V-NMS host (<code>Get-NetRoute</code>) and enable <code>ip routing</code> on Core Switch.</li>
   </ul>
 
-  <h3>Condition 2.2: Host Operating System Firewall Dropping ICMP Echo Requests</h3>
+  <h3>Condition 2.2: Subnet Mask Mismatch</h3>
   <ul>
-    <li><strong>Symptom:</strong> Web and SSH ports are accessible on the target, but ICMP Ping times out, causing V-NMS to mark the host as "DOWN".</li>
-    <li><strong>Root Cause:</strong> Host security policies drop inbound ICMPv4 Type 8 Echo Requests by default.</li>
-    <li><strong>Resolution (Windows Server - PowerShell as Administrator):</strong>
-      <pre>netsh advfirewall firewall add rule name="Allow ICMPv4-Inbound" protocol=icmpv4:8,any dir=in action=allow</pre>
-    </li>
-    <li><strong>Resolution (Red Hat Enterprise Linux 9 / Rocky Linux 9):</strong>
-      <pre>sudo firewall-cmd --permanent --add-icmp-block-inversion
-sudo firewall-cmd --reload</pre>
-    </li>
-    <li><strong>Resolution (Ubuntu Server / Debian):</strong>
-      <pre>sudo iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
-sudo netfilter-persistent save</pre>
-    </li>
+    <li><strong>Symptom:</strong> Target receives traffic from some hosts but cannot reply to V-NMS monitoring server.</li>
+    <li><strong>Resolution:</strong> Correct subnet mask on target host network adapter to match subnet (e.g. <code>255.255.255.0</code>).</li>
+  </ul>
+
+  <h3>Condition 2.3: MTU Mismatch & UDP Packet Fragmentation Drop</h3>
+  <ul>
+    <li><strong>Symptom:</strong> Small pings succeed, but large SNMP bulk walks hang or time out.</li>
+    <li><strong>Diagnostic Command:</strong> <code>ping &lt;TARGET_IP&gt; -f -l 1472</code></li>
+    <li><strong>Resolution:</strong> Configure MTU/MSS clamping on VPN tunnels (<code>ip mtu 1400</code>, <code>ip tcp adjust-mss 1360</code>) and allow fragmented UDP.</li>
   </ul>
 
   <!-- Category 3 -->
   <div class="page-break"></div>
-  <h2>4. Category 3: SNMP Telemetry & Polling Failures (Layer 7 Application)</h2>
+  <h2>4. Category 3: Security & Firewall Filtering Failures (Layer 4 & Layer 7)</h2>
+
+  <h3>Condition 3.1: Host Firewall Dropping ICMP Echo Requests</h3>
+  <ul>
+    <li><strong>Symptom:</strong> Web/SSH accessible, but ICMP Ping fails, marking host "DOWN".</li>
+    <li><strong>Fix (Windows):</strong> <code>netsh advfirewall firewall add rule name="Allow ICMPv4-In" protocol=icmpv4:8,any dir=in action=allow</code></li>
+    <li><strong>Fix (Linux RHEL 9):</strong> <code>sudo firewall-cmd --permanent --add-icmp-block-inversion && sudo firewall-cmd --reload</code></li>
+  </ul>
+
+  <h3>Condition 3.2: Perimeter Firewall / IPS Rate-Limiting & Port Scan Blacklisting</h3>
+  <ul>
+    <li><strong>Symptom:</strong> Scan discovers first 10-15 devices, then all subsequent targets stop responding for 5 minutes.</li>
+    <li><strong>Root Cause:</strong> Next-Gen Firewall (Check Point / Palo Alto) IPS detects 40 concurrent port scan threads and drops scanner IP.</li>
+    <li><strong>Resolution:</strong> Add V-NMS Server IP (<code>172.168.1.14</code> and <code>172.168.1.11</code>) to the Firewall IPS Whitelist / Exception Table.</li>
+  </ul>
+
+  <!-- Category 4 -->
+  <h2>5. Category 4: SNMP Telemetry & Polling Failures</h2>
 
   <div class="alert-box alert-important">
     <strong>Critical Rule:</strong> When ICMP Ping is alive and responsive, but Interface Bandwidth (0 Mbps), Traffic Graphs, Memory, or CPU utilization remain at 0% or blank, the issue resides in the SNMP agent configuration in 95% of cases.
   </div>
 
-  <h3>Condition 3.1: SNMP Daemon Service Stopped or Uninstalled</h3>
+  <h3>Condition 4.1: SNMP Daemon Service Stopped or Uninstalled</h3>
   <ul>
-    <li><strong>Symptom:</strong> V-NMS log records <code>SNMP Query Timeout (UDP Port 161)</code>.</li>
-    <li><strong>Root Cause:</strong> The SNMP agent service is not running or not installed on the target machine.</li>
-    <li><strong>Resolution (Windows Server):</strong>
-      <pre>Add-WindowsCapability -Online -Name "SNMP.Client~~~~0.0.1.0"
-Set-Service -Name SNMP -StartupType Automatic
-Start-Service -Name SNMP</pre>
-    </li>
-    <li><strong>Resolution (Red Hat Enterprise Linux 9 / Rocky Linux 9):</strong>
-      <pre>sudo dnf install -y net-snmp net-snmp-utils
-sudo systemctl enable --now snmpd</pre>
-    </li>
-    <li><strong>Resolution (Ubuntu Server 22.04 / 24.04 LTS):</strong>
-      <pre>sudo apt update && sudo apt install -y snmpd
-sudo systemctl enable --now snmpd</pre>
-    </li>
+    <li><strong>Fix (Windows):</strong> <code>Add-WindowsCapability -Online -Name "SNMP.Client~~~~0.0.1.0"</code> then <code>Start-Service SNMP</code>.</li>
+    <li><strong>Fix (Linux RHEL/Ubuntu):</strong> <code>sudo systemctl enable --now snmpd</code></li>
   </ul>
 
-  <h3>Condition 3.2: SNMP Community String Mismatch</h3>
+  <h3>Condition 4.2: SNMP Community String Mismatch</h3>
   <ul>
-    <li><strong>Symptom:</strong> V-NMS sends SNMP GET requests, but the target silently drops all UDP packets without replying.</li>
-    <li><strong>Root Cause:</strong> V-NMS queries with default community string <code>public</code>, whereas the target device requires a specific custom string (e.g., <code>corp_nms_ro</code>).</li>
-    <li><strong>Resolution (Cisco Switch / Router):</strong>
-      <pre>configure terminal
-snmp-server community public RO
-exit</pre>
-    </li>
+    <li><strong>Resolution (Cisco Switch):</strong> <code>snmp-server community public RO</code></li>
   </ul>
 
-  <h3>Condition 3.3: SNMP "Allowed Management Hosts" ACL Restriction</h3>
+  <h3>Condition 4.3: SNMP "Allowed Management Hosts" ACL Restriction</h3>
   <ul>
-    <li><strong>Symptom:</strong> Target rejects SNMP queries despite having matching community strings and identical subnet connectivity.</li>
-    <li><strong>Root Cause:</strong> The host security policy restricts SNMP access strictly to an old monitoring IP address, excluding the active V-NMS engine (<code>172.168.1.14</code> and <code>172.168.1.11</code>).</li>
-    <li><strong>Resolution Steps:</strong>
-      <ul>
-        <li><strong>Windows:</strong> <code>services.msc</code> &rarr; <strong>SNMP Service</strong> &rarr; <strong>Security Tab</strong> &rarr; Add V-NMS Server IP <code>172.168.1.14</code>.</li>
-        <li><strong>Linux (<code>/etc/snmp/snmpd.conf</code>):</strong> Add <code>rocommunity public 172.168.1.14</code> and restart snmpd (<code>sudo systemctl restart snmpd</code>).</li>
-      </ul>
-    </li>
+    <li><strong>Resolution:</strong> Whitelist V-NMS Server IPs (<code>172.168.1.14</code> and <code>172.168.1.11</code>) in target SNMP Service properties or <code>/etc/snmp/snmpd.conf</code>.</li>
   </ul>
 
-  <!-- Category 4 -->
-  <h2>5. Category 4: Deep Server Telemetry & Database Socket Issues</h2>
-
-  <h3>Condition 4.1: Database / Microservice Bound Strictly to Localhost (<code>127.0.0.1</code>)</h3>
+  <h3>Condition 4.4: SNMPv3 EngineID, User, or Cipher Authentication Failure</h3>
   <ul>
-    <li><strong>Symptom:</strong> Services run normally inside the server, but V-NMS network discovery scans cannot detect PostgreSQL (<code>5432</code>), MongoDB (<code>27017</code>), Cockpit (<code>9090</code>), or Redis (<code>6379</code>).</li>
-    <li><strong>Root Cause:</strong> Configuration parameters bind the service listener strictly to loopback <code>127.0.0.1</code>, ignoring external network interfaces.</li>
-    <li><strong>Resolution Steps:</strong>
-      <ul>
-        <li><strong>PostgreSQL (<code>postgresql.conf</code>):</strong> <code>listen_addresses = '*'</code> (and authorize subnet in <code>pg_hba.conf</code>)</li>
-        <li><strong>MongoDB (<code>/etc/mongod.conf</code>):</strong> <code>bindIp: 0.0.0.0</code></li>
-        <li><strong>Redis (<code>/etc/redis/redis.conf</code>):</strong> <code>bind 0.0.0.0</code></li>
-      </ul>
-    </li>
+    <li><strong>Resolution:</strong> Verify credentials and encryption ciphers on switch: <code>show snmp user</code> and <code>show snmp engineID</code>.</li>
   </ul>
 
-  <h3>Condition 4.2: Windows WMI / RPC Remote Error (<code>0x800706BA</code> "The RPC Server is Unavailable")</h3>
+  <h3>Condition 4.5: High CPU Starvation Dropping Management Traffic</h3>
   <ul>
-    <li><strong>Symptom:</strong> Physical disk hardware or storage volume queries fail with RPC or WinRM client errors.</li>
-    <li><strong>Root Cause:</strong> Windows DCOM / WMI remote administration endpoints are blocked by the target host firewall.</li>
-    <li><strong>Resolution (Target Windows Host - Administrator PowerShell):</strong>
+    <li><strong>Symptom:</strong> Ping latency jumps from 0.5ms to 300ms; SNMP polling intermittently drops.</li>
+    <li><strong>Resolution:</strong> Check switch CPU via <code>show processes cpu sorted</code> and mitigate control-plane loops.</li>
+  </ul>
+
+  <!-- Category 5 -->
+  <h2>6. Category 5: Host OS & Socket Binding Failures</h2>
+
+  <h3>Condition 5.1: Database / Microservice Bound Strictly to Localhost (<code>127.0.0.1</code>)</h3>
+  <ul>
+    <li><strong>Resolution (PostgreSQL):</strong> Set <code>listen_addresses = '*'</code> in <code>postgresql.conf</code> and authorize subnet in <code>pg_hba.conf</code>.</li>
+    <li><strong>Resolution (MongoDB):</strong> Set <code>bindIp: 0.0.0.0</code> in <code>/etc/mongod.conf</code>.</li>
+    <li><strong>Resolution (Redis):</strong> Set <code>bind 0.0.0.0</code> in <code>/etc/redis/redis.conf</code>.</li>
+  </ul>
+
+  <h3>Condition 5.2: Windows WMI / RPC Remote Error (<code>0x800706BA</code> "The RPC Server is Unavailable")</h3>
+  <ul>
+    <li><strong>Resolution (Run on target Windows host):</strong>
       <pre>winrm quickconfig -q
 netsh advfirewall firewall set rule group="Windows Management Instrumentation (WMI)" new enable=yes
 netsh advfirewall firewall set rule group="Remote Administration" new enable=yes</pre>
     </li>
   </ul>
 
-  <!-- Category 5 -->
-  <h2>6. Category 5: V-NMS Engine & Pipeline Infrastructure Health</h2>
-
-  <h3>Condition 5.1: <code>VNMSService</code> Process Inactive or Terminated</h3>
+  <h3>Condition 5.3: Disk Partition Full (100% Usage / Read-Only Filesystem)</h3>
   <ul>
-    <li><strong>Symptom:</strong> The web browser displays <code>ERR_CONNECTION_REFUSED</code> when accessing <code>http://172.168.1.14:8081</code>.</li>
-    <li><strong>Resolution:</strong>
-      <pre>Get-Service -Name VNMSService | Restart-Service</pre>
-    </li>
+    <li><strong>Symptom:</strong> Target responds to ping, but SSH fails and telemetry stops completely.</li>
+    <li><strong>Resolution:</strong> Check <code>df -h /</code> and purge bloated logs under <code>/var/log</code>.</li>
   </ul>
 
-  <h3>Condition 5.2: PostgreSQL Database Connection Pool Exhaustion</h3>
+  <!-- Category 6 & 7 -->
+  <h2>7. Category 6 & 7: Time, Cryptography, & V-NMS Pipeline Health</h2>
+
+  <h3>Condition 6.1: NTP Clock Skew / Time Drift Exceeding 300 Seconds</h3>
   <ul>
-    <li><strong>Symptom:</strong> Backend engine logs record <code>pq: sorry, too many clients already</code> or <code>connection pool exhausted</code>.</li>
-    <li><strong>Resolution:</strong> In <code>C:\Program Files\PostgreSQL\18\data\postgresql.conf</code>, set <code>max_connections = 250</code> and restart PostgreSQL (<code>Restart-Service -Name postgresql*</code>).</li>
+    <li><strong>Symptom:</strong> Missing data gaps in historical charts; Kerberos / SNMPv3 authentication fails.</li>
+    <li><strong>Fix (Windows):</strong> <code>w32tm /config /manualpeerlist:"172.168.1.10" /syncfromflags:manual /update && w32tm /resync</code></li>
+    <li><strong>Fix (Linux Chrony):</strong> <code>sudo chronyc add server 172.168.1.10 iburst && sudo chronyc makestep</code></li>
   </ul>
 
-  <!-- Category 6: Quick Reference Table -->
-  <h2>7. Category 6: Comprehensive 60-Second Troubleshooting Cheatsheet</h2>
+  <h3>Condition 6.2: SSL/TLS Cipher Suite & Certificate Mismatch</h3>
+  <ul>
+    <li><strong>Symptom:</strong> Cockpit (Port 9090) or API reports <code>An unexpected error occurred on a send</code>.</li>
+    <li><strong>Resolution:</strong> Renew expired certificates and ensure modern TLS 1.2+ cipher support.</li>
+  </ul>
+
+  <h3>Condition 7.1: <code>VNMSService</code> Inactive or Terminated</h3>
+  <ul>
+    <li><strong>Resolution:</strong> <code>Get-Service -Name VNMSService | Restart-Service</code></li>
+  </ul>
+
+  <h3>Condition 7.2: PostgreSQL Database Connection Pool Exhaustion</h3>
+  <ul>
+    <li><strong>Resolution:</strong> In <code>postgresql.conf</code>, set <code>max_connections = 250</code> and restart PostgreSQL service.</li>
+  </ul>
+
+  <!-- Comprehensive 20-Condition Matrix Table -->
+  <div class="page-break"></div>
+  <h2>8. Category 8: Comprehensive 20-Condition Troubleshooting Matrix</h2>
   <table>
     <thead>
       <tr>
-        <th style="width: 25%;">Observed Symptom</th>
-        <th style="width: 35%;">Primary Root Cause</th>
-        <th style="width: 40%;">Immediate Diagnostic &amp; Fix Command</th>
+        <th style="width: 5%;">#</th>
+        <th style="width: 23%;">Observed Symptom</th>
+        <th style="width: 27%;">Primary Root Cause</th>
+        <th style="width: 8%;">Layer</th>
+        <th style="width: 37%;">Immediate Diagnostic &amp; Fix Command</th>
       </tr>
     </thead>
     <tbody>
       <tr>
+        <td><strong>1</strong></td>
         <td><strong>Ping 100% Loss</strong></td>
-        <td>Cable unhooked, port shutdown, wrong IP</td>
+        <td>Cable unplugged, power loss, port shutdown</td>
+        <td>L1/L2</td>
         <td><code>arp -a | findstr &lt;IP&gt;</code></td>
       </tr>
       <tr>
-        <td><strong>Ping Alive, Ports Closed</strong></td>
-        <td>Daemon stopped or bound to <code>127.0.0.1</code></td>
-        <td><code>Test-NetConnection -ComputerName &lt;IP&gt; -Port &lt;PORT&gt;</code></td>
+        <td><strong>2</strong></td>
+        <td><strong>Isolated Host</strong></td>
+        <td>Switch port assigned to incorrect VLAN</td>
+        <td>L2</td>
+        <td><code>switchport access vlan &lt;VLAN_ID&gt;</code></td>
       </tr>
       <tr>
-        <td><strong>Storage / Disk Data Missing</strong></td>
-        <td>Linux mount unmapped / Windows RPC blocked</td>
+        <td><strong>3</strong></td>
+        <td><strong>Flapping Latency &amp; MAC</strong></td>
+        <td>Duplicate IP address clash on subnet</td>
+        <td>L2</td>
+        <td><code>show mac address-table address &lt;MAC&gt;</code></td>
+      </tr>
+      <tr>
+        <td><strong>4</strong></td>
+        <td><strong>Foreign Subnet Down</strong></td>
+        <td>Missing default gateway / Inter-VLAN route</td>
+        <td>L3</td>
+        <td><code>tracert -d &lt;IP&gt;</code> / <code>ip routing</code></td>
+      </tr>
+      <tr>
+        <td><strong>5</strong></td>
+        <td><strong>Local Comm Fails</strong></td>
+        <td>Subnet mask mismatch (e.g. /25 vs /24)</td>
+        <td>L3</td>
+        <td>Verify NIC adapter subnet mask</td>
+      </tr>
+      <tr>
+        <td><strong>6</strong></td>
+        <td><strong>Large SNMP Walks Fail</strong></td>
+        <td>MTU fragmentation dropped along path</td>
+        <td>L3</td>
+        <td><code>ping &lt;IP&gt; -f -l 1472</code></td>
+      </tr>
+      <tr>
+        <td><strong>7</strong></td>
+        <td><strong>Ping Down, Ports Open</strong></td>
+        <td>Host firewall blocking ICMP Echo</td>
+        <td>L4</td>
+        <td><code>netsh advfirewall add rule ... icmpv4:8</code></td>
+      </tr>
+      <tr>
+        <td><strong>8</strong></td>
+        <td><strong>Scan Drops Mid-way</strong></td>
+        <td>Perimeter Firewall IPS rate-limiting</td>
+        <td>L4</td>
+        <td>Add V-NMS IP to Firewall IPS Whitelist</td>
+      </tr>
+      <tr>
+        <td><strong>9</strong></td>
+        <td><strong>SNMP Timeout (UDP 161)</strong></td>
+        <td>SNMP daemon service stopped or absent</td>
+        <td>L7</td>
+        <td><code>Start-Service SNMP</code> / <code>systemctl enable snmpd</code></td>
+      </tr>
+      <tr>
+        <td><strong>10</strong></td>
+        <td><strong>SNMP Silent Drop</strong></td>
+        <td>Community string mismatch (not public)</td>
+        <td>L7</td>
+        <td><code>snmp-server community public RO</code></td>
+      </tr>
+      <tr>
+        <td><strong>11</strong></td>
+        <td><strong>SNMP Query Rejected</strong></td>
+        <td>Host ACL allows only old monitoring IP</td>
+        <td>L7</td>
+        <td>Whitelist <code>172.168.1.14</code> in SNMP properties</td>
+      </tr>
+      <tr>
+        <td><strong>12</strong></td>
+        <td><strong>SNMPv3 Auth Fails</strong></td>
+        <td>EngineID / SHA / AES cipher mismatch</td>
+        <td>L7</td>
+        <td>Verify <code>show snmp user</code> credentials</td>
+      </tr>
+      <tr>
+        <td><strong>13</strong></td>
+        <td><strong>Intermittent Polling Loss</strong></td>
+        <td>High CPU starvation on target switch</td>
+        <td>L7</td>
+        <td><code>show processes cpu sorted</code></td>
+      </tr>
+      <tr>
+        <td><strong>14</strong></td>
+        <td><strong>Ports Undetected</strong></td>
+        <td>Service bound strictly to <code>127.0.0.1</code></td>
+        <td>L4</td>
+        <td>Set <code>listen_addresses = '*'</code> / <code>bindIp: 0.0.0.0</code></td>
+      </tr>
+      <tr>
+        <td><strong>15</strong></td>
+        <td><strong>Storage Disks Blank</strong></td>
+        <td>Windows WMI / RPC port blocked</td>
+        <td>L7</td>
         <td><code>winrm quickconfig -q</code></td>
       </tr>
       <tr>
-        <td><strong>Linux Node Misclassified as Switch</strong></td>
-        <td>Port 80/443 fallback misdetection</td>
-        <td>Update to V-NMS v2.4 (OUI-based classification)</td>
+        <td><strong>16</strong></td>
+        <td><strong>Services Crash Randomly</strong></td>
+        <td>Disk partition full (100% usage)</td>
+        <td>L7</td>
+        <td>Check <code>df -h /</code> and purge old logs</td>
       </tr>
       <tr>
-        <td><strong>Foreign Subnet Targets Inactive</strong></td>
-        <td>Missing Core Switch Inter-VLAN routing</td>
-        <td>Verify <code>ip routing</code> on Cisco Core Switch</td>
+        <td><strong>17</strong></td>
+        <td><strong>Timestamp / Chart Gaps</strong></td>
+        <td>NTP clock drift exceeding 300 seconds</td>
+        <td>L7</td>
+        <td><code>w32tm /resync</code> / <code>chronyc makestep</code></td>
       </tr>
       <tr>
-        <td><strong>SNMP Graphs Flat (0 Mbps)</strong></td>
-        <td>Community string mismatch or UDP 161 blocked</td>
-        <td>Execute <code>snmp-server community public RO</code> on switch</td>
+        <td><strong>18</strong></td>
+        <td><strong>HTTPS / Cockpit Fails</strong></td>
+        <td>TLS cipher / expired SSL certificate</td>
+        <td>L7</td>
+        <td>Verify TLS 1.2+ and certificate validity</td>
       </tr>
       <tr>
-        <td><strong>Browser Shows Stale / Cached UI</strong></td>
-        <td>Outdated local service binary or browser cache</td>
-        <td>Restart local <code>VNMSService</code> and press <code>Ctrl + Shift + R</code></td>
+        <td><strong>19</strong></td>
+        <td><strong>Web UI Unreachable</strong></td>
+        <td><code>VNMSService</code> process crashed</td>
+        <td>App</td>
+        <td><code>Restart-Service -Name VNMSService</code></td>
+      </tr>
+      <tr>
+        <td><strong>20</strong></td>
+        <td><strong>DB Ingestion Halts</strong></td>
+        <td>PostgreSQL connection pool exhausted</td>
+        <td>DB</td>
+        <td>Set <code>max_connections = 250</code> in postgresql.conf</td>
       </tr>
     </tbody>
   </table>
 
   <div class="alert-box alert-tip">
-    <strong>💡 Network Engineering Pro-Tip:</strong><br/>
-    To verify complete Layer-3 and Layer-4 end-to-end reachability to any network node in under 3 seconds, execute:<br/>
+    <strong>💡 Network Engineering 3-Second Verification Command:</strong><br/>
+    Execute in PowerShell to test complete Layer-3 routing and Layer-4 service reachability in one step:<br/>
     <code>Test-NetConnection -ComputerName &lt;TARGET_IP&gt; -Port &lt;PORT_NUMBER&gt;</code><br/>
-    If <code>TcpTestSucceeded : True</code> is returned, physical cabling, inter-VLAN routing, and firewall policies are 100% verified, isolating the issue purely to host authentication or service configuration.
+    When <code>TcpTestSucceeded : True</code> is returned, physical cabling, inter-VLAN routing, and firewall policies are 100% verified, isolating the issue purely to host authentication or service configuration.
   </div>
 
   <div class="footer">
-    <span>Veracity Network Management System (V-NMS) &bull; Enterprise Troubleshooting Standard</span>
+    <span>Veracity Network Management System (V-NMS) &bull; Enterprise Troubleshooting Standard SOP-NMS-004-EN</span>
     <span>Confidential &bull; Generated for Network Operations Center</span>
   </div>
 
