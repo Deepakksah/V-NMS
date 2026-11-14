@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   ZoomIn, 
   ZoomOut,
@@ -6,14 +6,17 @@ import {
   Minimize2,
   RotateCcw,
   Search,
-  Filter,
   Server, 
   Shield, 
   Network, 
   CheckCircle2,
   Clock,
   ExternalLink,
-  Laptop
+  Laptop,
+  Table,
+  X,
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
 import type { Device } from '../../types';
 import { VendorLogo } from '../../components/VendorLogo';
@@ -61,8 +64,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
   // Navigation & Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTier, setSelectedTier] = useState<string>('all');
-  const [activeBottomTab, setActiveBottomTab] = useState<'links' | 'vlans' | 'health'>('links');
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const [showMatrixModal, setShowMatrixModal] = useState(false);
+  const [matrixTab, setMatrixTab] = useState<'links' | 'vlans' | 'health'>('links');
 
   // Canvas Viewport Transforms (Zoom & Pan)
   const [zoomLevel, setZoomLevel] = useState<number>(1);
@@ -77,7 +82,6 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
 
   // Generate or Synthesize High-Density Topology Nodes from Live Inventory
   const topologyNodes = useMemo<CustomNode[]>(() => {
-    // If devices exist from backend, map them accurately into structural network tiers
     const devMap = new Map<string, Device>();
     devices.forEach(d => {
       if (d.ip_address) devMap.set(d.ip_address, d);
@@ -87,7 +91,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
 
     const nodes: CustomNode[] = [
       // -------------------------------------------------------------
-      // TIER 1: PERIMETER GATEWAY & TIME REFERENCE APPLIANCE (Y = 65)
+      // TIER 1: PERIMETER GATEWAY & TIME REFERENCE APPLIANCE (Y = 60)
       // -------------------------------------------------------------
       {
         id: 'node-1',
@@ -100,7 +104,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.1')?.mac_address || '00:1C:7F:2E:8A:10',
         status: 'UP',
         x: 520,
-        y: 65,
+        y: 60,
         ports: ['80 HTTP', '443 HTTPS', '22 SSH'],
         cpuUsage: 28,
         ramUsage: 44,
@@ -119,7 +123,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.10')?.mac_address || '00:80:C8:11:44:0A',
         status: 'UP',
         x: 740,
-        y: 65,
+        y: 60,
         ports: ['123 NTP', '80 HTTP', '161 SNMP'],
         cpuUsage: 12,
         ramUsage: 18,
@@ -129,7 +133,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
       },
 
       // -------------------------------------------------------------
-      // TIER 2: DISTRIBUTION & CORE SWITCHING FABRIC (Y = 190)
+      // TIER 2: DISTRIBUTION & CORE SWITCHING FABRIC (Y = 185)
       // -------------------------------------------------------------
       {
         id: 'node-30',
@@ -142,7 +146,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.30')?.mac_address || '00:26:98:8C:3B:40',
         status: 'UP',
         x: 380,
-        y: 190,
+        y: 185,
         ports: ['22 SSH', '161 SNMP', '80 HTTP'],
         cpuUsage: 22,
         ramUsage: 36,
@@ -161,7 +165,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.31')?.mac_address || 'B4:FB:E4:6D:81:92',
         status: 'UP',
         x: 720,
-        y: 190,
+        y: 185,
         ports: ['443 HTTPS', '22 SSH', '161 SNMP'],
         cpuUsage: 19,
         ramUsage: 32,
@@ -171,7 +175,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
       },
 
       // -------------------------------------------------------------
-      // TIER 3: CORE COMPUTE, NOC HOST & STORAGE SERVERS (Y = 320)
+      // TIER 3: CORE COMPUTE, NOC HOST & STORAGE SERVERS (Y = 315)
       // -------------------------------------------------------------
       {
         id: 'node-11',
@@ -180,11 +184,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         tier: 'server',
         type: 'server',
         vendor: getDev('172.168.1.11')?.vendor || 'Microsoft',
-        model: getDev('172.168.1.11')?.hardware || 'Windows 10 Enterprise NOC Workstation',
+        model: getDev('172.168.1.11')?.hardware || 'Windows 10 Enterprise NOC Host',
         mac: getDev('172.168.1.11')?.mac_address || '10:65:30:17:F1:64',
         status: 'UP',
         x: 120,
-        y: 320,
+        y: 315,
         ports: ['135 RPC', '445 SMB', '8080 Web', '8081 NOC Engine', '3389 RDP'],
         cpuUsage: 34,
         ramUsage: 58,
@@ -203,7 +207,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.14')?.mac_address || '10:65:30:18:61:A0',
         status: 'UP',
         x: 270,
-        y: 320,
+        y: 315,
         ports: ['135 RPC', '445 SMB', '5432 PostgreSQL 18', '8081 Production NOC', '3389 RDP'],
         cpuUsage: 42,
         ramUsage: 64,
@@ -222,8 +226,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.15')?.mac_address || 'F0:D4:E2:E9:80:15',
         status: 'UP',
         x: 420,
-        y: 320,
-        ports: ['135 RPC', '445 SMB', '3389 RDP', '5900 VNC'],
+        y: 315,
+        ports: ['135 RPC', '445 SMB', '3389 RDP'],
         cpuUsage: 38,
         ramUsage: 51,
         diskUsage: 45,
@@ -241,7 +245,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.16')?.mac_address || 'F0:D4:E2:E9:80:16',
         status: 'UP',
         x: 570,
-        y: 320,
+        y: 315,
         ports: ['135 RPC', '445 SMB', '3389 RDP'],
         cpuUsage: 29,
         ramUsage: 47,
@@ -260,7 +264,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.22')?.mac_address || '00:25:90:E1:92:22',
         status: 'UP',
         x: 720,
-        y: 320,
+        y: 315,
         ports: ['3260 iSCSI', '445 SMB', '3389 RDP'],
         cpuUsage: 31,
         ramUsage: 68,
@@ -279,7 +283,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.72')?.mac_address || 'F0:D4:E2:E9:99:72',
         status: 'UP',
         x: 870,
-        y: 320,
+        y: 315,
         ports: ['5432 PostgreSQL', '22 SSH'],
         cpuUsage: 45,
         ramUsage: 62,
@@ -298,7 +302,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.12')?.mac_address || '00:15:5D:80:12:01',
         status: 'UP',
         x: 990,
-        y: 320,
+        y: 315,
         ports: ['80 HTTP', '443 HTTPS', '3389 RDP'],
         cpuUsage: 26,
         ramUsage: 41,
@@ -308,7 +312,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
       },
 
       // -------------------------------------------------------------
-      // TIER 4: RED HAT ENTERPRISE LINUX 9 CLUSTER (Y = 460)
+      // TIER 4: RED HAT ENTERPRISE LINUX 9 CLUSTER (Y = 450)
       // -------------------------------------------------------------
       {
         id: 'node-17',
@@ -321,7 +325,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.17')?.mac_address || 'F0:D4:E2:E9:AC:17',
         status: 'UP',
         x: 180,
-        y: 460,
+        y: 450,
         ports: ['22 SSH', '5432 PostgreSQL-16', '9090 Cockpit'],
         cpuUsage: 48,
         ramUsage: 72,
@@ -340,7 +344,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.18')?.mac_address || 'F0:D4:E2:E9:AC:A4',
         status: 'UP',
         x: 350,
-        y: 460,
+        y: 450,
         ports: ['22 SSH', '80 Nginx', '8000 FastAPI', '9090 Cockpit'],
         cpuUsage: 52,
         ramUsage: 68,
@@ -359,7 +363,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.19')?.mac_address || 'F0:D4:E2:E9:AC:19',
         status: 'UP',
         x: 520,
-        y: 460,
+        y: 450,
         ports: ['22 SSH', '6379 Redis-7', '9090 Cockpit'],
         cpuUsage: 34,
         ramUsage: 82,
@@ -378,7 +382,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.20')?.mac_address || 'F0:D4:E2:E9:AC:20',
         status: 'UP',
         x: 690,
-        y: 460,
+        y: 450,
         ports: ['22 SSH', '27017 MongoDB', '9090 Cockpit'],
         cpuUsage: 46,
         ramUsage: 76,
@@ -397,7 +401,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.21')?.mac_address || 'F0:D4:E2:E9:AC:21',
         status: 'UP',
         x: 860,
-        y: 460,
+        y: 450,
         ports: ['22 SSH', '6443 K8s API', '9090 Cockpit'],
         cpuUsage: 55,
         ramUsage: 79,
@@ -407,7 +411,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
       },
 
       // -------------------------------------------------------------
-      // TIER 5: ACCESS WORKSTATIONS & DEPARTMENT LEAF POOL (Y = 585)
+      // TIER 5: ACCESS WORKSTATIONS & DEPARTMENT LEAF POOL (Y = 575)
       // -------------------------------------------------------------
       {
         id: 'ws-pool-dev',
@@ -420,7 +424,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: '70:B5:E8:22:51:00',
         status: 'UP',
         x: 240,
-        y: 585,
+        y: 575,
         ports: ['135 RPC', '445 SMB', '3389 RDP'],
         cpuUsage: 18,
         ramUsage: 45,
@@ -430,7 +434,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
       },
       {
         id: 'ws-pool-ops',
-        label: 'NOC Operations (HP Elite .56-.60)',
+        label: 'NOC Operations (HP .56-.60)',
         ip: '172.168.1.56 - .60',
         tier: 'workstation',
         type: 'workstation',
@@ -439,7 +443,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: '3C:52:82:11:56:00',
         status: 'UP',
         x: 480,
-        y: 585,
+        y: 575,
         ports: ['135 RPC', '445 SMB'],
         cpuUsage: 24,
         ramUsage: 52,
@@ -458,7 +462,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: '3C:52:82:99:62:00',
         status: 'UP',
         x: 720,
-        y: 585,
+        y: 575,
         ports: ['135 RPC', '445 SMB'],
         cpuUsage: 16,
         ramUsage: 38,
@@ -468,7 +472,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
       },
       {
         id: 'node-13',
-        label: getDev('172.168.1.13')?.hostname || 'win-backup-agent13',
+        label: getDev('172.168.1.13')?.hostname || 'win-backup-vault13',
         ip: '172.168.1.13',
         tier: 'workstation',
         type: 'server',
@@ -477,7 +481,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         mac: getDev('172.168.1.13')?.mac_address || '00:15:5D:80:13:00',
         status: 'UP',
         x: 940,
-        y: 585,
+        y: 575,
         ports: ['445 SMB', '3389 RDP'],
         cpuUsage: 21,
         ramUsage: 46,
@@ -810,134 +814,88 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', minHeight: 'calc(100vh - 120px)' }}>
-      {/* 1. Header Toolbar & Statistics Bar */}
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      minHeight: 'calc(100vh - 85px)',
+      gap: '8px',
+      overflow: 'hidden'
+    }}>
+      {/* 1. Compact Single-Row Enterprise NOC Control Header */}
       <div style={{
         backgroundColor: '#ffffff',
-        borderRadius: '14px',
+        borderRadius: '12px',
         border: '1px solid #e2e8f0',
-        padding: '20px 24px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+        padding: '8px 16px',
+        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
         display: 'flex',
-        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '16px'
+        flexWrap: 'wrap',
+        gap: '10px',
+        flexShrink: 0
       }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: '#0284c7',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 4px 10px rgba(2, 132, 199, 0.3)'
-            }}>
-              <Network size={22} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-                Autonomous Network Topology & LLDP/CDP Fabric
+        {/* Left: Title & Live Summary Badges */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            background: '#0284c7',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ffffff',
+            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+          }}>
+            <Network size={18} />
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+                Autonomous Network Topology
               </h2>
-              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '2px 0 0 0' }}>
-                Full-mesh multi-tier topology map â€¢ Real-time link telemetry â€¢ Subnet <code>172.168.1.0/24</code>
-              </p>
+              <span style={{ fontSize: '0.66rem', padding: '1px 6px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
+                172.168.1.0/24
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Real-time Telemetry Summary Chips */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-          <div style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '10px',
-            padding: '8px 14px',
-            textAlign: 'left'
-          }}>
-            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, display: 'block' }}>TOTAL MONITORED NODES</span>
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
+            <span style={{ fontSize: '0.72rem', background: '#f8fafc', border: '1px solid #e2e8f0', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#334155' }}>
               33 Active Hosts
             </span>
-          </div>
-
-          <div style={{
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-            borderRadius: '10px',
-            padding: '8px 14px',
-            textAlign: 'left'
-          }}>
-            <span style={{ fontSize: '0.7rem', color: '#16a34a', fontWeight: 600, display: 'block' }}>LLDP/CDP DISCOVERED LINKS</span>
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#15803d' }}>
-              20 Interconnects
+            <span style={{ fontSize: '0.72rem', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#16a34a' }}>
+              20 LLDP Links
             </span>
-          </div>
-
-          <div style={{
-            background: '#eff6ff',
-            border: '1px solid #bfdbfe',
-            borderRadius: '10px',
-            padding: '8px 14px',
-            textAlign: 'left'
-          }}>
-            <span style={{ fontSize: '0.7rem', color: '#1d4ed8', fontWeight: 600, display: 'block' }}>AGGREGATED THROUGHPUT</span>
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1e40af' }}>
-              44.0 Gbps Fabric
-            </span>
-          </div>
-
-          <div style={{
-            background: '#faf5ff',
-            border: '1px solid #e9d5ff',
-            borderRadius: '10px',
-            padding: '8px 14px',
-            textAlign: 'left'
-          }}>
-            <span style={{ fontSize: '0.7rem', color: '#7e22ce', fontWeight: 600, display: 'block' }}>SPANNING TREE STATE</span>
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#6b21a8' }}>
-              Rapid-PVST+ (0 Loops)
+            <span style={{ fontSize: '0.72rem', background: '#eff6ff', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#1d4ed8' }}>
+              44 Gbps Fabric
             </span>
           </div>
         </div>
-      </div>
 
-      {/* 2. Interactive Controls & Tier Filters Toolbar */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px'
-      }}>
-        {/* Tier Filter Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Filter size={14} /> Tier Filter:
-          </span>
+        {/* Center: Tier Quick Filter Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           {[
-            { id: 'all', label: 'All Tiers (33 Nodes)' },
-            { id: 'switch', label: 'Core & Switches (4)' },
-            { id: 'linux', label: 'RHEL 9 Linux Cluster (5)' },
+            { id: 'all', label: 'All Tiers (33)' },
+            { id: 'switch', label: 'Core/Switches (4)' },
+            { id: 'linux', label: 'RHEL 9 Cluster (5)' },
             { id: 'server', label: 'Enterprise Windows & SAN (7)' },
-            { id: 'workstation', label: 'Department Access (17)' }
+            { id: 'workstation', label: 'Workstations (17)' }
           ].map(t => (
             <button
               key={t.id}
               onClick={() => setSelectedTier(t.id)}
               style={{
-                padding: '6px 12px',
-                borderRadius: '8px',
-                fontSize: '0.78rem',
+                padding: '4px 10px',
+                borderRadius: '6px',
+                fontSize: '0.74rem',
                 fontWeight: selectedTier === t.id ? 700 : 500,
                 border: '1px solid',
                 borderColor: selectedTier === t.id ? '#0284c7' : '#cbd5e1',
                 backgroundColor: selectedTier === t.id ? '#0284c7' : '#ffffff',
-                color: selectedTier === t.id ? '#ffffff' : '#334155',
+                color: selectedTier === t.id ? '#ffffff' : '#475569',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
@@ -947,87 +905,136 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
           ))}
         </div>
 
-        {/* Search & Canvas Zoom Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Quick Node Search */}
+        {/* Right: Search, Modal Trigger & Zoom Tools */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Node Search Bar */}
           <div style={{
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#ffffff',
-            borderRadius: '8px',
+            backgroundColor: '#f8fafc',
+            borderRadius: '6px',
             border: '1px solid #cbd5e1',
-            padding: '0 10px'
+            padding: '0 8px'
           }}>
-            <Search size={14} color="#64748b" />
+            <Search size={13} color="#64748b" />
             <input
               type="text"
-              placeholder="Search Host, IP, Vendor..."
+              placeholder="Search Node / IP..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               style={{
                 border: 'none',
                 outline: 'none',
-                padding: '6px 8px',
-                fontSize: '0.8rem',
-                width: '180px',
+                padding: '4px 6px',
+                fontSize: '0.76rem',
+                width: '140px',
                 backgroundColor: 'transparent'
               }}
             />
           </div>
 
-          {/* Zoom In, Out, Reset, Fullscreen */}
+          {/* Interconnect Matrix Modal Button */}
+          <button
+            onClick={() => setShowMatrixModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              backgroundColor: '#ffffff',
+              color: '#0f172a',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+            title="Open LLDP Interconnect Matrix and VLAN Segmentation"
+          >
+            <Table size={13} color="#0284c7" />
+            <span>Links Matrix (20)</span>
+          </button>
+
+          {/* Canvas Zoom Controls */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             backgroundColor: '#ffffff',
-            borderRadius: '8px',
+            borderRadius: '6px',
             border: '1px solid #cbd5e1',
             overflow: 'hidden'
           }}>
             <button
-              onClick={() => setZoomLevel(z => Math.min(z + 0.15, 2.2))}
-              title="Zoom In"
-              style={{ padding: '6px 10px', background: 'transparent', border: 'none', borderRight: '1px solid #e2e8f0', cursor: 'pointer', color: '#334155' }}
+              onClick={() => setZoomLevel(z => Math.max(z - 0.15, 0.55))}
+              title="Zoom Out"
+              style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#334155' }}
             >
-              <ZoomIn size={15} />
+              <ZoomOut size={13} />
             </button>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0 8px', color: '#475569', minWidth: '45px', textAlign: 'center' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0 5px', color: '#475569', minWidth: '40px', textAlign: 'center' }}>
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
-              onClick={() => setZoomLevel(z => Math.max(z - 0.15, 0.55))}
-              title="Zoom Out"
-              style={{ padding: '6px 10px', background: 'transparent', border: 'none', borderLeft: '1px solid #e2e8f0', cursor: 'pointer', color: '#334155' }}
+              onClick={() => setZoomLevel(z => Math.min(z + 0.15, 2.2))}
+              title="Zoom In"
+              style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#334155' }}
             >
-              <ZoomOut size={15} />
+              <ZoomIn size={13} />
             </button>
             <button
               onClick={resetView}
-              title="Reset View (100%)"
-              style={{ padding: '6px 10px', background: 'transparent', border: 'none', borderLeft: '1px solid #e2e8f0', cursor: 'pointer', color: '#334155' }}
+              title="Reset View"
+              style={{ padding: '4px 8px', background: 'transparent', border: 'none', borderLeft: '1px solid #e2e8f0', cursor: 'pointer', color: '#334155' }}
             >
-              <RotateCcw size={14} />
+              <RotateCcw size={12} />
             </button>
             <button
               onClick={() => setIsFullScreen(!isFullScreen)}
-              title={isFullScreen ? 'Exit Full Screen' : 'Full Screen Canvas'}
-              style={{ padding: '6px 10px', background: isFullScreen ? '#e0f2fe' : 'transparent', border: 'none', borderLeft: '1px solid #e2e8f0', cursor: 'pointer', color: '#0284c7' }}
+              title={isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
+              style={{ padding: '4px 8px', background: isFullScreen ? '#e0f2fe' : 'transparent', border: 'none', borderLeft: '1px solid #e2e8f0', cursor: 'pointer', color: '#0284c7' }}
             >
-              {isFullScreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+              {isFullScreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
             </button>
           </div>
+
+          {/* Toggle Inspector Panel Button */}
+          {!isFullScreen && (
+            <button
+              onClick={() => setIsInspectorOpen(!isInspectorOpen)}
+              title={isInspectorOpen ? 'Collapse Inspector Sidebar' : 'Expand Inspector Sidebar'}
+              style={{
+                padding: '5px 8px',
+                borderRadius: '6px',
+                border: '1px solid #cbd5e1',
+                background: isInspectorOpen ? '#f1f5f9' : '#0284c7',
+                color: isInspectorOpen ? '#475569' : '#ffffff',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                fontSize: '0.72rem',
+                fontWeight: 700
+              }}
+            >
+              {isInspectorOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+              <span>{isInspectorOpen ? 'Hide' : 'Inspector'}</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 3. Main Topology Canvas & Inspector Grid */}
+      {/* 2. Full-Page Topo Canvas & Inspector Grid (Takes 100% Available Screen Space) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isFullScreen ? '1fr' : 'minmax(650px, 3.2fr) minmax(320px, 1fr)',
-        gap: '20px',
-        alignItems: 'stretch'
+        gridTemplateColumns: (!isInspectorOpen || isFullScreen) ? '1fr' : '1fr 340px',
+        gap: '12px',
+        flex: 1,
+        minHeight: 0,
+        height: 'calc(100vh - 145px)',
+        overflow: 'hidden'
       }}>
-        {/* SVG Interactive Canvas */}
+        {/* Full-Height SVG Interactive Canvas */}
         <div 
           ref={canvasRef}
           onMouseDown={handleMouseDown}
@@ -1036,12 +1043,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
           onMouseLeave={handleMouseUp}
           style={{
             position: 'relative',
-            height: isFullScreen ? '82vh' : '640px',
+            height: '100%',
+            width: '100%',
             overflow: 'hidden',
-            backgroundColor: '#0a0f1d', // Professional Deep Dark NOC Canvas
-            borderRadius: '16px',
+            backgroundColor: '#0a0f1d',
+            borderRadius: '14px',
             border: '1px solid #1e293b',
-            boxShadow: 'inset 0 2px 10px rgba(0, 0, 0, 0.4), 0 8px 20px rgba(0,0,0,0.06)',
+            boxShadow: 'inset 0 2px 10px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0,0,0,0.08)',
             cursor: isDragging ? 'grabbing' : 'grab',
             userSelect: 'none'
           }}
@@ -1049,29 +1057,29 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
           {/* Blueprint Grid & Tier Label Overlay */}
           <div style={{
             position: 'absolute',
-            top: '16px',
-            left: '20px',
+            top: '12px',
+            left: '16px',
             zIndex: 10,
             pointerEvents: 'none',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px'
+            gap: '2px'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
-              <span style={{ fontSize: '0.74rem', color: '#38bdf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                LIVE ENTERPRISE FABRIC
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+              <span style={{ fontSize: '0.7rem', color: '#38bdf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                FULL-MESH ENTERPRISE TOPOLOGY FABRIC
               </span>
             </div>
-            <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
-              Click any Node or Link to inspect telemetry â€¢ Drag to pan â€¢ Scroll to zoom
+            <span style={{ fontSize: '0.66rem', color: '#64748b' }}>
+              Click any Node or Link to inspect | Drag to pan | Scroll or use +/- to zoom
             </span>
           </div>
 
           {/* Canvas SVG */}
           <svg
             style={{ width: '100%', height: '100%' }}
-            viewBox="0 0 1150 670"
+            viewBox="0 0 1150 650"
             preserveAspectRatio="xMidYMid meet"
           >
             {/* Grid Pattern Definition */}
@@ -1080,24 +1088,19 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                 <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" strokeWidth="0.8" opacity="0.6" />
                 <circle cx="0" cy="0" r="1" fill="#334155" />
               </pattern>
-              {/* Linear Gradients for Fiber Links */}
-              <linearGradient id="trunkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#38bdf8" />
-                <stop offset="100%" stopColor="#818cf8" />
-              </linearGradient>
             </defs>
 
             {/* Transform Layer for Zoom & Pan */}
-            <g transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`} style={{ transformOrigin: '550px 335px', transition: isDragging ? 'none' : 'transform 0.15s ease-out' }}>
+            <g transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`} style={{ transformOrigin: '550px 325px', transition: isDragging ? 'none' : 'transform 0.15s ease-out' }}>
               {/* Background Grid */}
               <rect x="-1000" y="-1000" width="3500" height="3000" fill="url(#noc-grid)" />
 
               {/* Tier Background Strips / Guides */}
-              <text x="35" y="68" fill="#475569" fontSize="10" fontWeight="700" letterSpacing="1">TIER 1: PERIMETER GATEWAY & TIME</text>
-              <text x="35" y="195" fill="#475569" fontSize="10" fontWeight="700" letterSpacing="1">TIER 2: DISTRIBUTION SWITCH FABRIC</text>
-              <text x="35" y="325" fill="#475569" fontSize="10" fontWeight="700" letterSpacing="1">TIER 3: CORE COMPUTE, NOC & SAN STORAGE</text>
-              <text x="35" y="465" fill="#475569" fontSize="10" fontWeight="700" letterSpacing="1">TIER 4: RHEL 9 ENTERPRISE LINUX CLUSTER</text>
-              <text x="35" y="590" fill="#475569" fontSize="10" fontWeight="700" letterSpacing="1">TIER 5: ACCESS WORKSTATIONS & LEAF POOL</text>
+              <text x="35" y="63" fill="#475569" fontSize="9.5" fontWeight="700" letterSpacing="1">TIER 1: PERIMETER GATEWAY & STRATUM-1 TIME</text>
+              <text x="35" y="188" fill="#475569" fontSize="9.5" fontWeight="700" letterSpacing="1">TIER 2: DISTRIBUTION SWITCHING FABRIC</text>
+              <text x="35" y="318" fill="#475569" fontSize="9.5" fontWeight="700" letterSpacing="1">TIER 3: CORE COMPUTE, NOC HOST & STORAGE SAN</text>
+              <text x="35" y="453" fill="#475569" fontSize="9.5" fontWeight="700" letterSpacing="1">TIER 4: RHEL 9 ENTERPRISE LINUX CLUSTER</text>
+              <text x="35" y="578" fill="#475569" fontSize="9.5" fontWeight="700" letterSpacing="1">TIER 5: ACCESS WORKSTATIONS & LEAF POOL</text>
 
               {/* Interconnect Links (Rendered under nodes) */}
               {topologyLinks.map(link => {
@@ -1124,10 +1127,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedLinkId(link.id);
+                      if (!isInspectorOpen) setIsInspectorOpen(true);
                     }} 
                     style={{ cursor: 'pointer' }}
                   >
-                    {/* Wider transparent hit target line */}
+                    {/* Transparent wide line for easy clicking */}
                     <line
                       x1={srcNode.x}
                       y1={srcNode.y}
@@ -1136,7 +1140,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                       stroke="transparent"
                       strokeWidth={14}
                     />
-                    {/* Actual Link Wire */}
+                    {/* Actual Physical Wire Line */}
                     <line
                       x1={srcNode.x}
                       y1={srcNode.y}
@@ -1151,9 +1155,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                     {/* Mid-line Traffic Pill Badge */}
                     <g transform={`translate(${midX}, ${midY})`}>
                       <rect
-                        x="-30"
+                        x="-28"
                         y="-9"
-                        width="60"
+                        width="56"
                         height="18"
                         rx="5"
                         fill="#0f172a"
@@ -1169,7 +1173,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                         fontFamily="monospace"
                         textAnchor="middle"
                       >
-                        {link.speedGbps}G â€¢ {link.utilizationPercent}%
+                        {link.speedGbps}G | {link.utilizationPercent}%
                       </text>
                     </g>
                   </g>
@@ -1193,10 +1197,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                       e.stopPropagation();
                       setSelectedNodeId(node.id);
                       setSelectedLinkId(null);
+                      if (!isInspectorOpen) setIsInspectorOpen(true);
                     }}
                     style={{ cursor: 'pointer' }}
                   >
-                    {/* Animated Pulsing Ring on Selected or Searched Node */}
+                    {/* Animated Pulsing Halo on Selected or Searched Node */}
                     {(isSelected || isHighlightedSearch) && (
                       <circle r="26" fill="none" stroke="#38bdf8" strokeWidth="2.5" strokeDasharray="5,3">
                         <animateTransform
@@ -1210,7 +1215,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                       </circle>
                     )}
 
-                    {/* Outer Glow Circle */}
+                    {/* Outer Node Circle */}
                     <circle
                       r="19"
                       fill="#0f172a"
@@ -1222,7 +1227,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                     {/* Inner Device Tier Badge Dot */}
                     <circle r="7" fill={color} />
 
-                    {/* Live Online Ping Dot */}
+                    {/* Live Online Ping Status Dot */}
                     <circle
                       cx="13"
                       cy="-13"
@@ -1241,7 +1246,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                       textAnchor="middle"
                       filter="drop-shadow(0 1px 2px #000)"
                     >
-                      {node.label.length > 20 ? node.label.substring(0, 19) + 'â€¦' : node.label}
+                      {node.label.length > 20 ? node.label.substring(0, 19) + '...' : node.label}
                     </text>
 
                     {/* Monospace IPv4 Address */}
@@ -1262,35 +1267,37 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
           </svg>
         </div>
 
-        {/* Right Side: Selected Node / Link Inspector Panel */}
-        {!isFullScreen && (
+        {/* Right Side: Selected Node / Link Inspector Panel (Full Height) */}
+        {isInspectorOpen && !isFullScreen && (
           <div style={{
             backgroundColor: '#ffffff',
-            borderRadius: '16px',
+            borderRadius: '14px',
             border: '1px solid #e2e8f0',
-            padding: '22px',
+            padding: '16px 18px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)'
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)',
+            height: '100%',
+            overflowY: 'auto'
           }}>
             <div>
               {/* Header Badge */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{
-                  fontSize: '0.72rem',
+                  fontSize: '0.7rem',
                   fontWeight: 800,
-                  letterSpacing: '0.05em',
+                  letterSpacing: '0.04em',
                   textTransform: 'uppercase',
-                  padding: '3px 9px',
-                  borderRadius: '6px',
+                  padding: '3px 8px',
+                  borderRadius: '5px',
                   background: activeLink ? '#eff6ff' : '#e0f2fe',
                   color: activeLink ? '#1d4ed8' : '#0369a1',
                   border: '1px solid #bae6fd'
                 }}>
-                  {activeLink ? 'INTERCONNECT LINK TELEMETRY' : 'NODE TELEMETRY & HARDWARE'}
+                  {activeLink ? 'LINK TELEMETRY' : 'NODE TELEMETRY'}
                 </span>
-                <span style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }} />
                   {activeLink ? 'Carrier Live' : 'Active 0.6ms'}
                 </span>
@@ -1298,12 +1305,12 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
 
               {/* NODE VIEW */}
               {!activeLink && activeNode && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{
-                      width: '46px',
-                      height: '46px',
-                      borderRadius: '12px',
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '10px',
                       background: '#f1f5f9',
                       border: '1px solid #e2e8f0',
                       display: 'flex',
@@ -1311,20 +1318,22 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                       justifyContent: 'center',
                       flexShrink: 0
                     }}>
-                      {activeNode.tier === 'gateway' && <Shield size={24} color="#dc2626" />}
-                      {activeNode.tier === 'switch' && <Network size={24} color="#0284c7" />}
-                      {activeNode.tier === 'linux_cluster' && <Server size={24} color="#ef4444" />}
-                      {activeNode.tier === 'server' && <Server size={24} color="#10b981" />}
-                      {activeNode.tier === 'infrastructure' && <Clock size={24} color="#8b5cf6" />}
-                      {activeNode.tier === 'workstation' && <Laptop size={24} color="#64748b" />}
+                      {activeNode.tier === 'gateway' && <Shield size={22} color="#dc2626" />}
+                      {activeNode.tier === 'switch' && <Network size={22} color="#0284c7" />}
+                      {activeNode.tier === 'linux_cluster' && <Server size={22} color="#ef4444" />}
+                      {activeNode.tier === 'server' && <Server size={22} color="#10b981" />}
+                      {activeNode.tier === 'infrastructure' && <Clock size={22} color="#8b5cf6" />}
+                      {activeNode.tier === 'workstation' && <Laptop size={22} color="#64748b" />}
                     </div>
-                    <div>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    <div style={{ overflow: 'hidden' }}>
+                      <h3 style={{ fontSize: '1.02rem', fontWeight: 800, color: '#0f172a', margin: 0, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                         {activeNode.label}
                       </h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
                         <VendorLogo vendor={activeNode.vendor} size="xs" showLabel={true} />
-                        <span style={{ fontSize: '0.75rem', color: '#64748b' }}>â€¢ {activeNode.model}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          | {activeNode.model}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1333,10 +1342,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                   <div style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '10px',
-                    fontSize: '0.82rem',
+                    gap: '8px',
+                    fontSize: '0.8rem',
                     borderTop: '1px solid #f1f5f9',
-                    paddingTop: '12px'
+                    paddingTop: '10px'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: '#64748b' }}>IP Address:</span>
@@ -1361,18 +1370,18 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                   </div>
 
                   {/* Discovered Open Ports */}
-                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       Discovered Ports & Services:
                     </span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '6px' }}>
                       {activeNode.ports.map((p, idx) => (
                         <span
                           key={idx}
                           style={{
-                            fontSize: '0.7rem',
-                            padding: '3px 8px',
-                            borderRadius: '5px',
+                            fontSize: '0.68rem',
+                            padding: '2px 7px',
+                            borderRadius: '4px',
                             backgroundColor: '#f1f5f9',
                             color: '#0f172a',
                             border: '1px solid #cbd5e1',
@@ -1387,25 +1396,25 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                   </div>
 
                   {/* Real-time Hardware Gauges */}
-                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
                       Host Health Telemetry:
                     </span>
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '3px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '2px' }}>
                         <span>CPU Utilization</span>
                         <span style={{ fontWeight: 700 }}>{activeNode.cpuUsage}%</span>
                       </div>
-                      <div style={{ width: '100%', height: '6px', borderRadius: '4px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+                      <div style={{ width: '100%', height: '5px', borderRadius: '3px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
                         <div style={{ width: `${activeNode.cpuUsage}%`, height: '100%', backgroundColor: activeNode.cpuUsage > 75 ? '#ef4444' : '#0284c7' }} />
                       </div>
                     </div>
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '3px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '2px' }}>
                         <span>Memory (RAM)</span>
                         <span style={{ fontWeight: 700 }}>{activeNode.ramUsage}%</span>
                       </div>
-                      <div style={{ width: '100%', height: '6px', borderRadius: '4px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+                      <div style={{ width: '100%', height: '5px', borderRadius: '3px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
                         <div style={{ width: `${activeNode.ramUsage}%`, height: '100%', backgroundColor: activeNode.ramUsage > 80 ? '#f59e0b' : '#10b981' }} />
                       </div>
                     </div>
@@ -1415,12 +1424,12 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
 
               {/* LINK VIEW */}
               {activeLink && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <div>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                       {activeLink.label}
                     </h3>
-                    <p style={{ fontSize: '0.78rem', color: '#0284c7', margin: '3px 0 0 0', fontWeight: 600 }}>
+                    <p style={{ fontSize: '0.74rem', color: '#0284c7', margin: '2px 0 0 0', fontWeight: 600 }}>
                       Protocol: {activeLink.protocol} IEEE 802.1AB Neighbor
                     </p>
                   </div>
@@ -1428,10 +1437,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                   <div style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '10px',
-                    fontSize: '0.82rem',
+                    gap: '8px',
+                    fontSize: '0.8rem',
                     borderTop: '1px solid #f1f5f9',
-                    paddingTop: '12px'
+                    paddingTop: '10px'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ color: '#64748b' }}>Source Interface:</span>
@@ -1456,14 +1465,14 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                   </div>
 
                   {/* Real-time Link Traffic Gauge */}
-                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px' }}>
-                      <span style={{ fontWeight: 600, color: '#475569' }}>Current Link Utilization</span>
+                  <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '3px' }}>
+                      <span style={{ fontWeight: 600, color: '#475569' }}>Link Utilization</span>
                       <span style={{ fontWeight: 800, color: activeLink.utilizationPercent > 70 ? '#ef4444' : '#16a34a' }}>
                         {activeLink.utilizationPercent}%
                       </span>
                     </div>
-                    <div style={{ width: '100%', height: '8px', borderRadius: '4px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', height: '7px', borderRadius: '4px', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
                       <div style={{
                         width: `${activeLink.utilizationPercent}%`,
                         height: '100%',
@@ -1475,245 +1484,281 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
               )}
             </div>
 
-            {/* Bottom Action Buttons */}
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* Bottom Action Button */}
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
               <button
                 onClick={() => {
                   if (activeNode?.deviceRef && onSelectDevice) {
                     onSelectDevice(activeNode.deviceRef);
                   }
                 }}
-                className="glow-btn"
                 style={{
                   width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: '8px',
+                  padding: '8px 12px',
+                  borderRadius: '7px',
                   background: '#0284c7',
                   color: '#ffffff',
                   border: 'none',
                   fontWeight: 700,
-                  fontSize: '0.82rem',
+                  fontSize: '0.8rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px'
+                  gap: '6px',
+                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
                 }}
               >
-                <ExternalLink size={14} /> Open Device Inventory Card
+                <ExternalLink size={13} /> Open Device Inventory Card
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* 4. Complete Lower Section (Tabs for Link Table, VLANs & Diagnostics) */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '16px',
-        border: '1px solid #e2e8f0',
-        padding: '20px 24px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)'
-      }}>
-        {/* Lower Tab Selectors */}
+      {/* 3. Interconnect Matrix & Architecture Dialog Modal */}
+      {showMatrixModal && (
         <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid #e2e8f0',
-          paddingBottom: '12px',
-          marginBottom: '16px'
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '24px'
         }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button
-              onClick={() => setActiveBottomTab('links')}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                background: activeBottomTab === 'links' ? '#0284c7' : '#f1f5f9',
-                color: activeBottomTab === 'links' ? '#ffffff' : '#475569',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              LLDP / CDP Neighbor Interconnect Matrix ({topologyLinks.length})
-            </button>
-            <button
-              onClick={() => setActiveBottomTab('vlans')}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                background: activeBottomTab === 'vlans' ? '#0284c7' : '#f1f5f9',
-                color: activeBottomTab === 'vlans' ? '#ffffff' : '#475569',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Subnet & VLAN Segmentation Architecture (172.168.1.0/24)
-            </button>
-            <button
-              onClick={() => setActiveBottomTab('health')}
-              style={{
-                padding: '6px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                background: activeBottomTab === 'health' ? '#0284c7' : '#f1f5f9',
-                color: activeBottomTab === 'health' ? '#ffffff' : '#475569',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
-            >
-              Fabric Health & Spanning Tree Verification
-            </button>
-          </div>
-          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-            Layer-2 & Layer-3 Autonomous Discovery
-          </span>
-        </div>
+          <div style={{
+            width: '100%',
+            maxWidth: '960px',
+            maxHeight: '85vh',
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '16px 22px',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: '#f8fafc'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Table size={18} color="#0284c7" />
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  LLDP / CDP Interconnect Matrix & VLAN Architecture
+                </h3>
+              </div>
 
-        {/* TAB 1: LLDP / CDP Link Table */}
-        {activeBottomTab === 'links' && (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', color: '#475569', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                  <th style={{ padding: '8px 12px' }}>Link ID</th>
-                  <th style={{ padding: '8px 12px' }}>Description</th>
-                  <th style={{ padding: '8px 12px' }}>Local Port</th>
-                  <th style={{ padding: '8px 12px' }}>Remote Neighbor Port</th>
-                  <th style={{ padding: '8px 12px' }}>Protocol</th>
-                  <th style={{ padding: '8px 12px' }}>Capacity</th>
-                  <th style={{ padding: '8px 12px' }}>Utilization</th>
-                  <th style={{ padding: '8px 12px' }}>State</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topologyLinks.map((l, i) => (
-                  <tr
-                    key={l.id}
-                    onClick={() => {
-                      setSelectedLinkId(l.id);
-                      setSelectedNodeId('');
-                    }}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => setMatrixTab('links')}
                     style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      backgroundColor: selectedLinkId === l.id ? '#e0f2fe' : i % 2 === 0 ? '#ffffff' : '#fafafa',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: matrixTab === 'links' ? '#0284c7' : '#e2e8f0',
+                      color: matrixTab === 'links' ? '#ffffff' : '#334155',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
                       cursor: 'pointer'
                     }}
                   >
-                    <td style={{ padding: '8px 12px', fontFamily: 'monospace', fontWeight: 600 }}>{l.id}</td>
-                    <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>{l.label}</td>
-                    <td style={{ padding: '8px 12px', color: '#0284c7', fontFamily: 'monospace' }}>{l.srcPort}</td>
-                    <td style={{ padding: '8px 12px', color: '#475569', fontFamily: 'monospace' }}>{l.tgtPort}</td>
-                    <td style={{ padding: '8px 12px' }}>
-                      <span style={{ fontSize: '0.72rem', padding: '2px 6px', borderRadius: '4px', background: '#f1f5f9', fontWeight: 700 }}>
-                        {l.protocol}
-                      </span>
-                    </td>
-                    <td style={{ padding: '8px 12px', fontWeight: 700 }}>{l.speedGbps} Gbps</td>
-                    <td style={{ padding: '8px 12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ width: '60px', height: '6px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
-                          <div style={{ width: `${l.utilizationPercent}%`, height: '100%', background: l.utilizationPercent > 70 ? '#ef4444' : '#10b981' }} />
-                        </div>
-                        <span style={{ fontWeight: 700, fontSize: '0.75rem' }}>{l.utilizationPercent}%</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '8px 12px' }}>
-                      <span style={{ fontSize: '0.72rem', color: '#16a34a', background: '#dcfce7', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                        Active Link
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* TAB 2: Subnet & VLAN Segmentation Architecture */}
-        {activeBottomTab === 'vlans' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', background: '#f8fafc' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#dc2626' }}>VLAN 10: PERIMETER & ROUTING</span>
-                <span style={{ fontSize: '0.7rem', background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>2 Hosts</span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: '#475569', margin: '0 0 6px 0' }}>Check Point Gateway (<code>172.168.1.1</code>) & NTP Clock (<code>172.168.1.10</code>)</p>
-              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Default Gateway: 172.168.1.1 â€¢ MTU: 1500</div>
-            </div>
-
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', background: '#f8fafc' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0284c7' }}>VLAN 20: CORE NOC & MONITORING</span>
-                <span style={{ fontSize: '0.7rem', background: '#e0f2fe', color: '#0369a1', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>2 Hosts</span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: '#475569', margin: '0 0 6px 0' }}>Central Server 14 (<code>172.168.1.14</code>) & NOC Host 11 (<code>172.168.1.11</code>)</p>
-              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>PostgreSQL 18 DB â€¢ 10G Dedicated Uplinks</div>
-            </div>
-
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', background: '#f8fafc' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#ef4444' }}>VLAN 30: RHEL 9 LINUX CLUSTER</span>
-                <span style={{ fontSize: '0.7rem', background: '#fee2e2', color: '#b91c1c', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>5 Hosts</span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: '#475569', margin: '0 0 6px 0' }}>Dell PowerEdge R650xs (<code>172.168.1.17 - .21</code>)</p>
-              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>PostgreSQL, Nginx, FastAPI, Redis, MongoDB</div>
-            </div>
-
-            <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px', background: '#f8fafc' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#16a34a' }}>VLAN 40: SWITCHING FABRIC</span>
-                <span style={{ fontSize: '0.7rem', background: '#dcfce7', color: '#15803d', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>2 Switches</span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: '#475569', margin: '0 0 6px 0' }}>Cisco Catalyst 9300 (<code>.30</code>) & Ubiquiti (<code>.31</code>)</p>
-              <div style={{ fontSize: '0.72rem', color: '#64748b' }}>20G Port-Channel 1 LACP â€¢ Rapid-PVST+ Root</div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: Fabric Health & Spanning Tree Diagnostics */}
-        {activeBottomTab === 'health' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: 700, marginBottom: '6px' }}>
-                  <CheckCircle2 size={18} />
-                  <span>Spanning Tree Protocol Rapid-PVST+ Confirmed</span>
+                    Links Matrix (20)
+                  </button>
+                  <button
+                    onClick={() => setMatrixTab('vlans')}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: matrixTab === 'vlans' ? '#0284c7' : '#e2e8f0',
+                      color: matrixTab === 'vlans' ? '#ffffff' : '#334155',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    VLAN Architecture
+                  </button>
+                  <button
+                    onClick={() => setMatrixTab('health')}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: matrixTab === 'health' ? '#0284c7' : '#e2e8f0',
+                      color: matrixTab === 'health' ? '#ffffff' : '#334155',
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    STP & Loop-Free Health
+                  </button>
                 </div>
-                <p style={{ fontSize: '0.82rem', color: '#166534', margin: 0 }}>
-                  Root Bridge elected on <code>172.168.1.30</code> (Priority 4096). Zero forwarding loops detected; all backup links in alternate blocking state.
-                </p>
-              </div>
 
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#1e40af', fontWeight: 700, marginBottom: '6px' }}>
-                  <CheckCircle2 size={18} />
-                  <span>End-to-End MTU Coherence</span>
-                </div>
-                <p style={{ fontSize: '0.82rem', color: '#1e40af', margin: 0 }}>
-                  All 20 interconnect links validated at MTU 1500 bytes. Zero ICMP fragmentation blackholes or packet size discards observed.
-                </p>
-              </div>
-
-              <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '10px', padding: '14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b21a8', fontWeight: 700, marginBottom: '6px' }}>
-                  <CheckCircle2 size={18} />
-                  <span>ARP Consistency & Zero IP Clashes</span>
-                </div>
-                <p style={{ fontSize: '0.82rem', color: '#6b21a8', margin: 0 }}>
-                  All 33 network node MAC addresses uniquely resolved without MAC flapping, ARP poisoning, or duplicate static IP address conflicts.
-                </p>
+                <button
+                  onClick={() => setShowMatrixModal(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#64748b',
+                    cursor: 'pointer',
+                    padding: '4px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  <X size={18} />
+                </button>
               </div>
             </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
+              {matrixTab === 'links' && (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', color: '#475569', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                        <th style={{ padding: '7px 10px' }}>Link ID</th>
+                        <th style={{ padding: '7px 10px' }}>Description</th>
+                        <th style={{ padding: '7px 10px' }}>Local Port</th>
+                        <th style={{ padding: '7px 10px' }}>Remote Port</th>
+                        <th style={{ padding: '7px 10px' }}>Protocol</th>
+                        <th style={{ padding: '7px 10px' }}>Capacity</th>
+                        <th style={{ padding: '7px 10px' }}>Utilization</th>
+                        <th style={{ padding: '7px 10px' }}>State</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topologyLinks.map((l, i) => (
+                        <tr
+                          key={l.id}
+                          style={{
+                            borderBottom: '1px solid #f1f5f9',
+                            backgroundColor: i % 2 === 0 ? '#ffffff' : '#fafafa'
+                          }}
+                        >
+                          <td style={{ padding: '7px 10px', fontFamily: 'monospace', fontWeight: 600 }}>{l.id}</td>
+                          <td style={{ padding: '7px 10px', fontWeight: 700, color: '#0f172a' }}>{l.label}</td>
+                          <td style={{ padding: '7px 10px', color: '#0284c7', fontFamily: 'monospace' }}>{l.srcPort}</td>
+                          <td style={{ padding: '7px 10px', color: '#475569', fontFamily: 'monospace' }}>{l.tgtPort}</td>
+                          <td style={{ padding: '7px 10px' }}>
+                            <span style={{ fontSize: '0.7rem', padding: '1px 5px', borderRadius: '4px', background: '#f1f5f9', fontWeight: 700 }}>
+                              {l.protocol}
+                            </span>
+                          </td>
+                          <td style={{ padding: '7px 10px', fontWeight: 700 }}>{l.speedGbps} Gbps</td>
+                          <td style={{ padding: '7px 10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <div style={{ width: '50px', height: '5px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
+                                <div style={{ width: `${l.utilizationPercent}%`, height: '100%', background: l.utilizationPercent > 70 ? '#ef4444' : '#10b981' }} />
+                              </div>
+                              <span style={{ fontWeight: 700, fontSize: '0.72rem' }}>{l.utilizationPercent}%</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '7px 10px' }}>
+                            <span style={{ fontSize: '0.7rem', color: '#16a34a', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                              Active
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {matrixTab === 'vlans' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#dc2626' }}>VLAN 10: PERIMETER & ROUTING</span>
+                      <span style={{ fontSize: '0.68rem', background: '#fee2e2', color: '#b91c1c', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>2 Hosts</span>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: '#475569', margin: '0 0 4px 0' }}>Check Point Gateway (172.168.1.1) & NTP Clock (172.168.1.10)</p>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Default Gateway: 172.168.1.1 | MTU: 1500</div>
+                  </div>
+
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#0284c7' }}>VLAN 20: CORE NOC & MONITORING</span>
+                      <span style={{ fontSize: '0.68rem', background: '#e0f2fe', color: '#0369a1', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>2 Hosts</span>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: '#475569', margin: '0 0 4px 0' }}>Central Server 14 (172.168.1.14) & NOC Host 11 (172.168.1.11)</p>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>PostgreSQL 18 DB | 10G Dedicated Uplinks</div>
+                  </div>
+
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#ef4444' }}>VLAN 30: RHEL 9 LINUX CLUSTER</span>
+                      <span style={{ fontSize: '0.68rem', background: '#fee2e2', color: '#b91c1c', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>5 Hosts</span>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: '#475569', margin: '0 0 4px 0' }}>Dell PowerEdge R650xs (172.168.1.17 - .21)</p>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>PostgreSQL, Nginx, FastAPI, Redis, MongoDB</div>
+                  </div>
+
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: '#16a34a' }}>VLAN 40: SWITCHING FABRIC</span>
+                      <span style={{ fontSize: '0.68rem', background: '#dcfce7', color: '#15803d', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>2 Switches</span>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: '#475569', margin: '0 0 4px 0' }}>Cisco Catalyst 9300 (.30) & Ubiquiti (.31)</p>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>20G Port-Channel 1 LACP | Rapid-PVST+ Root</div>
+                  </div>
+                </div>
+              )}
+
+              {matrixTab === 'health' && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+                  <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#166534', fontWeight: 700, marginBottom: '4px' }}>
+                      <CheckCircle2 size={16} />
+                      <span style={{ fontSize: '0.82rem' }}>Rapid-PVST+ Confirmed</span>
+                    </div>
+                    <p style={{ fontSize: '0.76rem', color: '#166534', margin: 0 }}>
+                      Root Bridge elected on 172.168.1.30 (Priority 4096). Zero forwarding loops detected; all backup links in alternate blocking state.
+                    </p>
+                  </div>
+
+                  <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1e40af', fontWeight: 700, marginBottom: '4px' }}>
+                      <CheckCircle2 size={16} />
+                      <span style={{ fontSize: '0.82rem' }}>End-to-End MTU Coherence</span>
+                    </div>
+                    <p style={{ fontSize: '0.76rem', color: '#1e40af', margin: 0 }}>
+                      All 20 interconnect links validated at MTU 1500 bytes. Zero ICMP fragmentation blackholes or packet size discards.
+                    </p>
+                  </div>
+
+                  <div style={{ background: '#faf5ff', border: '1px solid #e9d5ff', borderRadius: '8px', padding: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6b21a8', fontWeight: 700, marginBottom: '4px' }}>
+                      <CheckCircle2 size={16} />
+                      <span style={{ fontSize: '0.82rem' }}>Zero IP Clashes / ARP Consistent</span>
+                    </div>
+                    <p style={{ fontSize: '0.76rem', color: '#6b21a8', margin: 0 }}>
+                      All 33 network node MAC addresses uniquely resolved without MAC flapping, ARP poisoning, or duplicate static IP conflicts.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

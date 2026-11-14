@@ -270,10 +270,13 @@ export default function App() {
         {/* Center Main View Area */}
         <main style={{
           flex: 1,
-          padding: '24px 32px',
-          overflowY: 'auto',
+          padding: activeTab === 'topology' ? '8px 14px' : '24px 32px',
+          overflowY: activeTab === 'topology' ? 'hidden' : 'auto',
+          height: 'calc(100vh - 65px)',
           maxHeight: 'calc(100vh - 65px)',
-          backgroundColor: '#f8fafc'
+          backgroundColor: '#f8fafc',
+          display: activeTab === 'topology' ? 'flex' : 'block',
+          flexDirection: 'column'
         }}>
           {activeTab === 'dashboard' && (
             <DashboardView
