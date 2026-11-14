@@ -76,7 +76,7 @@ namespace setup_app
 
         private void InitializeComponentCustom()
         {
-            this.Text = "Veracity Network Management System (V-NMS) — Enterprise Setup";
+            this.Text = "Veracity Network Management System (V-NMS) — Enterprise Setup v2.0.0";
             this.Size = new Size(730, 750);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -94,7 +94,7 @@ namespace setup_app
 
             lblHeaderTitle = new Label
             {
-                Text = "VERACITY NETWORK MANAGEMENT SYSTEM (V-NMS)",
+                Text = "VERACITY NETWORK MANAGEMENT SYSTEM (V-NMS) v2.0.0",
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 12F, FontStyle.Bold),
                 Location = new Point(22, 16),
@@ -131,7 +131,7 @@ namespace setup_app
                 out chkVnms, out lblVnmsDesc, out lblVnmsBadge,
                 "V-NMS Core NOC Engine & Dashboard (MSI Package)",
                 "Unified binary with high-concurrency poller, auto-discovery and embedded React UI.",
-                "v1.0.0 Package", Color.FromArgb(37, 99, 235));
+                "v2.0.0 Package", Color.FromArgb(37, 99, 235));
             chkVnms.Checked = true;
             this.Controls.Add(pnlVnms);
 
@@ -861,7 +861,7 @@ namespace setup_app
                 lblStatus.ForeColor = Color.FromArgb(22, 163, 74);
 
                 AppendLog("==================================================");
-                AppendLog("  INSTALLATION COMPLETE!");
+                AppendLog("  INSTALLATION COMPLETE — V-NMS v2.0.0 Enterprise");
                 AppendLog($"  URL: http://localhost:{port}");
                 AppendLog($"  LAN: http://<server-ip>:{port}");
                 AppendLog("  SuperAdmin: deepak.sah | Password: admin123");
