@@ -429,7 +429,16 @@ export default function App() {
           {activeTab === 'mpls_billing' && <MplsBillingView />}
           {activeTab === 'virtualization' && <VirtualizationView />}
           {activeTab === 'pollers' && <PollersView />}
-          {activeTab === 'topology' && <TopologyView />}
+          {activeTab === 'topology' && (
+            <TopologyView 
+              devices={devices} 
+              onSelectDevice={(dev) => {
+                setSelectedDevice(dev);
+                setActiveTab('devices');
+              }}
+              apiBase={API_BASE}
+            />
+          )}
           {activeTab === 'logs' && <LogsView />}
           {activeTab === 'sla_qos' && <SlaQosView />}
           {activeTab === 'settings' && <SettingsView apiBase={API_BASE} />}
