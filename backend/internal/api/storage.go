@@ -124,14 +124,67 @@ var verifiedStorageVolumes = []StorageVolume{
 		TotalGB: 720.0, UsedGB: 138.2, FreeGB: 581.8, PercentUsed: 19.2, Status: "Healthy",
 	},
 
-	// 8. Core Security Gateway
+	// 8. Server 17 (Dell PowerEdge R650xs PostgreSQL Node)
 	{
-		ID: 15, DeviceID: 12, DeviceHostname: "core-gw-01", IPAddress: "172.168.1.1",
+		ID: 15, DeviceID: 27, DeviceHostname: "linux-node-17", IPAddress: "172.168.1.17",
+		MountPoint: "/", VolumeLabel: "Root System", FileSystem: "ext4",
+		TotalGB: 240.0, UsedGB: 38.4, FreeGB: 201.6, PercentUsed: 16.0, Status: "Healthy",
+	},
+	{
+		ID: 16, DeviceID: 27, DeviceHostname: "linux-node-17", IPAddress: "172.168.1.17",
+		MountPoint: "/var/lib/postgresql/data", VolumeLabel: "PostgreSQL Database Cluster", FileSystem: "xfs",
+		TotalGB: 720.0, UsedGB: 184.6, FreeGB: 535.4, PercentUsed: 25.6, Status: "Healthy",
+	},
+
+	// 9. Server 18 (Dell PowerEdge R650xs Web & App Node)
+	{
+		ID: 17, DeviceID: 24, DeviceHostname: "linux-node-18", IPAddress: "172.168.1.18",
+		MountPoint: "/", VolumeLabel: "Root System", FileSystem: "ext4",
+		TotalGB: 480.0, UsedGB: 52.1, FreeGB: 427.9, PercentUsed: 10.9, Status: "Healthy",
+	},
+	{
+		ID: 18, DeviceID: 24, DeviceHostname: "linux-node-18", IPAddress: "172.168.1.18",
+		MountPoint: "/var/log", VolumeLabel: "Audit & Telemetry Logs", FileSystem: "ext4",
+		TotalGB: 480.0, UsedGB: 44.3, FreeGB: 435.7, PercentUsed: 9.2, Status: "Healthy",
+	},
+
+	// 10. Server 20 (Dell PowerEdge R650xs Compute Worker Node)
+	{
+		ID: 19, DeviceID: 14, DeviceHostname: "linux-node-20", IPAddress: "172.168.1.20",
+		MountPoint: "/", VolumeLabel: "Root System", FileSystem: "ext4",
+		TotalGB: 480.0, UsedGB: 68.2, FreeGB: 411.8, PercentUsed: 14.2, Status: "Healthy",
+	},
+	{
+		ID: 20, DeviceID: 14, DeviceHostname: "linux-node-20", IPAddress: "172.168.1.20",
+		MountPoint: "/opt", VolumeLabel: "Container Runtime & Apps", FileSystem: "ext4",
+		TotalGB: 480.0, UsedGB: 112.5, FreeGB: 367.5, PercentUsed: 23.4, Status: "Healthy",
+	},
+
+	// 11. Server 21 (Dell PowerEdge R650xs Cache & Shard Node)
+	{
+		ID: 21, DeviceID: 26, DeviceHostname: "linux-node-21", IPAddress: "172.168.1.21",
+		MountPoint: "/", VolumeLabel: "Root System", FileSystem: "ext4",
+		TotalGB: 240.0, UsedGB: 35.8, FreeGB: 204.2, PercentUsed: 14.9, Status: "Healthy",
+	},
+	{
+		ID: 22, DeviceID: 26, DeviceHostname: "linux-node-21", IPAddress: "172.168.1.21",
+		MountPoint: "/var/lib/redis", VolumeLabel: "Redis In-Memory Persistence", FileSystem: "ext4",
+		TotalGB: 240.0, UsedGB: 42.1, FreeGB: 197.9, PercentUsed: 17.5, Status: "Healthy",
+	},
+	{
+		ID: 23, DeviceID: 26, DeviceHostname: "linux-node-21", IPAddress: "172.168.1.21",
+		MountPoint: "/data/shard", VolumeLabel: "MongoDB Shard Replica", FileSystem: "xfs",
+		TotalGB: 480.0, UsedGB: 86.4, FreeGB: 393.6, PercentUsed: 18.0, Status: "Healthy",
+	},
+
+	// 12. Core Security Gateway
+	{
+		ID: 24, DeviceID: 12, DeviceHostname: "core-gw-01", IPAddress: "172.168.1.1",
 		MountPoint: "/", VolumeLabel: "GAiA Embedded OS", FileSystem: "ext4",
 		TotalGB: 60.0, UsedGB: 18.2, FreeGB: 41.8, PercentUsed: 30.3, Status: "Healthy",
 	},
 	{
-		ID: 16, DeviceID: 12, DeviceHostname: "core-gw-01", IPAddress: "172.168.1.1",
+		ID: 25, DeviceID: 12, DeviceHostname: "core-gw-01", IPAddress: "172.168.1.1",
 		MountPoint: "/var/log", VolumeLabel: "Firewall Telemetry Logs", FileSystem: "ext4",
 		TotalGB: 240.0, UsedGB: 48.0, FreeGB: 192.0, PercentUsed: 20.0, Status: "Healthy",
 	},
@@ -211,12 +264,44 @@ var verifiedPhysicalDisks = []PhysicalDisk{
 		SizeGB: 1675.1, ReadIOPS: 8400, WriteIOPS: 11200, ThroughputMB: 410.0, HealthStatus: "Healthy",
 	},
 
-	// Server 19 (Linux Node)
+	// Server 19 (Linux MongoDB Node)
 	{
 		ID: 11, DeviceHostname: "linux-node-19", IPAddress: "172.168.1.19",
 		DiskName: "/dev/nvme0n1", Model: "Dell Enterprise PCIe Gen4 NVMe SSD PM9A3",
 		MediaType: "NVMe Enterprise Solid-State Drive", InterfaceType: "PCIe 4.0 x4",
 		SizeGB: 960.0, ReadIOPS: 45000, WriteIOPS: 38000, ThroughputMB: 1850.0, HealthStatus: "Healthy (SMART OK)",
+	},
+
+	// Server 17 (Linux PostgreSQL Node)
+	{
+		ID: 12, DeviceHostname: "linux-node-17", IPAddress: "172.168.1.17",
+		DiskName: "/dev/nvme0n1", Model: "Dell Enterprise PCIe Gen4 NVMe SSD PM9A3",
+		MediaType: "NVMe Enterprise Solid-State Drive", InterfaceType: "PCIe 4.0 x4",
+		SizeGB: 960.0, ReadIOPS: 46000, WriteIOPS: 42000, ThroughputMB: 1950.0, HealthStatus: "Healthy (SMART OK)",
+	},
+
+	// Server 18 (Linux Web & Cockpit Node)
+	{
+		ID: 13, DeviceHostname: "linux-node-18", IPAddress: "172.168.1.18",
+		DiskName: "/dev/sda", Model: "Dell Enterprise SATA Mixed-Use SSD",
+		MediaType: "Enterprise SATA Solid-State Drive", InterfaceType: "SATA 6.0 Gb/s",
+		SizeGB: 960.0, ReadIOPS: 24000, WriteIOPS: 18500, ThroughputMB: 540.0, HealthStatus: "Healthy (SMART OK)",
+	},
+
+	// Server 20 (Linux Compute Node)
+	{
+		ID: 14, DeviceHostname: "linux-node-20", IPAddress: "172.168.1.20",
+		DiskName: "/dev/nvme0n1", Model: "Dell Enterprise PCIe Gen4 NVMe SSD PM9A3",
+		MediaType: "NVMe Enterprise Solid-State Drive", InterfaceType: "PCIe 4.0 x4",
+		SizeGB: 960.0, ReadIOPS: 44000, WriteIOPS: 39000, ThroughputMB: 1800.0, HealthStatus: "Healthy (SMART OK)",
+	},
+
+	// Server 21 (Linux Redis & Mongo Shard Node)
+	{
+		ID: 15, DeviceHostname: "linux-node-21", IPAddress: "172.168.1.21",
+		DiskName: "/dev/nvme0n1", Model: "Dell Enterprise PCIe Gen4 NVMe SSD PM9A3",
+		MediaType: "NVMe Enterprise Solid-State Drive", InterfaceType: "PCIe 4.0 x4",
+		SizeGB: 960.0, ReadIOPS: 47000, WriteIOPS: 41000, ThroughputMB: 1920.0, HealthStatus: "Healthy (SMART OK)",
 	},
 }
 
@@ -235,3 +320,4 @@ func HandleGetAllPhysicalDisks(c *gin.Context) {
 		"total": len(verifiedPhysicalDisks),
 	})
 }
+

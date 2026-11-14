@@ -134,7 +134,7 @@ export const getDeviceTelemetryHistory = (device: Device, timeframe: ChartTimefr
 export const getDeviceInterfaces = (device: Device): DeviceInterfaceDetail[] => {
   const isGw = device.ip_address === '172.168.1.1' || device.hostname.includes('gw');
   const isWindows = device.os?.includes('Windows');
-  const isLinux = device.os?.includes('Linux');
+  const isLinux = device.os?.includes('Linux') || device.vendor?.toLowerCase().includes('red hat') || device.vendor?.toLowerCase().includes('ubuntu');
 
   if (isGw) {
     return [
@@ -151,6 +151,44 @@ export const getDeviceInterfaces = (device: Device): DeviceInterfaceDetail[] => 
       { name: 'RDP-3389 (Remote Desktop Console)', speed: '1 Gbps', status: 'up', inBps: '340 Kbps', outBps: '1.2 Mbps', errors: 0 },
     ];
   } else if (isLinux) {
+    // Specific verified ports for each Linux host
+    if (device.ip_address === '172.168.1.17' || device.hostname.includes('node-17')) {
+      return [
+        { name: 'eth0 (Primary Ethernet)', speed: '1 Gbps', status: 'up', inBps: '8.4 Mbps', outBps: '14.2 Mbps', errors: 0 },
+        { name: 'SSH-22 (OpenSSH Administration)', speed: '1 Gbps', status: 'up', inBps: '64 Kbps', outBps: '190 Kbps', errors: 0 },
+        { name: 'PostgreSQL-5432 (Relational DB Cluster)', speed: '1 Gbps', status: 'up', inBps: '12.8 Mbps', outBps: '24.5 Mbps', errors: 0 },
+      ];
+    } else if (device.ip_address === '172.168.1.18' || device.hostname.includes('node-18')) {
+      return [
+        { name: 'eth0 (Primary Ethernet)', speed: '1 Gbps', status: 'up', inBps: '16.5 Mbps', outBps: '28.4 Mbps', errors: 0 },
+        { name: 'SSH-22 (OpenSSH Administration)', speed: '1 Gbps', status: 'up', inBps: '90 Kbps', outBps: '260 Kbps', errors: 0 },
+        { name: 'HTTP-80 (Web Management Portal)', speed: '1 Gbps', status: 'up', inBps: '2.4 Mbps', outBps: '8.6 Mbps', errors: 0 },
+        { name: 'HTTPS-443 (SSL Security Console)', speed: '1 Gbps', status: 'up', inBps: '8.2 Mbps', outBps: '16.4 Mbps', errors: 0 },
+        { name: 'App-8000 (Microservice REST API)', speed: '1 Gbps', status: 'up', inBps: '3.8 Mbps', outBps: '7.2 Mbps', errors: 0 },
+        { name: 'Cockpit-9090 (Linux Web Console)', speed: '1 Gbps', status: 'up', inBps: '1.1 Mbps', outBps: '3.4 Mbps', errors: 0 },
+      ];
+    } else if (device.ip_address === '172.168.1.19' || device.hostname.includes('node-19')) {
+      return [
+        { name: 'eth0 (Primary Ethernet)', speed: '1 Gbps', status: 'up', inBps: '11.2 Mbps', outBps: '18.9 Mbps', errors: 0 },
+        { name: 'SSH-22 (OpenSSH Administration)', speed: '1 Gbps', status: 'up', inBps: '55 Kbps', outBps: '170 Kbps', errors: 0 },
+        { name: 'MongoDB-27017 (Document Store Cluster)', speed: '1 Gbps', status: 'up', inBps: '14.6 Mbps', outBps: '22.1 Mbps', errors: 0 },
+      ];
+    } else if (device.ip_address === '172.168.1.20' || device.hostname.includes('node-20')) {
+      return [
+        { name: 'eth0 (Primary Ethernet)', speed: '1 Gbps', status: 'up', inBps: '6.8 Mbps', outBps: '9.4 Mbps', errors: 0 },
+        { name: 'SSH-22 (OpenSSH Administration)', speed: '1 Gbps', status: 'up', inBps: '75 Kbps', outBps: '210 Kbps', errors: 0 },
+        { name: 'Containerd-Runtime (Worker Pods)', speed: '1 Gbps', status: 'up', inBps: '4.2 Mbps', outBps: '5.8 Mbps', errors: 0 },
+      ];
+    } else if (device.ip_address === '172.168.1.21' || device.hostname.includes('node-21')) {
+      return [
+        { name: 'eth0 (Primary Ethernet)', speed: '1 Gbps', status: 'up', inBps: '18.4 Mbps', outBps: '31.2 Mbps', errors: 0 },
+        { name: 'SSH-22 (OpenSSH Administration)', speed: '1 Gbps', status: 'up', inBps: '85 Kbps', outBps: '240 Kbps', errors: 0 },
+        { name: 'HTTP-80 (API Gateway Proxy)', speed: '1 Gbps', status: 'up', inBps: '3.6 Mbps', outBps: '9.8 Mbps', errors: 0 },
+        { name: 'Redis-6379 (In-Memory Key-Value Cache)', speed: '1 Gbps', status: 'up', inBps: '8.4 Mbps', outBps: '14.2 Mbps', errors: 0 },
+        { name: 'MongoDB-27017 (Shard Replica Listener)', speed: '1 Gbps', status: 'up', inBps: '6.2 Mbps', outBps: '8.9 Mbps', errors: 0 },
+      ];
+    }
+
     return [
       { name: 'eth0 (Primary Ethernet)', speed: '1 Gbps', status: 'up', inBps: '4.2 Mbps', outBps: '6.8 Mbps', errors: 0 },
       { name: 'SSH-22 (OpenSSH Terminal)', speed: '1 Gbps', status: 'up', inBps: '80 Kbps', outBps: '240 Kbps', errors: 0 },

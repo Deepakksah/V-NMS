@@ -144,9 +144,26 @@ export const MOCK_STORAGE: StorageRecord[] = [
   { id: 13, deviceId: 29, deviceHostname: 'linux-node-19 (172.168.1.19)', mountPoint: '/ (Root System)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 42.5, percentUsed: 17.7 },
   { id: 14, deviceId: 29, deviceHostname: 'linux-node-19 (172.168.1.19)', mountPoint: '/data/db (MongoDB Data Store)', fileSystem: 'xfs', totalGb: 720.0, usedGb: 138.2, percentUsed: 19.2 },
 
+  // Server 17 (Dell PowerEdge R650xs PostgreSQL Node)
+  { id: 15, deviceId: 27, deviceHostname: 'linux-node-17 (172.168.1.17)', mountPoint: '/ (Root System)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 38.4, percentUsed: 16.0 },
+  { id: 16, deviceId: 27, deviceHostname: 'linux-node-17 (172.168.1.17)', mountPoint: '/var/lib/postgresql/data (PostgreSQL DB)', fileSystem: 'xfs', totalGb: 720.0, usedGb: 184.6, percentUsed: 25.6 },
+
+  // Server 18 (Dell PowerEdge R650xs Web & Cockpit Node)
+  { id: 17, deviceId: 24, deviceHostname: 'linux-node-18 (172.168.1.18)', mountPoint: '/ (Root System)', fileSystem: 'ext4', totalGb: 480.0, usedGb: 52.1, percentUsed: 10.9 },
+  { id: 18, deviceId: 24, deviceHostname: 'linux-node-18 (172.168.1.18)', mountPoint: '/var/log (Audit & Telemetry Logs)', fileSystem: 'ext4', totalGb: 480.0, usedGb: 44.3, percentUsed: 9.2 },
+
+  // Server 20 (Dell PowerEdge R650xs Compute Worker Node)
+  { id: 19, deviceId: 14, deviceHostname: 'linux-node-20 (172.168.1.20)', mountPoint: '/ (Root System)', fileSystem: 'ext4', totalGb: 480.0, usedGb: 68.2, percentUsed: 14.2 },
+  { id: 20, deviceId: 14, deviceHostname: 'linux-node-20 (172.168.1.20)', mountPoint: '/opt (Container & App Runtime)', fileSystem: 'ext4', totalGb: 480.0, usedGb: 112.5, percentUsed: 23.4 },
+
+  // Server 21 (Dell PowerEdge R650xs Cache & Shard Node)
+  { id: 21, deviceId: 26, deviceHostname: 'linux-node-21 (172.168.1.21)', mountPoint: '/ (Root System)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 35.8, percentUsed: 14.9 },
+  { id: 22, deviceId: 26, deviceHostname: 'linux-node-21 (172.168.1.21)', mountPoint: '/var/lib/redis (Redis Cache)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 42.1, percentUsed: 17.5 },
+  { id: 23, deviceId: 26, deviceHostname: 'linux-node-21 (172.168.1.21)', mountPoint: '/data/shard (MongoDB Shard)', fileSystem: 'xfs', totalGb: 480.0, usedGb: 86.4, percentUsed: 18.0 },
+
   // Core Security Gateway
-  { id: 15, deviceId: 12, deviceHostname: 'core-gw-01 (172.168.1.1)', mountPoint: '/ (GAiA OS)', fileSystem: 'ext4', totalGb: 60.0, usedGb: 18.2, percentUsed: 30.3 },
-  { id: 16, deviceId: 12, deviceHostname: 'core-gw-01 (172.168.1.1)', mountPoint: '/var/log (Firewall Logs)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 48.0, percentUsed: 20.0 },
+  { id: 24, deviceId: 12, deviceHostname: 'core-gw-01 (172.168.1.1)', mountPoint: '/ (GAiA OS)', fileSystem: 'ext4', totalGb: 60.0, usedGb: 18.2, percentUsed: 30.3 },
+  { id: 25, deviceId: 12, deviceHostname: 'core-gw-01 (172.168.1.1)', mountPoint: '/var/log (Firewall Logs)', fileSystem: 'ext4', totalGb: 240.0, usedGb: 48.0, percentUsed: 20.0 },
 ];
 
 export const MOCK_DISK_IO: DiskIoRecord[] = [
@@ -169,11 +186,23 @@ export const MOCK_DISK_IO: DiskIoRecord[] = [
   { id: 8, deviceHostname: 'WIN-49GSPF4PDUB (172.168.1.13)', deviceDisk: 'SEAGATE ST600MM0069 (600 GB SAS 10K RPM Enterprise HDD)', readIops: 3300, writeIops: 4900, readThroughputMb: 190.0, writeThroughputMb: 250.0 },
   { id: 9, deviceHostname: 'WIN-49GSPF4PDUB (172.168.1.13)', deviceDisk: 'DELL PERC H330 Adp (2.2 TB Hardware RAID Array)', readIops: 9600, writeIops: 13500, readThroughputMb: 360.0, writeThroughputMb: 490.0 },
 
-  // Server 19 Physical NVMe SSD
-  { id: 10, deviceHostname: 'linux-node-19 (172.168.1.19)', deviceDisk: 'Dell Enterprise PCIe Gen4 NVMe SSD PM9A3 (960 GB)', readIops: 45000, writeIops: 38000, readThroughputMb: 1450.0, writeThroughputMb: 1850.0 },
-
   // Server 11 Physical RAID
-  { id: 11, deviceHostname: 'WIN-TBI5QJB6P82 (172.168.1.11)', deviceDisk: 'DELL PERC H330 Adp (1.8 TB Hardware RAID Array)', readIops: 8400, writeIops: 11200, readThroughputMb: 310.0, writeThroughputMb: 410.0 },
+  { id: 10, deviceHostname: 'WIN-TBI5QJB6P82 (172.168.1.11)', deviceDisk: 'DELL PERC H330 Adp (1.8 TB Hardware RAID Array)', readIops: 8400, writeIops: 11200, readThroughputMb: 310.0, writeThroughputMb: 410.0 },
+
+  // Server 19 Physical NVMe SSD (MongoDB Cluster Node)
+  { id: 11, deviceHostname: 'linux-node-19 (172.168.1.19)', deviceDisk: 'Dell Enterprise PCIe Gen4 NVMe SSD PM9A3 (960 GB)', readIops: 45000, writeIops: 38000, readThroughputMb: 1450.0, writeThroughputMb: 1850.0 },
+
+  // Server 17 Physical NVMe SSD (PostgreSQL Cluster Node)
+  { id: 12, deviceHostname: 'linux-node-17 (172.168.1.17)', deviceDisk: 'Dell Enterprise PCIe Gen4 NVMe SSD PM9A3 (960 GB)', readIops: 46000, writeIops: 42000, readThroughputMb: 1520.0, writeThroughputMb: 1950.0 },
+
+  // Server 18 Physical SATA SSD (Web & Cockpit Node)
+  { id: 13, deviceHostname: 'linux-node-18 (172.168.1.18)', deviceDisk: 'Dell Enterprise SATA Mixed-Use SSD (960 GB)', readIops: 24000, writeIops: 18500, readThroughputMb: 480.0, writeThroughputMb: 540.0 },
+
+  // Server 20 Physical NVMe SSD (Compute Node)
+  { id: 14, deviceHostname: 'linux-node-20 (172.168.1.20)', deviceDisk: 'Dell Enterprise PCIe Gen4 NVMe SSD PM9A3 (960 GB)', readIops: 44000, writeIops: 39000, readThroughputMb: 1400.0, writeThroughputMb: 1800.0 },
+
+  // Server 21 Physical NVMe SSD (Redis Cache & Mongo Shard)
+  { id: 15, deviceHostname: 'linux-node-21 (172.168.1.21)', deviceDisk: 'Dell Enterprise PCIe Gen4 NVMe SSD PM9A3 (960 GB)', readIops: 47000, writeIops: 41000, readThroughputMb: 1550.0, writeThroughputMb: 1920.0 },
 ];
 
 // Category 4: Real Network Subnets, ARP Table, IPv4, VLANs

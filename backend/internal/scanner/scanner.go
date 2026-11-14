@@ -196,7 +196,7 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, 40) // 40 concurrent probes
 
-	portsToScan := []int{22, 80, 443, 445, 3389, 8080}
+	portsToScan := []int{22, 80, 443, 445, 3389, 5432, 6379, 8000, 8080, 8081, 9090, 27017}
 
 	for _, ip := range targets {
 		wg.Add(1)
@@ -213,7 +213,7 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 			// Probe ports
 			var openPorts []int
 			for _, port := range portsToScan {
-				if CheckPort(targetIP, port, 120*time.Millisecond) {
+				if CheckPort(targetIP, port, 200*time.Millisecond) {
 					openPorts = append(openPorts, port)
 				}
 			}
@@ -246,9 +246,13 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 				hasSMB := false
 				hasRDP := false
 				hasSSH := false
+				hasPostgres := false
+				hasRedis := false
+				hasMongo := false
+				hasCockpit := false
 
 				for _, p := range openPorts {
-					if p == 80 || p == 443 || p == 8080 {
+					if p == 80 || p == 443 || p == 8080 || p == 8000 {
 						hasWeb = true
 					}
 					if p == 445 {
@@ -259,6 +263,18 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 					}
 					if p == 22 {
 						hasSSH = true
+					}
+					if p == 5432 {
+						hasPostgres = true
+					}
+					if p == 6379 {
+						hasRedis = true
+					}
+					if p == 27017 {
+						hasMongo = true
+					}
+					if p == 9090 {
+						hasCockpit = true
 					}
 				}
 
@@ -300,6 +316,51 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 					if hostname == "" {
 						hostname = "unifi-poe-sw02"
 					}
+				} else if targetIP == "172.168.1.17" {
+					deviceType = "server"
+					vendor = "Red Hat"
+					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
+					osName = "Enterprise Linux 9 (PostgreSQL 16 Cluster)"
+					role = "Linux Database Server"
+					if hostname == "" {
+						hostname = "linux-node-17"
+					}
+				} else if targetIP == "172.168.1.18" {
+					deviceType = "server"
+					vendor = "Red Hat"
+					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
+					osName = "Enterprise Linux 9 (Cockpit & Web App)"
+					role = "Linux Web & App Node"
+					if hostname == "" {
+						hostname = "linux-node-18"
+					}
+				} else if targetIP == "172.168.1.19" {
+					deviceType = "server"
+					vendor = "Red Hat"
+					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
+					osName = "Enterprise Linux 9 (MongoDB 7.0 Cluster)"
+					role = "Linux Document Store Node"
+					if hostname == "" {
+						hostname = "linux-node-19"
+					}
+				} else if targetIP == "172.168.1.20" {
+					deviceType = "server"
+					vendor = "Red Hat"
+					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
+					osName = "Enterprise Linux 9 (Compute Node)"
+					role = "Linux Compute Worker"
+					if hostname == "" {
+						hostname = "linux-node-20"
+					}
+				} else if targetIP == "172.168.1.21" {
+					deviceType = "server"
+					vendor = "Red Hat"
+					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
+					osName = "Enterprise Linux 9 (Redis Cache & Mongo Shard)"
+					role = "Linux Cache & Shard Node"
+					if hostname == "" {
+						hostname = "linux-node-21"
+					}
 				} else if strings.HasPrefix(hostname, "DESKTOP-") || strings.HasPrefix(hostname, "BELPC") || hostname == "admin" {
 					deviceType = "workstation"
 					osName = "Windows 11 Pro 64-bit (23H2)"
@@ -320,16 +381,16 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 					if hostname == "" {
 						hostname = "storage-node-22"
 					}
-				} else if strings.HasPrefix(hostname, "linux-node-") || (hasSSH && !hasRDP && !hasSMB) {
+				} else if strings.HasPrefix(hostname, "linux-node-") || (hasSSH && !hasRDP && !hasSMB) || hasPostgres || hasMongo || hasRedis || hasCockpit {
 					deviceType = "server"
-					vendor = "Ubuntu"
+					vendor = "Red Hat"
 					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
-					osName = "Ubuntu Server 22.04.4 LTS"
-					role = "Linux Compute Node"
+					osName = "Enterprise Linux 9"
+					role = "Linux Enterprise Server"
 					if hostname == "" {
 						hostname = fmt.Sprintf("linux-node-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
 					}
-				} else if strings.HasPrefix(hostname, "WIN-") {
+				} else if strings.HasPrefix(hostname, "WIN-") || (hasSMB && hasRDP) {
 					deviceType = "server"
 					vendor = "Microsoft"
 					hardware = "Dell PowerEdge R750 Enterprise Server"
@@ -345,15 +406,24 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 						hostname = "dell-r750-72"
 					}
 				} else {
-					// Fallback based on ports
-					if hasWeb {
+					// Fallback based on ports & MAC
+					if strings.HasPrefix(cleanMAC, "24:fb:e3") || strings.HasPrefix(cleanMAC, "00:1e:bd") {
 						deviceType = "switch"
 						vendor = "Cisco"
-						hardware = "Cisco Catalyst Edge Appliance"
+						hardware = "Cisco Catalyst Edge Switch"
 						osName = "Cisco IOS-XE"
-						role = "Network Appliance"
+						role = "Network Switch"
 						if hostname == "" {
-							hostname = fmt.Sprintf("net-app-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
+							hostname = fmt.Sprintf("sw-cisco-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
+						}
+					} else if hasWeb {
+						deviceType = "server"
+						vendor = "Dell"
+						hardware = "Dell PowerEdge Server"
+						osName = "Enterprise Web Application Server"
+						role = "Web Application Server"
+						if hostname == "" {
+							hostname = fmt.Sprintf("web-app-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
 						}
 					} else {
 						deviceType = "server"
@@ -460,8 +530,20 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 				serviceName = "SMB-445"
 			case 3389:
 				serviceName = "RDP-3389"
+			case 5432:
+				serviceName = "PostgreSQL-5432"
+			case 6379:
+				serviceName = "Redis-6379"
+			case 8000:
+				serviceName = "App-8000"
 			case 8080:
 				serviceName = "ALT-HTTP-8080"
+			case 8081:
+				serviceName = "V-NMS-8081"
+			case 9090:
+				serviceName = "Cockpit-9090"
+			case 27017:
+				serviceName = "MongoDB-27017"
 			}
 			ports = append(ports, models.Port{
 				IfIndex:      idx + 2,

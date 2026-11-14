@@ -97,8 +97,22 @@ export const VendorLogo: React.FC<VendorLogoProps> = ({
     );
   }
 
-  // 5. Ubuntu / Canonical / Linux
-  if (norm.includes('ubuntu') || norm.includes('linux')) {
+  // 5. Red Hat / Enterprise Linux / RHEL / CentOS / Rocky
+  if (norm.includes('red hat') || norm.includes('redhat') || norm.includes('rhel') || norm.includes('rocky') || norm.includes('centos')) {
+    return (
+      <span style={{ ...baseStyle, background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b' }}>
+        <svg width={config.icon} height={config.icon} viewBox="0 0 100 100" fill="none" style={{ width: `${config.icon}px`, height: `${config.icon}px`, flexShrink: 0, display: 'inline-block' }}>
+          <path d="M12 58C16 52 28 48 46 47C38 34 38 18 55 18C70 18 78 28 80 43C88 44 94 48 94 56C94 66 76 74 50 74C22 74 12 66 12 58Z" fill="#EE0000" />
+          <path d="M46 47C49 46 54 45 60 45C68 45 74 46 80 43C78 28 70 18 55 18C38 18 38 34 46 47Z" fill="#111111" />
+          <path d="M46 47C50 49 56 50 63 50C71 50 77 48 80 43C80 44 80 45 80 46C76 49 68 52 60 52C53 52 48 50 46 47Z" fill="#FFFFFF" />
+        </svg>
+        {showLabel && <span>Red Hat</span>}
+      </span>
+    );
+  }
+
+  // 6. Ubuntu / Canonical
+  if (norm.includes('ubuntu') || norm.includes('canonical')) {
     return (
       <span style={{ ...baseStyle, background: '#fff7ed', border: '1px solid #fed7aa', color: '#c2410c' }}>
         <svg width={config.icon} height={config.icon} viewBox="0 0 100 100" fill="none" style={{ width: `${config.icon}px`, height: `${config.icon}px`, flexShrink: 0, display: 'inline-block' }}>
@@ -109,6 +123,20 @@ export const VendorLogo: React.FC<VendorLogoProps> = ({
           <circle cx="65" cy="76" r="7" fill="#FFFFFF" />
         </svg>
         {showLabel && <span>Ubuntu</span>}
+      </span>
+    );
+  }
+
+  // 7. Generic Linux
+  if (norm.includes('linux')) {
+    return (
+      <span style={{ ...baseStyle, background: '#f8fafc', border: '1px solid #cbd5e1', color: '#334155' }}>
+        <svg width={config.icon} height={config.icon} viewBox="0 0 100 100" fill="none" style={{ width: `${config.icon}px`, height: `${config.icon}px`, flexShrink: 0, display: 'inline-block' }}>
+          <rect x="10" y="15" width="80" height="70" rx="8" fill="#1e293b" />
+          <path d="M25 40L40 50L25 60" stroke="#38bdf8" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+          <line x1="48" y1="60" x2="70" y2="60" stroke="#facc15" strokeWidth="8" strokeLinecap="round" />
+        </svg>
+        {showLabel && <span>Linux</span>}
       </span>
     );
   }
