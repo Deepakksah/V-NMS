@@ -1,175 +1,200 @@
-# V-NMS Enterprise Network Data Troubleshooting Guide: Errors & Solutions
-*(Agar Network Data Na Aaye — Conditions, Errors, Root Causes aur Step-by-Step Solutions)*
+# V-NMS Enterprise Network Data & Polling Troubleshooting Guide
+**Standard Operating Procedure (SOP): Diagnosing Missing Telemetry, Discovery Failures, and Offline Devices**
 
 ---
 
-## 📌 Executive Overview
+## 1. Executive Summary & Diagnostic Flowchart
 
-Jab V-NMS Dashboard par kisi device ka status **Offline**, **Missing Ports**, **Blank Storage/Disks**, ya **Zero Telemetry** dikhta hai, to problem 6 alag-alag layers par ho sakti hai. 
+When the V-NMS dashboard displays a device as **Offline**, **Missing Ports**, **Blank Storage/Disk IO**, or **Zero Traffic**, the underlying root cause can exist across six distinct infrastructure layers. 
 
-Neeche diye gaye flowchart se aap **30 seconds me identify** kar sakte hain ki issue kahan hai:
+Follow this 30-second diagnostic decision workflow to isolate the failing component:
 
 ```mermaid
 flowchart TD
-    Start(["Data Nahi Aa Raha?"]) --> CheckPing{"Kya ICMP Ping Chal Raha Hai?"}
+    Start(["Data Missing / Device Offline"]) --> CheckPing{"Is ICMP Ping Responding?"}
     
-    CheckPing -- "NO (Request Timed Out)" --> L1["Layer 1-3 Issue:<br/>Cable / Switch Port / Routing / Local Firewall Block"]
-    CheckPing -- "YES (0.5ms Response)" --> CheckPorts{"Kya TCP Ports (22/80/443) Khul Rahe Hain?"}
+    CheckPing -- "NO (Request Timed Out)" --> L1["Layer 1-3 Infrastructure Issue:<br/>Cable Disconnected / Port Down / Routing / Local Firewall"]
+    CheckPing -- "YES (Normal Latency)" --> CheckPorts{"Are Service TCP Ports Open?<br/>(22, 80, 443, 5432, 27017)"}
     
-    CheckPorts -- "NO (Connection Refused)" --> L4["Service Down ya Bind Issue:<br/>Service Stopped ya 127.0.0.1 par bind hai"]
-    CheckPorts -- "YES (Ports Active)" --> CheckSNMP{"Kya SNMP / Telemetry Data Aa Raha Hai?"}
+    CheckPorts -- "NO (Connection Refused)" --> L4["Service / Binding Issue:<br/>Daemon Stopped or Bound to 127.0.0.1 Only"]
+    CheckPorts -- "YES (Ports Active)" --> CheckSNMP{"Is SNMP Telemetry Arriving?<br/>(UDP Port 161)"}
     
-    CheckSNMP -- "NO (Timeout / Empty)" --> L5["SNMP / Auth Issue:<br/>Community String mismatch / ACL / Service stopped"]
-    CheckSNMP -- "YES" --> CheckDB{"Kya Dashboard par data dikh raha hai?"}
+    CheckSNMP -- "NO (Timeout / Empty MIB)" --> L5["SNMP / Authorization Failure:<br/>Community String Mismatch / ACL Restriction / Service Down"]
+    CheckSNMP -- "YES" --> CheckDB{"Is Data Visible in Web Dashboard?"}
     
-    CheckDB -- "NO" --> L6["V-NMS Service / DB Issue:<br/>VNMSService down ya PostgreSQL Pool error"]
-    CheckDB -- "YES" --> AllOK(["System 100% Normal!"])
+    CheckDB -- "NO" --> L6["V-NMS Engine / Database Issue:<br/>VNMSService Halted or PostgreSQL Pool Exhausted"]
+    CheckDB -- "YES" --> AllOK(["System 100% Operational!"])
 ```
 
 ---
 
-## 🚨 Category 1: Physical & Link Layer Failures (Device Completely Unreachable)
+## 2. Category 1: Physical & Data Link Layer Failures (Layer 1 & Layer 2)
 
-### Condition 1.1: Device Powered Off, Cable Disconnected, ya Switch Port Down
-* **Error Symptom:** Ping shows `Destination Host Unreachable` ya `Request timed out` (100% Packet Loss).
-* **Root Cause:** Device ka power cut ho gaya hai, LAN cable disconnected hai, ya switch port `err-disabled` / `shutdown` state me chala gaya hai.
-* **Diagnosis Step:**
+### Condition 1.1: Physical Cable Disconnection, Power Loss, or Switch Port Err-Disabled
+* **Symptom:** Target host shows 100% packet loss (`Destination Host Unreachable` or `Request timed out`).
+* **Root Cause:** 
+  1. The target device is powered down.
+  2. Ethernet patch cord is unplugged or damaged.
+  3. The switch port entered an `err-disabled` state due to BPDU Guard, Port Security, or duplex mismatch flapping.
+* **Diagnostic Verification:**
   ```powershell
-  # Check if MAC appears in ARP cache
-  arp -a | findstr "TARGET_IP"
+  # Check if the hardware MAC address exists in the local ARP cache
+  arp -a | findstr "<TARGET_IP>"
   ```
-  Agar output blank hai, to device local link par present hi nahi hai.
-* **Solution:**
-  1. Server ya switch ka physical link light (Green/Amber LED) check karein.
-  2. Switch CLI me jakar port status check karein:
+  If the output is empty, the target is completely absent from the local physical broadcast domain.
+* **Resolution Steps:**
+  1. Inspect the physical Network Interface Card (NIC) link indicator LED (ensure solid amber/green link).
+  2. On the upstream managed switch (e.g., Cisco Catalyst 9300), verify the interface state:
      ```cisco
-     show interface status | include <port_number>
+     show interface status | include <PORT_ID>
+     show interface <PORT_ID> err-disabled
      ```
-  3. Agar port down hai to `no shutdown` command execute karein.
-
----
-
-### Condition 1.2: VLAN Mismatch (Wrong Segment Assignment)
-* **Error Symptom:** Device ka link LED green hai, lekin subnet se koi communication nahi ho raha.
-* **Root Cause:** Device ko Switch ke galat VLAN port me daal diya gaya hai (e.g. Target device ko VLAN 20 me hona tha lekin port VLAN 1 me configured hai).
-* **Solution:**
-  * Switch port ka VLAN verify karke theek karein:
-    ```cisco
-    switchport mode access
-    switchport access vlan <correct_vlan_id>
-    ```
-
----
-
-## 🛡️ Category 2: Routing & Firewall Drops (Ping / Packet Drop)
-
-### Condition 2.1: Missing Route ya No Inter-VLAN Routing
-* **Error Symptom:** V-NMS Server apne subnet (`172.168.1.0/24`) me sab scan karta hai, lekin doosre subnet (`192.168.10.0/24`) par data nahi aata.
-* **Root Cause:** V-NMS host par default gateway configured nahi hai, ya Core Switch/Firewall par subnets ke beech inter-VLAN routing enable nahi hai.
-* **Diagnosis Step:**
-  ```powershell
-  # Trace route from V-NMS Server
-  tracert -d TARGET_IP
-  ```
-* **Solution:**
-  1. V-NMS Server ka Default Gateway check karein (`172.168.1.1`).
-  2. Router / Layer-3 Switch par IP Routing verify karein:
+  3. Reset the disabled port:
      ```cisco
-     ip routing
+     configure terminal
+     interface <PORT_ID>
+      shutdown
+      no shutdown
+     exit
+     ```
+
+---
+
+### Condition 1.2: VLAN Assignment Mismatch
+* **Symptom:** Link LED is active, but the device cannot reach or be reached by any other machine in the subnet.
+* **Root Cause:** The switch port is assigned to an incorrect Access VLAN (e.g., Target is statically configured for `172.168.1.0/24` on VLAN 10, but the switch port is assigned to default VLAN 1).
+* **Resolution Steps:**
+  ```cisco
+  configure terminal
+  interface <PORT_ID>
+   switchport mode access
+   switchport access vlan 10
+   spanning-tree portfast
+  exit
+  ```
+
+---
+
+## 3. Category 2: Routing & Firewall Filtering Failures (Layer 3 & Layer 4)
+
+### Condition 2.1: Missing Default Gateway or Inactive Inter-VLAN Routing
+* **Symptom:** V-NMS successfully discovers and monitors local subnet devices (`172.168.1.0/24`), but all targets on neighboring subnets (`192.168.10.0/24`, `10.0.0.0/24`) report 100% packet loss.
+* **Root Cause:**
+  1. The V-NMS host lacks a valid default gateway route (`172.168.1.1`).
+  2. The upstream Layer-3 Core Switch or Firewall is not routing traffic between VLANs.
+* **Diagnostic Verification:**
+  ```powershell
+  # Perform a non-resolving trace route to detect the exact hop where packets drop
+  tracert -d <TARGET_IP>
+  ```
+* **Resolution Steps:**
+  1. Confirm IP configuration and default route on the V-NMS server:
+     ```powershell
+     Get-NetRoute -DestinationPrefix "0.0.0.0/0"
+     ```
+  2. Verify that IP routing is globally enabled on the Core Switch:
+     ```cisco
      show ip route
+     configure terminal
+     ip routing
      ```
 
 ---
 
-### Condition 2.2: Host Firewall (Windows Defender / Linux iptables) Blocking ICMP
-* **Error Symptom:** Device par Web / SSH chal raha hai, lekin Ping fail ho raha hai aur NMS use "DOWN" dikhata hai.
-* **Root Cause:** Windows Firewall ya Linux `nftables` by default incoming ICMP Echo Requests (Ping) ko drop karta hai.
-* **Solution:**
-  * **Windows Server par Ping enable karne ka command (Run as Admin):**
+### Condition 2.2: Host Operating System Firewall Dropping ICMP Echo Requests
+* **Symptom:** Web and SSH services are accessible on the target, but ICMP Ping times out, causing V-NMS to mark the host as "DOWN".
+* **Root Cause:** Windows Defender Firewall or Linux Netfilter (`nftables` / `iptables`) drops inbound ICMPv4 Type 8 Echo Requests by default.
+* **Resolution Steps:**
+  * **For Windows Server / Windows 11 (Run PowerShell as Administrator):**
     ```powershell
-    netsh advfirewall firewall add rule name="Allow ICMPv4-In" protocol=icmpv4:8,any dir=in action=allow
+    netsh advfirewall firewall add rule name="Allow ICMPv4-Inbound" protocol=icmpv4:8,any dir=in action=allow
     ```
-  * **Linux (RHEL / Ubuntu) par Ping enable karne ka command:**
+  * **For Red Hat Enterprise Linux 9 / Rocky Linux / CentOS:**
     ```bash
-    sudo iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
-    # Red Hat Firewall daemon:
-    sudo firewall-cmd --add-icmp-block-inversion
+    sudo firewall-cmd --permanent --add-icmp-block-inversion
     sudo firewall-cmd --reload
     ```
+  * **For Ubuntu Server / Debian:**
+    ```bash
+    sudo iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+    sudo netfilter-persistent save
+    ```
 
 ---
 
-## 📡 Category 3: SNMP Telemetry Failures (Traffic, CPU, Memory Missing)
+## 4. Category 3: SNMP Telemetry & Polling Failures (Layer 7 Application)
 
 > [!IMPORTANT]
-> Agar ping ho raha hai lekin Interface Bandwidth, Traffic Graph, ya CPU/RAM 0% dikha raha hai, to 95% cases me issue niche diye gaye 4 points me se ek hota hai.
+> When ICMP Ping is alive and responsive, but Interface Bandwidth, Traffic Throughput, Memory, or CPU utilization graphs remain at 0% or empty, the issue resides in the SNMP agent configuration in 95% of cases.
 
-### Condition 3.1: SNMP Agent Service Stopped ya Not Installed
-* **Error Symptom:** `SNMP Query Timeout (Port 161)`
-* **Root Cause:** Target Windows/Linux server par SNMP feature installed nahi hai ya service `Stopped` state me hai.
-* **Solution:**
-  * **Windows Server par fix:**
+### Condition 3.1: SNMP Daemon Service Stopped or Uninstalled
+* **Symptom:** V-NMS log records `SNMP Query Timeout (UDP Port 161)`.
+* **Root Cause:** The SNMP agent service is not running or not installed on the target machine.
+* **Resolution Steps:**
+  * **For Windows Server (PowerShell as Administrator):**
     ```powershell
-    # Install SNMP if missing
+    # Install Windows SNMP service if absent
     Add-WindowsCapability -Online -Name "SNMP.Client~~~~0.0.1.0"
-    # Start and set Automatic
-    Start-Service -Name SNMP
+    # Configure and start service
     Set-Service -Name SNMP -StartupType Automatic
+    Start-Service -Name SNMP
     ```
-  * **Linux (RHEL / Rocky / Ubuntu) par fix:**
+  * **For Red Hat Enterprise Linux 9 / Rocky Linux 9:**
     ```bash
-    # RHEL / CentOS
-    sudo dnf install -y net-snmp
+    sudo dnf install -y net-snmp net-snmp-utils
     sudo systemctl enable --now snmpd
-    
-    # Ubuntu / Debian
-    sudo apt install -y snmpd
+    ```
+  * **For Ubuntu Server 22.04 / 24.04 LTS:**
+    ```bash
+    sudo apt update && sudo apt install -y snmpd
     sudo systemctl enable --now snmpd
     ```
 
 ---
 
 ### Condition 3.2: SNMP Community String Mismatch
-* **Error Symptom:** V-NMS poll karta hai lekin koi response nahi aata (Silent Drop).
-* **Root Cause:** V-NMS default community string `public` use kar raha hai, jabki switch ya server par custom string (e.g. `corp_nms_2026`) set hai.
-* **Solution:**
-  * Target switch ya device par community string check karein:
+* **Symptom:** V-NMS sends SNMP GET requests, but the target silently drops all UDP packets without replying.
+* **Root Cause:** V-NMS queries with default community string `public`, whereas the target device requires a specific custom string (e.g., `corp_nms_ro`).
+* **Resolution Steps:**
+  * **On Cisco Switch / Router:**
     ```cisco
-    show run | include snmp-server
-    ```
-  * Agar `public` allow karna hai:
-    ```cisco
+    configure terminal
     snmp-server community public RO
+    exit
     ```
+  * **In V-NMS Settings:**
+    Navigate to **Inventory &rarr; Edit Device &rarr; SNMP Configuration** and update the community string to match the device credentials.
 
 ---
 
 ### Condition 3.3: SNMP "Allowed Management Hosts" ACL Restriction
-* **Error Symptom:** Same network par hone ke bawajood target device SNMP packet reject kar deta hai.
-* **Root Cause:** Security policy ke mutabiq server sirf specific IP (jaise purana monitoring server) se SNMP query allow kar raha hai, aur naye V-NMS IP (`172.168.1.14` / `172.168.1.11`) ko allow nahi kiya gaya hai.
-* **Solution:**
-  * **Windows Service Config:**
-    `services.msc` -> **SNMP Service** -> Properties -> **Security Tab** -> *"Accept SNMP packets from these hosts"* me V-NMS Server ka IP add karein (`172.168.1.14` aur `172.168.1.11`).
-  * **Linux `/etc/snmp/snmpd.conf`:**
+* **Symptom:** Target rejects SNMP queries despite having matching community strings and identical subnet connectivity.
+* **Root Cause:** The host security policy restricts SNMP access strictly to an old monitoring IP address, excluding the active V-NMS engine (`172.168.1.14` and `172.168.1.11`).
+* **Resolution Steps:**
+  * **On Windows Server:**
+    Open `services.msc` &rarr; Double-click **SNMP Service** &rarr; Select the **Security** tab &rarr; Under *"Accept SNMP packets from these hosts"*, add:
+    * `172.168.1.14` (Central Production NOC)
+    * `172.168.1.11` (Local NOC Host)
+  * **On Linux (`/etc/snmp/snmpd.conf`):**
     ```text
     rocommunity public 172.168.1.14
     rocommunity public 172.168.1.11
     ```
-    Save karke `sudo systemctl restart snmpd` karein.
+    Apply changes: `sudo systemctl restart snmpd`.
 
 ---
 
-## 💻 Category 4: Deep Server Telemetry (WMI / SSH / Database Listening Issues)
+## 5. Category 4: Deep Server Telemetry & Database Socket Issues
 
-### Condition 4.1: Database / Application Service Bound to Localhost Only (`127.0.0.1`)
-* **Error Symptom:** Server ke andar app chal rahi hai, lekin V-NMS scan me Port 5432 (Postgres), 27017 (Mongo), ya 9090 (Cockpit) open nahi dikhta.
-* **Root Cause:** Service configuration me `bind_ip` sirf `127.0.0.1` par set hai, isliye network interface par bahar se traffic accept nahi ho raha.
-* **Solution:**
-  * **PostgreSQL (`postgresql.conf`):**
+### Condition 4.1: Database / Microservice Bound Strictly to Localhost (`127.0.0.1`)
+* **Symptom:** Services run normally inside the server, but V-NMS network discovery scans cannot detect PostgreSQL (`5432`), MongoDB (`27017`), Cockpit (`9090`), or Redis (`6379`).
+* **Root Cause:** Configuration parameters bind the service listener strictly to loopback `127.0.0.1`, ignoring external network interfaces.
+* **Resolution Steps:**
+  * **PostgreSQL (`/var/lib/pgsql/data/postgresql.conf`):**
     ```text
     listen_addresses = '*'
     ```
-    Aur `pg_hba.conf` me V-NMS subnet allow karein:
+    In `pg_hba.conf`, authorize subnet connections:
     ```text
     host all all 172.168.1.0/24 scram-sha-256
     ```
@@ -179,68 +204,79 @@ flowchart TD
       port: 27017
       bindIp: 0.0.0.0
     ```
-  * Save karke respective service restart karein (`systemctl restart mongod / postgresql`).
+  * **Redis (`/etc/redis/redis.conf`):**
+    ```text
+    bind 0.0.0.0
+    protected-mode no
+    ```
+    Restart respective daemons: `sudo systemctl restart postgresql / mongod / redis`.
 
 ---
 
-### Condition 4.2: Windows WMI / RPC Error (0x800706BA "RPC Server Unavailable")
-* **Error Symptom:** Disk Storage ya Physical Drives scan karte waqt `Get-CimInstance : The WinRM client cannot process the request` ya RPC timeout aata hai.
-* **Root Cause:** Remote Windows host par Remote Registry, DCOM ya Windows Management Instrumentation traffic firewall dwara blocked hai.
-* **Solution (Target Windows Machine par chalaein):**
+### Condition 4.2: Windows WMI / RPC Remote Error (0x800706BA "The RPC Server is Unavailable")
+* **Symptom:** Physical disk hardware or storage volume queries fail with RPC or WinRM client errors.
+* **Root Cause:** Windows DCOM / WMI remote administration endpoints are blocked by the target host firewall.
+* **Resolution Steps (Execute on target Windows machine in Administrator PowerShell):**
   ```powershell
-  # Enable Windows Remote Management
+  # Configure Windows Remote Management
   winrm quickconfig -q
-  # Open Firewall ports for WMI & DCOM
+  
+  # Enable required WMI and Remote Administration firewall rule groups
   netsh advfirewall firewall set rule group="Windows Management Instrumentation (WMI)" new enable=yes
   netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
   ```
 
 ---
 
-## ⚙️ Category 5: V-NMS Engine & Database Health
+## 6. Category 5: V-NMS Engine & Pipeline Infrastructure Health
 
-### Condition 5.1: `VNMSService` Crash ya Stopped
-* **Error Symptom:** Browser me `http://172.168.1.14:8081` par `ERR_CONNECTION_REFUSED` aata hai.
-* **Root Cause:** Server 14 ya Local host par background Go binary terminate ho gaya hai.
-* **Diagnosis & Solution:**
+### Condition 5.1: `VNMSService` Process Inactive or Terminated
+* **Symptom:** The web browser displays `ERR_CONNECTION_REFUSED` when accessing `http://172.168.1.14:8081`.
+* **Root Cause:** The underlying background Windows Service (`vnms-server.exe`) was halted or crashed due to host restart.
+* **Resolution Steps:**
   ```powershell
-  # Check service
+  # Check service state
   Get-Service -Name VNMSService
-  # If stopped, restart
-  Start-Service -Name VNMSService
+  
+  # Restart service
+  Restart-Service -Name VNMSService
   ```
 
 ---
 
-### Condition 5.2: PostgreSQL Database Connection Maxed Out
-* **Error Symptom:** Backend log me `connection pool exhausted` ya `too many connections` error aata hai.
-* **Root Cause:** PostgreSQL me `max_connections` limit exceed ho gayi hai.
-* **Solution:**
-  `C:\Program Files\PostgreSQL\18\data\postgresql.conf` me:
+### Condition 5.2: PostgreSQL Database Connection Pool Exhaustion
+* **Symptom:** Backend engine logs record `pq: sorry, too many clients already` or `connection pool exhausted`.
+* **Root Cause:** Active concurrent scanner threads and metric ingestion routines exceeded PostgreSQL default `max_connections` (100).
+* **Resolution Steps:**
+  In `C:\Program Files\PostgreSQL\18\data\postgresql.conf`:
   ```text
-  max_connections = 200
+  max_connections = 250
   ```
-  Aur service restart karein: `Restart-Service -Name postgresql*`
+  Restart the database service:
+  ```powershell
+  Restart-Service -Name postgresql*
+  ```
 
 ---
 
-## 📋 Quick Diagnostic Cheatsheet (60-Second Fix Table)
+## 7. Category 6: Comprehensive 60-Second Troubleshooting Cheatsheet
 
-| Agar Ye Dikhe (Symptom) | Asli Wajah (Root Cause) | Immediate Fix Command |
+| Observed Symptom | Primary Root Cause | Immediate Diagnostic & Fix Command |
 | :--- | :--- | :--- |
-| **Ping 100% Loss** | Cable unhooked / Port down / IP wrong | `arp -a \| findstr <IP>` |
-| **Ping OK, lekin HTTP/SSH band** | Host service stopped ya firewall port closed | `Test-NetConnection -ComputerName <IP> -Port 22` |
-| **Storage / Disk Data Missing** | Linux mount points unmapped / WMI blocked | WinRM / SSH service check karein |
-| **Device Unknown Switch ban gaya** | Fallback port misdetection | `scanner.go` me MAC vendor verification run karein |
-| **Doosre Subnet ka koi device na dikhe** | Inter-VLAN routing / Gateway missing | Router par `ip routing` verify karein |
-| **SNMP Graphs Blank (0 Mbps)** | Community string mismatch / UDP 161 blocked | Target par `snmp-server community public RO` daalein |
-| **UI Old Data Dikhaye** | Browser cache ya local outdated service | Hard Refresh (`Ctrl + Shift + R`) karein |
+| **Ping 100% Loss** | Cable unhooked, port shutdown, wrong IP | `arp -a \| findstr <IP>` |
+| **Ping Alive, Ports Closed** | Daemon stopped or bound to `127.0.0.1` | `Test-NetConnection -ComputerName <IP> -Port <PORT>` |
+| **Storage / Disk Data Missing** | Linux mount unmapped / Windows RPC blocked | Run `winrm quickconfig -q` on target |
+| **Linux Node Misclassified as Switch** | Port 80/443 fallback misdetection | Update to V-NMS v2.4 (OUI-based classification) |
+| **Foreign Subnet Targets Inactive** | Missing Core Switch Inter-VLAN routing | Verify `ip routing` on Cisco Core Switch |
+| **SNMP Graphs Flat (0 Mbps)** | Community string mismatch or UDP 161 blocked | Execute `snmp-server community public RO` on switch |
+| **Browser Shows Stale / Cached UI** | Outdated local service binary or browser cache | Restart local `VNMSService` and press `Ctrl + Shift + R` |
 
 ---
 
 > [!TIP]
-> **V-NMS Pro Tip:** Kisi bhi device ki live connectivity turant test karne ke liye PowerShell me ye 1-liner use karein:
+> **Network Engineering Pro-Tip:**
+> To verify complete Layer-3 and Layer-4 end-to-end reachability to any network node in under 3 seconds, execute:
 > ```powershell
-> Test-NetConnection -ComputerName <TARGET_IP> -Port <PORT>
+> Test-NetConnection -ComputerName <TARGET_IP> -Port <PORT_NUMBER>
 > ```
-> Agar `TcpTestSucceeded : True` aaye, to network level par sab kuch theek hai aur issue sirf application/credentials ka hai!
+> If `TcpTestSucceeded : True` is returned, physical cabling, inter-VLAN routing, and firewall policies are 100% verified, isolating the issue purely to host authentication or service configuration.
