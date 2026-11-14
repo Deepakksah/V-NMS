@@ -115,27 +115,42 @@
       color: #166534;
     }
 
+    /* ALL COMMANDS & INLINE CODE: PURE BLACK TERMINAL BACKGROUND */
     code {
       font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
       font-size: 8.4pt;
-      background: #f1f5f9;
-      padding: 2px 4px;
+      background: #090d16 !important;
+      color: #38bdf8 !important; /* Bright Terminal Cyan */
+      padding: 2px 6px;
       border-radius: 4px;
-      color: #0f172a;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #1e293b;
+      font-weight: 600;
+      letter-spacing: 0.2px;
     }
 
+    /* CLI PRE BLOCKS: FULL BLACK CONSOLE WITH GREEN/WHITE SYNTAX */
     pre {
       font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
-      font-size: 8.2pt;
-      background: #0f172a;
-      color: #f8fafc;
-      padding: 8px 10px;
+      font-size: 8.3pt;
+      background: #090d16 !important; /* Deep Terminal Black */
+      color: #4ade80 !important;       /* Bright Terminal Green */
+      padding: 8px 12px;
       border-radius: 5px;
       margin: 6px 0 10px 0;
       overflow-x: auto;
       page-break-inside: avoid;
-      line-height: 1.35;
+      line-height: 1.4;
+      border-left: 3px solid #38bdf8;
+      border: 1px solid #1e293b;
+      border-left-width: 4px;
+    }
+
+    pre code {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0;
+      border: none;
+      font-size: inherit;
     }
 
     table {
@@ -158,7 +173,19 @@
     td {
       padding: 5px 8px;
       border: 1px solid #cbd5e1;
-      vertical-align: top;
+      vertical-align: middle;
+    }
+
+    /* Table Commands: Distinct Terminal Black Pill */
+    td code {
+      background: #090d16 !important;
+      color: #38bdf8 !important;
+      display: inline-block;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid #1e293b;
+      font-weight: 600;
+      margin: 1px 0;
     }
 
     tr:nth-child(even) {
@@ -203,7 +230,7 @@
     </div>
   </div>
 
-  <p>When the V-NMS dashboard reports a device as <strong>Offline</strong>, <strong>Missing Ports</strong>, <strong>Blank Storage/Disk IO</strong>, or <strong>Zero Telemetry</strong>, the underlying cause exists across one of the eight infrastructure layers below. This SOP covers all 20 verified real-world conditions, technical root causes, and CLI resolutions.</p>
+  <p>When the V-NMS dashboard reports a device as <strong>Offline</strong>, <strong>Missing Ports</strong>, <strong>Blank Storage/Disk IO</strong>, or <strong>Zero Telemetry</strong>, the underlying cause exists across one of the eight infrastructure layers below. This SOP covers all 20 verified real-world conditions, technical root causes, and terminal CLI resolutions.</p>
 
   <!-- Flowchart SVG -->
   <h2>1. Rapid 30-Second Diagnostic Decision Flowchart</h2>
@@ -252,22 +279,38 @@
   <ul>
     <li><strong>Symptom:</strong> Target host exhibits 100% packet loss (<code>Destination Host Unreachable</code> or <code>Request timed out</code>).</li>
     <li><strong>Root Cause:</strong> Power supply failure, disconnected patch cord, or switch port entered <code>err-disabled</code> state.</li>
-    <li><strong>Diagnostic Command:</strong> <code>arp -a | findstr "&lt;TARGET_IP&gt;"</code></li>
-    <li><strong>Resolution:</strong> On upstream switch (Cisco Catalyst): <code>interface &lt;PORT_ID&gt;</code> &rarr; <code>shutdown</code> then <code>no shutdown</code>.</li>
+    <li><strong>Diagnostic Command (Command prompt with Black Background):</strong>
+      <pre>arp -a | findstr "&lt;TARGET_IP&gt;"</pre>
+    </li>
+    <li><strong>Resolution Command (Cisco Switch Terminal):</strong>
+      <pre>interface GigabitEthernet1/0/15
+ shutdown
+ no shutdown
+exit</pre>
+    </li>
   </ul>
 
   <h3>Condition 1.2: VLAN Assignment Mismatch</h3>
   <ul>
     <li><strong>Symptom:</strong> Physical link LED is green, but host cannot communicate with subnet.</li>
     <li><strong>Root Cause:</strong> Switch port assigned to wrong Access VLAN.</li>
-    <li><strong>Resolution:</strong> <code>interface &lt;PORT_ID&gt;</code> &rarr; <code>switchport access vlan 10</code>.</li>
+    <li><strong>Resolution Command (Cisco Switch Terminal):</strong>
+      <pre>configure terminal
+interface GigabitEthernet1/0/15
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+exit</pre>
+    </li>
   </ul>
 
   <h3>Condition 1.3: Duplicate IP Address Conflict (ARP Poisoning / IP Clash)</h3>
   <ul>
     <li><strong>Symptom:</strong> Telemetry flaps intermittently; MAC address in <code>arp -a</code> keeps changing.</li>
     <li><strong>Root Cause:</strong> Two hosts configured with the identical static IP.</li>
-    <li><strong>Resolution:</strong> Trace conflicting MAC on switch via <code>show mac address-table address &lt;MAC&gt;</code> and assign a unique IP.</li>
+    <li><strong>Resolution Command (Trace MAC to Switch Port):</strong>
+      <pre>show mac address-table address &lt;CONFLICTING_MAC&gt;</pre>
+    </li>
   </ul>
 
   <!-- Category 2 -->
@@ -276,7 +319,14 @@
   <h3>Condition 2.1: Missing Default Gateway or Inactive Inter-VLAN Routing</h3>
   <ul>
     <li><strong>Symptom:</strong> Local subnet works, but foreign subnets (<code>192.168.10.0/24</code>) report 100% loss.</li>
-    <li><strong>Resolution:</strong> Verify default route on V-NMS host (<code>Get-NetRoute</code>) and enable <code>ip routing</code> on Core Switch.</li>
+    <li><strong>Diagnostic Command:</strong>
+      <pre>tracert -d &lt;TARGET_IP&gt;</pre>
+    </li>
+    <li><strong>Resolution Command (Cisco Core Switch):</strong>
+      <pre>configure terminal
+ip routing
+show ip route</pre>
+    </li>
   </ul>
 
   <h3>Condition 2.2: Subnet Mask Mismatch</h3>
@@ -288,8 +338,14 @@
   <h3>Condition 2.3: MTU Mismatch & UDP Packet Fragmentation Drop</h3>
   <ul>
     <li><strong>Symptom:</strong> Small pings succeed, but large SNMP bulk walks hang or time out.</li>
-    <li><strong>Diagnostic Command:</strong> <code>ping &lt;TARGET_IP&gt; -f -l 1472</code></li>
-    <li><strong>Resolution:</strong> Configure MTU/MSS clamping on VPN tunnels (<code>ip mtu 1400</code>, <code>ip tcp adjust-mss 1360</code>) and allow fragmented UDP.</li>
+    <li><strong>Diagnostic Command:</strong>
+      <pre>ping &lt;TARGET_IP&gt; -f -l 1472</pre>
+    </li>
+    <li><strong>Resolution Command (Cisco Router Tunnel Clamping):</strong>
+      <pre>interface Tunnel1
+ ip mtu 1400
+ ip tcp adjust-mss 1360</pre>
+    </li>
   </ul>
 
   <!-- Category 3 -->
@@ -299,8 +355,13 @@
   <h3>Condition 3.1: Host Firewall Dropping ICMP Echo Requests</h3>
   <ul>
     <li><strong>Symptom:</strong> Web/SSH accessible, but ICMP Ping fails, marking host "DOWN".</li>
-    <li><strong>Fix (Windows):</strong> <code>netsh advfirewall firewall add rule name="Allow ICMPv4-In" protocol=icmpv4:8,any dir=in action=allow</code></li>
-    <li><strong>Fix (Linux RHEL 9):</strong> <code>sudo firewall-cmd --permanent --add-icmp-block-inversion && sudo firewall-cmd --reload</code></li>
+    <li><strong>Resolution Command (Windows Server - PowerShell Admin):</strong>
+      <pre>netsh advfirewall firewall add rule name="Allow ICMPv4-In" protocol=icmpv4:8,any dir=in action=allow</pre>
+    </li>
+    <li><strong>Resolution Command (Red Hat Enterprise Linux 9 / Rocky Linux):</strong>
+      <pre>sudo firewall-cmd --permanent --add-icmp-block-inversion
+sudo firewall-cmd --reload</pre>
+    </li>
   </ul>
 
   <h3>Condition 3.2: Perimeter Firewall / IPS Rate-Limiting & Port Scan Blacklisting</h3>
@@ -319,29 +380,48 @@
 
   <h3>Condition 4.1: SNMP Daemon Service Stopped or Uninstalled</h3>
   <ul>
-    <li><strong>Fix (Windows):</strong> <code>Add-WindowsCapability -Online -Name "SNMP.Client~~~~0.0.1.0"</code> then <code>Start-Service SNMP</code>.</li>
-    <li><strong>Fix (Linux RHEL/Ubuntu):</strong> <code>sudo systemctl enable --now snmpd</code></li>
+    <li><strong>Resolution Command (Windows Server):</strong>
+      <pre>Add-WindowsCapability -Online -Name "SNMP.Client~~~~0.0.1.0"
+Set-Service -Name SNMP -StartupType Automatic
+Start-Service -Name SNMP</pre>
+    </li>
+    <li><strong>Resolution Command (Linux RHEL 9 / Ubuntu):</strong>
+      <pre>sudo dnf install -y net-snmp && sudo systemctl enable --now snmpd   # RHEL
+sudo apt install -y snmpd && sudo systemctl enable --now snmpd      # Ubuntu</pre>
+    </li>
   </ul>
 
   <h3>Condition 4.2: SNMP Community String Mismatch</h3>
   <ul>
-    <li><strong>Resolution (Cisco Switch):</strong> <code>snmp-server community public RO</code></li>
+    <li><strong>Resolution Command (Cisco Switch Terminal):</strong>
+      <pre>configure terminal
+snmp-server community public RO
+exit</pre>
+    </li>
   </ul>
 
   <h3>Condition 4.3: SNMP "Allowed Management Hosts" ACL Restriction</h3>
   <ul>
-    <li><strong>Resolution:</strong> Whitelist V-NMS Server IPs (<code>172.168.1.14</code> and <code>172.168.1.11</code>) in target SNMP Service properties or <code>/etc/snmp/snmpd.conf</code>.</li>
+    <li><strong>Resolution:</strong> Whitelist V-NMS Server IPs (<code>172.168.1.14</code> and <code>172.168.1.11</code>) in target SNMP Service properties or <code>/etc/snmp/snmpd.conf</code>:
+      <pre>rocommunity public 172.168.1.14
+rocommunity public 172.168.1.11</pre>
+    </li>
   </ul>
 
   <h3>Condition 4.4: SNMPv3 EngineID, User, or Cipher Authentication Failure</h3>
   <ul>
-    <li><strong>Resolution:</strong> Verify credentials and encryption ciphers on switch: <code>show snmp user</code> and <code>show snmp engineID</code>.</li>
+    <li><strong>Diagnostic Command (Cisco Switch):</strong>
+      <pre>show snmp user
+show snmp engineID</pre>
+    </li>
   </ul>
 
   <h3>Condition 4.5: High CPU Starvation Dropping Management Traffic</h3>
   <ul>
     <li><strong>Symptom:</strong> Ping latency jumps from 0.5ms to 300ms; SNMP polling intermittently drops.</li>
-    <li><strong>Resolution:</strong> Check switch CPU via <code>show processes cpu sorted</code> and mitigate control-plane loops.</li>
+    <li><strong>Diagnostic Command (Cisco Switch):</strong>
+      <pre>show processes cpu sorted | exclude 0.00</pre>
+    </li>
   </ul>
 
   <!-- Category 5 -->
@@ -349,14 +429,16 @@
 
   <h3>Condition 5.1: Database / Microservice Bound Strictly to Localhost (<code>127.0.0.1</code>)</h3>
   <ul>
-    <li><strong>Resolution (PostgreSQL):</strong> Set <code>listen_addresses = '*'</code> in <code>postgresql.conf</code> and authorize subnet in <code>pg_hba.conf</code>.</li>
+    <li><strong>Resolution (PostgreSQL):</strong> Set <code>listen_addresses = '*'</code> in <code>postgresql.conf</code> and authorize subnet in <code>pg_hba.conf</code>:
+      <pre>host all all 172.168.1.0/24 scram-sha-256</pre>
+    </li>
     <li><strong>Resolution (MongoDB):</strong> Set <code>bindIp: 0.0.0.0</code> in <code>/etc/mongod.conf</code>.</li>
     <li><strong>Resolution (Redis):</strong> Set <code>bind 0.0.0.0</code> in <code>/etc/redis/redis.conf</code>.</li>
   </ul>
 
   <h3>Condition 5.2: Windows WMI / RPC Remote Error (<code>0x800706BA</code> "The RPC Server is Unavailable")</h3>
   <ul>
-    <li><strong>Resolution (Run on target Windows host):</strong>
+    <li><strong>Resolution Command (Target Windows Host - Administrator PowerShell):</strong>
       <pre>winrm quickconfig -q
 netsh advfirewall firewall set rule group="Windows Management Instrumentation (WMI)" new enable=yes
 netsh advfirewall firewall set rule group="Remote Administration" new enable=yes</pre>
@@ -365,8 +447,9 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
 
   <h3>Condition 5.3: Disk Partition Full (100% Usage / Read-Only Filesystem)</h3>
   <ul>
-    <li><strong>Symptom:</strong> Target responds to ping, but SSH fails and telemetry stops completely.</li>
-    <li><strong>Resolution:</strong> Check <code>df -h /</code> and purge bloated logs under <code>/var/log</code>.</li>
+    <li><strong>Diagnostic Command (Linux):</strong>
+      <pre>df -h /</pre>
+    </li>
   </ul>
 
   <!-- Category 6 & 7 -->
@@ -374,9 +457,14 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
 
   <h3>Condition 6.1: NTP Clock Skew / Time Drift Exceeding 300 Seconds</h3>
   <ul>
-    <li><strong>Symptom:</strong> Missing data gaps in historical charts; Kerberos / SNMPv3 authentication fails.</li>
-    <li><strong>Fix (Windows):</strong> <code>w32tm /config /manualpeerlist:"172.168.1.10" /syncfromflags:manual /update && w32tm /resync</code></li>
-    <li><strong>Fix (Linux Chrony):</strong> <code>sudo chronyc add server 172.168.1.10 iburst && sudo chronyc makestep</code></li>
+    <li><strong>Resolution Command (Windows Server):</strong>
+      <pre>w32tm /config /manualpeerlist:"172.168.1.10" /syncfromflags:manual /update
+w32tm /resync</pre>
+    </li>
+    <li><strong>Resolution Command (Linux Chrony):</strong>
+      <pre>sudo chronyc add server 172.168.1.10 iburst
+sudo chronyc makestep</pre>
+    </li>
   </ul>
 
   <h3>Condition 6.2: SSL/TLS Cipher Suite & Certificate Mismatch</h3>
@@ -387,12 +475,16 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
 
   <h3>Condition 7.1: <code>VNMSService</code> Inactive or Terminated</h3>
   <ul>
-    <li><strong>Resolution:</strong> <code>Get-Service -Name VNMSService | Restart-Service</code></li>
+    <li><strong>Resolution Command (Windows PowerShell):</strong>
+      <pre>Get-Service -Name VNMSService | Restart-Service</pre>
+    </li>
   </ul>
 
   <h3>Condition 7.2: PostgreSQL Database Connection Pool Exhaustion</h3>
   <ul>
-    <li><strong>Resolution:</strong> In <code>postgresql.conf</code>, set <code>max_connections = 250</code> and restart PostgreSQL service.</li>
+    <li><strong>Resolution Command:</strong> In <code>postgresql.conf</code>, set <code>max_connections = 250</code> and restart PostgreSQL:
+      <pre>Restart-Service -Name postgresql*</pre>
+    </li>
   </ul>
 
   <!-- Comprehensive 20-Condition Matrix Table -->
@@ -401,11 +493,11 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
   <table>
     <thead>
       <tr>
-        <th style="width: 5%;">#</th>
-        <th style="width: 23%;">Observed Symptom</th>
-        <th style="width: 27%;">Primary Root Cause</th>
-        <th style="width: 8%;">Layer</th>
-        <th style="width: 37%;">Immediate Diagnostic &amp; Fix Command</th>
+        <th style="width: 4%;">#</th>
+        <th style="width: 22%;">Observed Symptom</th>
+        <th style="width: 26%;">Primary Root Cause</th>
+        <th style="width: 7%;">Layer</th>
+        <th style="width: 41%;">Immediate Diagnostic &amp; Fix Command (Terminal Black BG)</th>
       </tr>
     </thead>
     <tbody>
@@ -435,14 +527,14 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
         <td><strong>Foreign Subnet Down</strong></td>
         <td>Missing default gateway / Inter-VLAN route</td>
         <td>L3</td>
-        <td><code>tracert -d &lt;IP&gt;</code> / <code>ip routing</code></td>
+        <td><code>tracert -d &lt;IP&gt;</code></td>
       </tr>
       <tr>
         <td><strong>5</strong></td>
         <td><strong>Local Comm Fails</strong></td>
         <td>Subnet mask mismatch (e.g. /25 vs /24)</td>
         <td>L3</td>
-        <td>Verify NIC adapter subnet mask</td>
+        <td><code>Get-NetIPAddress | ft IPAddress, PrefixLength</code></td>
       </tr>
       <tr>
         <td><strong>6</strong></td>
@@ -463,14 +555,14 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
         <td><strong>Scan Drops Mid-way</strong></td>
         <td>Perimeter Firewall IPS rate-limiting</td>
         <td>L4</td>
-        <td>Add V-NMS IP to Firewall IPS Whitelist</td>
+        <td><code>Whitelist V-NMS IP in Firewall Policy</code></td>
       </tr>
       <tr>
         <td><strong>9</strong></td>
         <td><strong>SNMP Timeout (UDP 161)</strong></td>
         <td>SNMP daemon service stopped or absent</td>
         <td>L7</td>
-        <td><code>Start-Service SNMP</code> / <code>systemctl enable snmpd</code></td>
+        <td><code>Start-Service SNMP</code></td>
       </tr>
       <tr>
         <td><strong>10</strong></td>
@@ -484,14 +576,14 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
         <td><strong>SNMP Query Rejected</strong></td>
         <td>Host ACL allows only old monitoring IP</td>
         <td>L7</td>
-        <td>Whitelist <code>172.168.1.14</code> in SNMP properties</td>
+        <td><code>rocommunity public 172.168.1.14</code></td>
       </tr>
       <tr>
         <td><strong>12</strong></td>
         <td><strong>SNMPv3 Auth Fails</strong></td>
         <td>EngineID / SHA / AES cipher mismatch</td>
         <td>L7</td>
-        <td>Verify <code>show snmp user</code> credentials</td>
+        <td><code>show snmp user</code></td>
       </tr>
       <tr>
         <td><strong>13</strong></td>
@@ -505,7 +597,7 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
         <td><strong>Ports Undetected</strong></td>
         <td>Service bound strictly to <code>127.0.0.1</code></td>
         <td>L4</td>
-        <td>Set <code>listen_addresses = '*'</code> / <code>bindIp: 0.0.0.0</code></td>
+        <td><code>listen_addresses = '*'</code></td>
       </tr>
       <tr>
         <td><strong>15</strong></td>
@@ -519,21 +611,21 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
         <td><strong>Services Crash Randomly</strong></td>
         <td>Disk partition full (100% usage)</td>
         <td>L7</td>
-        <td>Check <code>df -h /</code> and purge old logs</td>
+        <td><code>df -h /</code></td>
       </tr>
       <tr>
         <td><strong>17</strong></td>
         <td><strong>Timestamp / Chart Gaps</strong></td>
         <td>NTP clock drift exceeding 300 seconds</td>
         <td>L7</td>
-        <td><code>w32tm /resync</code> / <code>chronyc makestep</code></td>
+        <td><code>w32tm /resync</code></td>
       </tr>
       <tr>
         <td><strong>18</strong></td>
         <td><strong>HTTPS / Cockpit Fails</strong></td>
         <td>TLS cipher / expired SSL certificate</td>
         <td>L7</td>
-        <td>Verify TLS 1.2+ and certificate validity</td>
+        <td><code>Test-NetConnection &lt;IP&gt; -Port 9090</code></td>
       </tr>
       <tr>
         <td><strong>19</strong></td>
@@ -547,7 +639,7 @@ netsh advfirewall firewall set rule group="Remote Administration" new enable=yes
         <td><strong>DB Ingestion Halts</strong></td>
         <td>PostgreSQL connection pool exhausted</td>
         <td>DB</td>
-        <td>Set <code>max_connections = 250</code> in postgresql.conf</td>
+        <td><code>Restart-Service -Name postgresql*</code></td>
       </tr>
     </tbody>
   </table>
