@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { 
-  KeyRound, 
   ShieldCheck, 
   Lock, 
   ArrowLeft, 
@@ -169,13 +168,22 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
               width: '40px',
               height: '40px',
               borderRadius: '10px',
-              backgroundColor: 'rgba(2, 132, 199, 0.2)',
-              border: '1px solid rgba(2, 132, 199, 0.4)',
+              backgroundColor: '#ffffff',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              padding: '6px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
             }}>
-              <KeyRound size={22} color="#38bdf8" />
+              <img
+                src="/favicon.ico"
+                alt="V-NMS Favicon"
+                style={{ width: '26px', height: '26px', objectFit: 'contain' }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/favicon.png';
+                }}
+              />
             </div>
             <div>
               <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>

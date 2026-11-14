@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-  Activity, 
   Lock, 
   User, 
   Eye, 
@@ -27,6 +26,19 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [showForgotModal, setShowForgotModal] = useState(false);
+
+  // Synchronize document title and favicon dynamically during login time
+  useEffect(() => {
+    document.title = loading ? 'Authenticating... • V-NMS Enterprise' : 'Sign In • V-NMS Enterprise';
+    let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.type = 'image/x-icon';
+    link.href = '/favicon.ico';
+  }, [loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,25 +104,61 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
         boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
         overflow: 'hidden'
       }}>
-        {/* Brand Banner Header */}
+        {/* Brand Banner Header with Official Favicon */}
         <div style={{
-          padding: '32px 32px 24px 32px',
+          padding: '28px 32px 22px 32px',
           borderBottom: '1px solid #f1f5f9',
           background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
-          textAlign: 'center'
+          textAlign: 'center',
+          position: 'relative'
         }}>
+          {/* Favicon Emblem */}
           <div style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, #0284c7 0%, #4f46e5 100%)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 8px 16px -4px rgba(2, 132, 199, 0.35)',
-            marginBottom: '16px'
+            position: 'relative',
+            display: 'inline-block',
+            marginBottom: '14px'
           }}>
-            <Activity size={28} color="#ffffff" />
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '16px',
+              background: '#ffffff',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.22), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              padding: '8px'
+            }}>
+              <img
+                src="/favicon.ico"
+                alt="V-NMS Favicon"
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = '/favicon.png';
+                }}
+              />
+            </div>
+            {/* Live Gateway Telemetry Indicator on Favicon */}
+            <span
+              style={{
+                position: 'absolute',
+                bottom: '-2px',
+                right: '-2px',
+                width: '14px',
+                height: '14px',
+                borderRadius: '50%',
+                backgroundColor: loading ? '#f59e0b' : '#10b981',
+                border: '2.5px solid #ffffff',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
+              }}
+              title={loading ? 'Authenticating credentials...' : 'NOC Telemetry Gateway Active'}
+            />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '6px' }}>
@@ -278,7 +326,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               </label>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit Button with Favicon Integration */}
             <button
               type="submit"
               disabled={loading}
@@ -295,27 +343,45 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
+                gap: '10px',
                 boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
                 transition: 'opacity 0.15s ease'
               }}
             >
               {loading ? (
                 <>
-                  <span style={{
-                    width: '14px',
-                    height: '14px',
-                    border: '2px solid #ffffff',
-                    borderTopColor: 'transparent',
-                    borderRadius: '50%',
-                    display: 'inline-block',
-                    animation: 'spin 0.8s linear infinite'
-                  }} />
-                  <span>Verifying Credentials...</span>
+                  <img
+                    src="/favicon.ico"
+                    alt="Authenticating"
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      objectFit: 'contain',
+                      display: 'inline-block',
+                      animation: 'spin 1.2s linear infinite'
+                    }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/favicon.png';
+                    }}
+                  />
+                  <span>Authenticating Session...</span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={18} />
+                  <img
+                    src="/favicon.ico"
+                    alt="Favicon"
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      objectFit: 'contain',
+                      display: 'inline-block',
+                      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.25))'
+                    }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/favicon.png';
+                    }}
+                  />
                   <span>Sign In to V-NMS</span>
                 </>
               )}
