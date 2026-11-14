@@ -90,11 +90,20 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
   // Dynamic Real Network Hierarchy from autodiscovered devices
   const dynamicNetworkNode: TreeNode = useMemo(() => {
-    const firewalls = devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall' || d.ip_address === '172.168.1.1');
-    const switches = devices.filter(d => (d.device_type || '').toLowerCase() === 'switch' && !firewalls.includes(d));
-    const servers = devices.filter(d => (d.device_type || '').toLowerCase() === 'server' && !firewalls.includes(d) && !switches.includes(d));
-    const workstations = devices.filter(d => (d.device_type || '').toLowerCase() === 'workstation');
-    const ntpNodes = devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp' || d.ip_address === '172.168.1.10');
+    const sortByIP = (list: Device[]) => [...list].sort((a, b) => {
+      const octA = (a.ip_address || '').split('.').map(Number);
+      const octB = (b.ip_address || '').split('.').map(Number);
+      for (let i = 0; i < 4; i++) {
+        if ((octA[i] || 0) !== (octB[i] || 0)) return (octA[i] || 0) - (octB[i] || 0);
+      }
+      return (a.id || 0) - (b.id || 0);
+    });
+
+    const firewalls = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall' || d.ip_address === '172.168.1.1'));
+    const switches = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'switch' && !firewalls.includes(d)));
+    const servers = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'server' && !firewalls.includes(d) && !switches.includes(d)));
+    const workstations = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'workstation'));
+    const ntpNodes = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp' || d.ip_address === '172.168.1.10'));
 
     const mapDeviceToNode = (d: Device): TreeNode => {
       const v = d.vendor || 'Generic';

@@ -151,9 +151,19 @@ export default function App() {
       setLoading(true);
       const res = await axios.get(`${API_BASE}/devices`, { timeout: 3500 });
       if (res.data && res.data.devices && res.data.devices.length > 0) {
-        setDevices(res.data.devices);
+        const sorted = [...res.data.devices].sort((a, b) => {
+          const octA = (a.ip_address || '').split('.').map(Number);
+          const octB = (b.ip_address || '').split('.').map(Number);
+          for (let i = 0; i < 4; i++) {
+            if ((octA[i] || 0) !== (octB[i] || 0)) {
+              return (octA[i] || 0) - (octB[i] || 0);
+            }
+          }
+          return (a.id || 0) - (b.id || 0);
+        });
+        setDevices(sorted);
         if (!selectedDevice) {
-          setSelectedDevice(res.data.devices[0]);
+          setSelectedDevice(sorted[0]);
         }
       }
       try {

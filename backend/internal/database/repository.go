@@ -20,7 +20,12 @@ func GetAllDevices() ([]models.Device, error) {
 		       COALESCE(sys_name, ''), COALESCE(sys_descr, ''), COALESCE(location, ''), 
 		       COALESCE(device_type, 'server'), COALESCE(vendor, 'Generic'), COALESCE(mac_address, ''),
 		       status, last_ping_ms, last_polled_at, uptime_seconds, created_at, updated_at
-		FROM devices ORDER BY id ASC
+		FROM devices 
+		ORDER BY CASE 
+			WHEN ip_address ~ '^([0-9]{1,3}\.){3}[0-9]{1,3}$' 
+			THEN string_to_array(ip_address, '.')::int[] 
+			ELSE ARRAY[999,999,999,999] 
+		END ASC, id ASC
 	`)
 	if err != nil {
 		return nil, err

@@ -104,6 +104,16 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
 
       const matchType = typeFilter === 'ALL' || devType === typeFilter;
       return matchSearch && matchType;
+    }).sort((a, b) => {
+      // Natural IPv4 numerical octet sorting
+      const octA = (a.ip_address || '').split('.').map(Number);
+      const octB = (b.ip_address || '').split('.').map(Number);
+      for (let i = 0; i < 4; i++) {
+        if ((octA[i] || 0) !== (octB[i] || 0)) {
+          return (octA[i] || 0) - (octB[i] || 0);
+        }
+      }
+      return (a.id || 0) - (b.id || 0);
     });
   }, [devices, searchTerm, typeFilter, categoryFilter]);
 
