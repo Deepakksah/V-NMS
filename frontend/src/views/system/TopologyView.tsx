@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ZoomIn, 
   ZoomOut,
@@ -75,6 +75,50 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Native & Overlay Full Screen Toggle
+  const toggleFullScreen = () => {
+    if (!isFullScreen) {
+      setIsFullScreen(true);
+      try {
+        const el = containerRef.current || document.documentElement;
+        if (el && el.requestFullscreen) {
+          el.requestFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+    } else {
+      setIsFullScreen(false);
+      try {
+        if (document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullScreen) {
+        setIsFullScreen(false);
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      }
+    };
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isFullScreen) {
+        setIsFullScreen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [isFullScreen]);
 
   // Selection States
   const [selectedNodeId, setSelectedNodeId] = useState<string>('node-1');
@@ -814,21 +858,41 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
   };
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      minHeight: 'calc(100vh - 85px)',
-      gap: '8px',
-      overflow: 'hidden'
-    }}>
+    <div 
+      ref={containerRef}
+      style={isFullScreen ? {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 999999,
+        backgroundColor: '#0a0f1d',
+        padding: '10px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        overflow: 'hidden'
+      } : {
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 'calc(100vh - 85px)',
+        gap: '8px',
+        overflow: 'hidden'
+      }}
+    >
       {/* 1. Compact Single-Row Enterprise NOC Control Header */}
       <div style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: isFullScreen ? '#0f172a' : '#ffffff',
+        borderColor: isFullScreen ? '#1e293b' : '#e2e8f0',
+        color: isFullScreen ? '#f8fafc' : '#0f172a',
         borderRadius: '12px',
-        border: '1px solid #e2e8f0',
+        border: '1px solid',
         padding: '8px 16px',
-        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+        boxShadow: isFullScreen ? '0 4px 20px rgba(0, 0, 0, 0.5)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -853,17 +917,17 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: isFullScreen ? '#f8fafc' : '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
                 Autonomous Network Topology
               </h2>
-              <span style={{ fontSize: '0.66rem', padding: '1px 6px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.66rem', padding: '1px 6px', borderRadius: '4px', background: isFullScreen ? '#1e293b' : '#e0f2fe', color: '#0284c7', fontWeight: 700 }}>
                 172.168.1.0/24
               </span>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
-            <span style={{ fontSize: '0.72rem', background: '#f8fafc', border: '1px solid #e2e8f0', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#334155' }}>
+            <span style={{ fontSize: '0.72rem', background: isFullScreen ? '#1e293b' : '#f8fafc', border: `1px solid ${isFullScreen ? '#334155' : '#e2e8f0'}`, padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: isFullScreen ? '#94a3b8' : '#334155' }}>
               33 Active Hosts
             </span>
             <span style={{ fontSize: '0.72rem', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#16a34a' }}>
@@ -893,9 +957,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                 fontSize: '0.74rem',
                 fontWeight: selectedTier === t.id ? 700 : 500,
                 border: '1px solid',
-                borderColor: selectedTier === t.id ? '#0284c7' : '#cbd5e1',
-                backgroundColor: selectedTier === t.id ? '#0284c7' : '#ffffff',
-                color: selectedTier === t.id ? '#ffffff' : '#475569',
+                borderColor: selectedTier === t.id ? '#0284c7' : isFullScreen ? '#334155' : '#cbd5e1',
+                backgroundColor: selectedTier === t.id ? '#0284c7' : isFullScreen ? '#1e293b' : '#ffffff',
+                color: selectedTier === t.id ? '#ffffff' : isFullScreen ? '#94a3b8' : '#475569',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
@@ -912,9 +976,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#f8fafc',
+            backgroundColor: isFullScreen ? '#1e293b' : '#f8fafc',
             borderRadius: '6px',
-            border: '1px solid #cbd5e1',
+            border: `1px solid ${isFullScreen ? '#334155' : '#cbd5e1'}`,
             padding: '0 8px'
           }}>
             <Search size={13} color="#64748b" />
@@ -929,7 +993,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
                 padding: '4px 6px',
                 fontSize: '0.76rem',
                 width: '140px',
-                backgroundColor: 'transparent'
+                backgroundColor: 'transparent',
+                color: isFullScreen ? '#f8fafc' : '#0f172a'
               }}
             />
           </div>
@@ -943,9 +1008,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
               gap: '5px',
               padding: '4px 10px',
               borderRadius: '6px',
-              border: '1px solid #cbd5e1',
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
+              border: `1px solid ${isFullScreen ? '#334155' : '#cbd5e1'}`,
+              backgroundColor: isFullScreen ? '#1e293b' : '#ffffff',
+              color: isFullScreen ? '#f8fafc' : '#0f172a',
               fontSize: '0.74rem',
               fontWeight: 700,
               cursor: 'pointer'
@@ -960,78 +1025,103 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
           <div style={{
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#ffffff',
+            backgroundColor: isFullScreen ? '#1e293b' : '#ffffff',
             borderRadius: '6px',
-            border: '1px solid #cbd5e1',
+            border: `1px solid ${isFullScreen ? '#334155' : '#cbd5e1'}`,
             overflow: 'hidden'
           }}>
             <button
               onClick={() => setZoomLevel(z => Math.max(z - 0.15, 0.55))}
               title="Zoom Out"
-              style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#334155' }}
+              style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: isFullScreen ? '#94a3b8' : '#334155' }}
             >
               <ZoomOut size={13} />
             </button>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0 5px', color: '#475569', minWidth: '40px', textAlign: 'center' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0 5px', color: isFullScreen ? '#cbd5e1' : '#475569', minWidth: '40px', textAlign: 'center' }}>
               {Math.round(zoomLevel * 100)}%
             </span>
             <button
               onClick={() => setZoomLevel(z => Math.min(z + 0.15, 2.2))}
               title="Zoom In"
-              style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#334155' }}
+              style={{ padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer', color: isFullScreen ? '#94a3b8' : '#334155' }}
             >
               <ZoomIn size={13} />
             </button>
             <button
               onClick={resetView}
               title="Reset View"
-              style={{ padding: '4px 8px', background: 'transparent', border: 'none', borderLeft: '1px solid #e2e8f0', cursor: 'pointer', color: '#334155' }}
+              style={{ padding: '4px 8px', background: 'transparent', border: 'none', borderLeft: `1px solid ${isFullScreen ? '#334155' : '#e2e8f0'}`, cursor: 'pointer', color: isFullScreen ? '#94a3b8' : '#334155' }}
             >
               <RotateCcw size={12} />
             </button>
-            <button
-              onClick={() => setIsFullScreen(!isFullScreen)}
-              title={isFullScreen ? 'Exit Full Screen' : 'Full Screen'}
-              style={{ padding: '4px 8px', background: isFullScreen ? '#e0f2fe' : 'transparent', border: 'none', borderLeft: '1px solid #e2e8f0', cursor: 'pointer', color: '#0284c7' }}
-            >
-              {isFullScreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
-            </button>
           </div>
 
+          {/* Dedicated High-Visibility Full Screen Button */}
+          <button
+            onClick={toggleFullScreen}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 14px',
+              borderRadius: '6px',
+              background: isFullScreen ? '#dc2626' : '#0284c7',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 800,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
+              boxShadow: isFullScreen ? '0 2px 10px rgba(220, 38, 38, 0.5)' : '0 2px 10px rgba(2, 132, 199, 0.4)',
+              transition: 'all 0.15s ease'
+            }}
+            title={isFullScreen ? 'Exit Full Screen Mode (Esc)' : 'Enter 100% Full Screen View (Hides Navbar & Sidebar)'}
+          >
+            {isFullScreen ? (
+              <>
+                <Minimize2 size={14} />
+                <span>Exit Full Screen (Esc)</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 size={14} />
+                <span>Full Screen</span>
+              </>
+            )}
+          </button>
+
           {/* Toggle Inspector Panel Button */}
-          {!isFullScreen && (
-            <button
-              onClick={() => setIsInspectorOpen(!isInspectorOpen)}
-              title={isInspectorOpen ? 'Collapse Inspector Sidebar' : 'Expand Inspector Sidebar'}
-              style={{
-                padding: '5px 8px',
-                borderRadius: '6px',
-                border: '1px solid #cbd5e1',
-                background: isInspectorOpen ? '#f1f5f9' : '#0284c7',
-                color: isInspectorOpen ? '#475569' : '#ffffff',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '3px',
-                fontSize: '0.72rem',
-                fontWeight: 700
-              }}
-            >
-              {isInspectorOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
-              <span>{isInspectorOpen ? 'Hide' : 'Inspector'}</span>
-            </button>
-          )}
+          <button
+            onClick={() => setIsInspectorOpen(!isInspectorOpen)}
+            title={isInspectorOpen ? 'Collapse Inspector Sidebar' : 'Expand Inspector Sidebar'}
+            style={{
+              padding: '5px 9px',
+              borderRadius: '6px',
+              border: '1px solid',
+              borderColor: isFullScreen ? '#334155' : '#cbd5e1',
+              background: isInspectorOpen ? (isFullScreen ? '#1e293b' : '#f1f5f9') : '#0284c7',
+              color: isInspectorOpen ? (isFullScreen ? '#94a3b8' : '#475569') : '#ffffff',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '0.72rem',
+              fontWeight: 700
+            }}
+          >
+            {isInspectorOpen ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            <span>{isInspectorOpen ? 'Hide' : 'Inspector'}</span>
+          </button>
         </div>
       </div>
 
       {/* 2. Full-Page Topo Canvas & Inspector Grid (Takes 100% Available Screen Space) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: (!isInspectorOpen || isFullScreen) ? '1fr' : '1fr 340px',
+        gridTemplateColumns: (!isInspectorOpen) ? '1fr' : '1fr 340px',
         gap: '12px',
         flex: 1,
         minHeight: 0,
-        height: 'calc(100vh - 145px)',
+        height: isFullScreen ? 'calc(100vh - 65px)' : 'calc(100vh - 145px)',
         overflow: 'hidden'
       }}>
         {/* Full-Height SVG Interactive Canvas */}
@@ -1268,16 +1358,18 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ devices = [], onSele
         </div>
 
         {/* Right Side: Selected Node / Link Inspector Panel (Full Height) */}
-        {isInspectorOpen && !isFullScreen && (
+        {isInspectorOpen && (
           <div style={{
-            backgroundColor: '#ffffff',
+            backgroundColor: isFullScreen ? '#0f172a' : '#ffffff',
+            borderColor: isFullScreen ? '#1e293b' : '#e2e8f0',
+            color: isFullScreen ? '#f8fafc' : '#0f172a',
             borderRadius: '14px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid',
             padding: '16px 18px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.04)',
+            boxShadow: isFullScreen ? '0 4px 20px rgba(0, 0, 0, 0.5)' : '0 4px 12px rgba(0, 0, 0, 0.04)',
             height: '100%',
             overflowY: 'auto'
           }}>
