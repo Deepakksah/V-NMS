@@ -20,13 +20,13 @@ import {
   Shield,
   Clock,
   TrendingUp,
-  ChevronDown,
-  ChevronRight,
   Users,
   UserCheck,
   Link2,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Plus,
+  Minus
 } from 'lucide-react';
 import type { Device } from '../types';
 
@@ -120,6 +120,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           iconColor: '#0284c7', 
           iconBg: '#e0f2fe', 
           count: 'TREE', 
+          highlight: true 
+        },
+        { 
+          id: 'topology', 
+          label: 'Topology Maps & LLDP', 
+          icon: Map, 
+          iconColor: '#059669', 
+          iconBg: '#d1fae5', 
+          count: '5',
           highlight: true 
         },
         { 
@@ -255,14 +264,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           count: '4' 
         },
         { 
-          id: 'topology', 
-          label: 'Topology Maps & LLDP', 
-          icon: Map, 
-          iconColor: '#059669', 
-          iconBg: '#d1fae5', 
-          count: '5' 
-        },
-        { 
           id: 'logs', 
           label: 'Syslog UDP & App Logs', 
           icon: FileText, 
@@ -362,13 +363,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={toggleSidebar}
-          title={isSidebarCollapsed ? "Expand Sidebar (Unhide full names)" : "Collapse Sidebar (Show icons only)"}
+          title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '5px',
-            padding: isSidebarCollapsed ? '6px' : '3px 8px',
+            padding: isSidebarCollapsed ? '6px' : '4px 6px',
             borderRadius: '6px',
             border: '1px solid #cbd5e1',
             background: '#ffffff',
@@ -393,10 +393,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {isSidebarCollapsed ? (
             <PanelLeftOpen size={16} />
           ) : (
-            <>
-              <PanelLeftClose size={13} />
-              <span>Hide</span>
-            </>
+            <PanelLeftClose size={15} />
           )}
         </button>
       </div>
@@ -424,7 +421,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     userSelect: 'none',
                     transition: 'background-color 0.12s ease'
                   }}
-                  title={isCollapsed ? "Unhide this section" : "Hide this section"}
+                  title={isCollapsed ? "Expand section" : "Collapse section"}
                   onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.7)'}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
@@ -439,11 +436,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     {sec.title}
                   </p>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#94a3b8' }}>
-                    <span style={{ fontSize: '0.58rem', fontWeight: 700, color: isCollapsed ? '#0284c7' : '#94a3b8' }}>
-                      {isCollapsed ? 'UNHIDE' : 'HIDE'}
-                    </span>
-                    {isCollapsed ? <ChevronRight size={12} color="#0284c7" /> : <ChevronDown size={12} />}
+                  <div 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '4px',
+                      backgroundColor: isCollapsed ? '#e0f2fe' : '#f1f5f9',
+                      color: isCollapsed ? '#0284c7' : '#64748b',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    {isCollapsed ? <Plus size={12} strokeWidth={2.5} /> : <Minus size={12} strokeWidth={2.5} />}
                   </div>
                 </div>
               )}

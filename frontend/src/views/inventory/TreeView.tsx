@@ -24,9 +24,8 @@ import {
   AlertTriangle,
   ArrowUpRight,
   ArrowDownLeft,
-  Eye,
-  EyeOff,
-  Plus
+  Plus,
+  Minus
 } from 'lucide-react';
 import {
   AreaChart,
@@ -205,88 +204,9 @@ export const TreeView: React.FC<TreeViewProps> = ({
     }
   }, [dynamicNetworkNode, selectedNode]);
 
-  // Complete Enterprise Infrastructure Hierarchy Tree Data
+  // Complete Enterprise Infrastructure Hierarchy Tree Data (Real Discovered Infrastructure)
   const treeData: TreeNode[] = useMemo(() => [
-    dynamicNetworkNode,
-    {
-      id: 'models-root',
-      name: 'Enterprise Subsystem Architecture & Services Tree',
-      type: 'model_category',
-      badge: 'ENTERPRISE MODULES â€¢ 15 SUITES',
-      badgeColor: '#7c3aed',
-      status: 'info',
-      meta: 'Autonomous Subsystem & Protocol Telemetry Hierarchy',
-      children: [
-        {
-          id: 'cat-core-devices',
-          name: 'Suite 1: Core Device & Hardware Hierarchy (12 Models)',
-          type: 'model_category',
-          badge: '12 MODELS',
-          badgeColor: '#0284c7',
-          status: 'up',
-          children: [
-            { id: 'm-dev-1', name: 'devices (Device inventory & core metadata)', type: 'model', status: 'up', meta: 'Core Network Device Registry' },
-            { id: 'm-dev-2', name: 'device_groups (Static and dynamic device clusters)', type: 'model', status: 'up', meta: 'Health calculation engine' },
-            { id: 'm-dev-3', name: 'device_outages (Tracking downtime and SLA durations)', type: 'model', status: 'up', meta: 'Historical log repository' },
-            { id: 'm-dev-4', name: 'entPhysical (Physical chassis hierarchy and serial numbers)', type: 'model', status: 'up', meta: 'RFC 6933 entity MIB' },
-            { id: 'm-dev-5', name: 'locations (Geographic coordinates, building, rack and elevation)', type: 'model', status: 'up', meta: 'GIS spatial mapping' }
-          ]
-        },
-        {
-          id: 'cat-ports',
-          name: 'Suite 2: Ports & Physical Layer Hierarchy (13 Models)',
-          type: 'model_category',
-          badge: '13 MODELS',
-          badgeColor: '#0d9488',
-          status: 'up',
-          children: [
-            { id: 'm-port-1', name: 'ports (Interface table, traffic rates, 64-bit HC counters)', type: 'model', status: 'up', meta: 'IF-MIB RFC 2863' },
-            { id: 'm-port-2', name: 'ports_fdb (MAC address forwarding database / CAM table)', type: 'model', status: 'up', meta: 'BRIDGE-MIB tracking' },
-            { id: 'm-port-3', name: 'ports_vlans (802.1Q tagged and untagged port bindings)', type: 'model', status: 'up', meta: 'VLAN membership table' }
-          ]
-        },
-        {
-          id: 'cat-sensors',
-          name: 'Suite 3: Sensors & Environmental Telemetry (10 Models)',
-          type: 'model_category',
-          badge: '10 MODELS',
-          badgeColor: '#d97706',
-          status: 'up',
-          children: [
-            { id: 'm-sens-1', name: 'sensors (Temperature, voltage, fan speed, power wattage, humidity)', type: 'model', status: 'up', meta: 'ENTITY-SENSOR-MIB' },
-            { id: 'm-sens-2', name: 'processors (Multi-core CPU utilization percentage)', type: 'model', status: 'up', meta: 'HOST-RESOURCES-MIB' },
-            { id: 'm-sens-3', name: 'mempools (RAM memory pool breakdown, buffers and cache)', type: 'model', status: 'up', meta: 'Real-time telemetry' }
-          ]
-        },
-        {
-          id: 'cat-routing',
-          name: 'Suite 4: IP, Routing & Carrier Protocols (20 Models)',
-          type: 'model_category',
-          badge: '20 MODELS',
-          badgeColor: '#4f46e5',
-          status: 'up',
-          children: [
-            { id: 'm-rt-1', name: 'bgp_peers (BGP autonomous system peering, prefixes received)', type: 'model', status: 'up', meta: 'BGP4-MIB RFC 4273' },
-            { id: 'm-rt-2', name: 'ospf_nbrs (OSPF adjacency states: Full, 2-Way, Init, Down)', type: 'model', status: 'up', meta: 'OSPF-MIB RFC 4752' },
-            { id: 'm-rt-3', name: 'vrf (Virtual Routing and Forwarding table partitions)', type: 'model', status: 'up', meta: 'MPLS-VPN-MIB' },
-            { id: 'm-rt-4', name: 'ipv4_addresses & ipv6_addresses (IP subnet allocations)', type: 'model', status: 'up', meta: 'IP-MIB prefix repository' }
-          ]
-        },
-        {
-          id: 'cat-alerts',
-          name: 'Suite 5: Alerts, Thresholds & Transports (15 Models)',
-          type: 'model_category',
-          badge: '15 MODELS',
-          badgeColor: '#dc2626',
-          status: 'up',
-          children: [
-            { id: 'm-alt-1', name: 'alert_rules (Dynamic boolean threshold conditions and SQL queries)', type: 'model', status: 'up', meta: 'Autonomous rule evaluator' },
-            { id: 'm-alt-2', name: 'alert_log (Historical audit log of incidents triggered and cleared)', type: 'model', status: 'up', meta: 'Incident History & Audit Archive' },
-            { id: 'm-alt-3', name: 'alert_transports (Telegram, Slack, Email, Webhook, PagerDuty)', type: 'model', status: 'up', meta: 'Multi-channel dispatcher' }
-          ]
-        }
-      ]
-    }
+    dynamicNetworkNode
   ], [dynamicNetworkNode]);
 
   // Filter tree nodes based on search and type
@@ -296,7 +216,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
       if (fType === 'routers' && node.type !== 'router' && node.type !== 'datacenter' && node.type !== 'tier') return null;
       if (fType === 'switches' && node.type !== 'switch' && node.type !== 'datacenter' && node.type !== 'tier') return null;
       if (fType === 'servers' && node.type !== 'server' && node.type !== 'datacenter' && node.type !== 'tier') return null;
-      if (fType === 'models' && node.type !== 'model_category' && node.type !== 'model') return null;
+      if (fType === 'workstations' && node.type !== 'workstation' && node.type !== 'datacenter' && node.type !== 'tier') return null;
     }
 
     const matchesSelf = !term ||
@@ -554,7 +474,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
             </span>
           )}
 
-          {/* Interactive Hide / Unhide Toggle Pill for Parents */}
+          {/* Interactive +/- Toggle Button for Parents */}
           {hasChildren && (
             <button
               onClick={(e) => {
@@ -564,30 +484,23 @@ export const TreeView: React.FC<TreeViewProps> = ({
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '3px',
-                padding: '2px 7px',
+                justifyContent: 'center',
+                width: '18px',
+                height: '18px',
                 borderRadius: '4px',
                 background: isExpanded ? '#f1f5f9' : '#e0f2fe',
                 color: isExpanded ? '#475569' : '#0284c7',
                 border: isExpanded ? '1px solid #cbd5e1' : '1px solid #bae6fd',
-                fontSize: '0.62rem',
-                fontWeight: 700,
                 cursor: 'pointer',
                 flexShrink: 0,
                 transition: 'all 0.12s ease'
               }}
-              title={isExpanded ? "Hide sub-elements" : "Unhide sub-elements"}
+              title={isExpanded ? "Collapse" : "Expand"}
             >
               {isExpanded ? (
-                <>
-                  <EyeOff size={11} color="#64748b" />
-                  <span>Hide</span>
-                </>
+                <Minus size={11} strokeWidth={2.5} />
               ) : (
-                <>
-                  <Eye size={11} color="#0284c7" />
-                  <span>Unhide</span>
-                </>
+                <Plus size={11} strokeWidth={2.5} />
               )}
             </button>
           )}
@@ -839,7 +752,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
             { id: 'firewalls', label: 'Firewalls', icon: Shield },
             { id: 'switches', label: 'Switches', icon: Network },
             { id: 'servers', label: 'Servers', icon: Server },
-            { id: 'models', label: 'Domain Suites', icon: Sparkles },
+            { id: 'workstations', label: 'Workstations', icon: Laptop },
           ].map(btn => {
             const isCurrent = filterType === btn.id;
             const Icon = btn.icon;
@@ -887,7 +800,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
               <span style={{ fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#64748b' }}>
                 Subnet 172.168.1.0/24 Tree ({devices.length} Devices)
               </span>
-              <div style={{ fontSize: '0.66rem', color: '#64748b' }}>Default collapsed &bull; click options to unhide</div>
+              <div style={{ fontSize: '0.66rem', color: '#64748b' }}>Default collapsed &bull; click + to expand</div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -906,10 +819,10 @@ export const TreeView: React.FC<TreeViewProps> = ({
                   fontWeight: 700,
                   cursor: 'pointer'
                 }}
-                title="Unhide all categories and devices"
+                title="Expand all categories and devices"
               >
-                <Eye size={12} color="#0284c7" />
-                <span>Unhide All</span>
+                <Plus size={12} strokeWidth={2.5} color="#0284c7" />
+                <span>Expand All</span>
               </button>
 
               <button
@@ -927,10 +840,10 @@ export const TreeView: React.FC<TreeViewProps> = ({
                   fontWeight: 700,
                   cursor: 'pointer'
                 }}
-                title="Hide all categories (Collapse)"
+                title="Collapse all categories"
               >
-                <EyeOff size={12} color="#475569" />
-                <span>Hide All</span>
+                <Minus size={12} strokeWidth={2.5} color="#475569" />
+                <span>Collapse All</span>
               </button>
             </div>
           </div>

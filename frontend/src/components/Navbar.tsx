@@ -98,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {onToggleSidebar && (
           <button
             onClick={onToggleSidebar}
-            title={isSidebarCollapsed ? "Expand sidebar (Unhide names)" : "Collapse sidebar (Icons only)"}
+            title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             style={{
               display: 'flex',
               alignItems: 'center',
