@@ -39,15 +39,16 @@ echo [OK] Code successfully pushed to main branch!
 echo.
 echo [*] Publishing GitHub Release v2.0.0 and uploading setup assets...
 echo     1. V-NMS-Enterprise-Setup.exe (515 MB All-in-One Bundle)
-echo     2. V-NMS.msi (8.18 MB Core MSI Package)
-echo     3. V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf (Enterprise Manual)
+echo     2. V-NMS-Enterprise-Setup.rar (447 MB Compressed Setup)
+echo     3. V-NMS.msi (8.18 MB Core MSI Package)
+echo     4. V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf (Enterprise Manual)
 echo.
 
-gh release create v2.0.0 "production\V-NMS-Enterprise-Setup.exe" "production\V-NMS.msi" "production\V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf" --title "Veracity Network Management System (V-NMS) v2.0.0" --notes-file "production\HOW_TO_INSTALL.txt"
+gh release create v2.0.0 "production\V-NMS-Enterprise-Setup.exe" "production\V-NMS-Enterprise-Setup.rar" "production\V-NMS.msi" "production\V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf" --title "Veracity Network Management System (V-NMS) v2.0.0" --notes-file "production\HOW_TO_INSTALL.txt"
 
 if %ERRORLEVEL% NEQ 0 (
     echo [*] If release v2.0.0 already exists, uploading/overwriting assets...
-    gh release upload v2.0.0 "production\V-NMS-Enterprise-Setup.exe" "production\V-NMS.msi" "production\V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf" --clobber
+    gh release upload v2.0.0 "production\V-NMS-Enterprise-Setup.exe" "production\V-NMS-Enterprise-Setup.rar" "production\V-NMS.msi" "production\V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf" --clobber
 )
 
 echo.
