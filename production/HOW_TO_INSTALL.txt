@@ -1,0 +1,32 @@
+================================================================================
+  VERACITY NETWORK MANAGEMENT SYSTEM (V-NMS) — PRODUCTION RELEASE v2.0.0
+================================================================================
+
+Folder Contents:
+----------------
+1. V-NMS-Enterprise-Setup.exe  -> [RECOMMENDED] 1-Click All-in-One Automated Setup
+                                  (Auto-installs PostgreSQL 18 DB + V-NMS + Service + Firewall)
+2. V-NMS.msi                  -> Core Windows Installer (Only V-NMS Engine & Service)
+3. V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf -> Full 20-Point Troubleshooting & Maintenance Guide
+
+--------------------------------------------------------------------------------
+HOW TO INSTALL:
+--------------------------------------------------------------------------------
+Option 1: Complete Fresh Setup (Recommended)
+   1. Right-click on 'V-NMS-Enterprise-Setup.exe'
+   2. Select 'Run as administrator'
+   3. Click 'Install V-NMS Enterprise Now'
+   4. Done! Dashboard will automatically launch in your browser.
+
+Option 2: Standalone MSI Installation (If PostgreSQL is already installed)
+   1. Double-click on 'V-NMS.msi'
+   2. Follow on-screen wizard prompts to complete installation.
+
+--------------------------------------------------------------------------------
+ACCESS CREDENTIALS:
+--------------------------------------------------------------------------------
+- Dashboard URL : http://localhost:8081  (or http://<server-ip>:8081)
+- SuperAdmin 1  : admin / admin123  (or admin / admin)
+- SuperAdmin 2  : deepak.sah / admin123
+- Windows Service: VNMSService (Auto-start enabled)
+================================================================================
