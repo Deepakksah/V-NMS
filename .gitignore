@@ -42,10 +42,21 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment & Local configuration
+# Environment, Secrets & Local Credentials
+*.env
+*.env.*
 .env
 .env.local
 .env.*.local
+config.env
+*.config.env
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+secrets/
+credentials/
 
 # IDE & Editor files
 .vscode/
