@@ -537,7 +537,11 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 					}
 				} else if hasSMB || hasRDP {
 					// 4. Windows Servers & Workstations
-					if hasPostgres || hasMongo || hasRedis || hasWeb || strings.HasPrefix(strings.ToUpper(hostname), "SRV") || strings.Contains(strings.ToUpper(hostname), "SERVER") {
+					upperHost := strings.ToUpper(hostname)
+					isDesktopName := strings.HasPrefix(upperHost, "DESKTOP-") || strings.HasPrefix(upperHost, "LAPTOP-") || strings.HasPrefix(upperHost, "PC-")
+					isServerSign := strings.HasPrefix(upperHost, "SRV") || strings.Contains(upperHost, "SERVER") || strings.Contains(upperHost, "SQL") || strings.Contains(upperHost, "VPS") || strings.Contains(upperHost, "SOLUS") || strings.Contains(upperHost, "DC") || strings.Contains(upperHost, "HOST")
+
+					if !isDesktopName && (isServerSign || hasPostgres || hasMongo || hasRedis) {
 						deviceType = "server"
 						if vendor == "Generic Network Device" {
 							vendor = "Microsoft"
@@ -558,13 +562,33 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 						hostname = fmt.Sprintf("win-node-%s", lastOctet)
 					}
 				} else if hasWeb {
-					// 5. Web Servers / Appliances
-					deviceType = "server"
-					hardware = fmt.Sprintf("%s Web Appliance", vendor)
-					osName = "Web Application Server"
-					role = "Web Application Host"
-					if hostname == "" {
-						hostname = fmt.Sprintf("web-node-%s", lastOctet)
+					// 5. Web Devices / Endpoints / Printers / Cameras / Appliances
+					upperVen := strings.ToUpper(vendor)
+					isPrinter := strings.Contains(upperVen, "HP") || strings.Contains(upperVen, "CANON") || strings.Contains(upperVen, "EPSON") || strings.Contains(upperVen, "XEROX") || strings.Contains(upperVen, "BROTHER") || strings.Contains(upperVen, "RICOH")
+					isCamera := strings.Contains(upperVen, "HIKVISION") || strings.Contains(upperVen, "DAHUA") || strings.Contains(upperVen, "AXIS") || strings.Contains(upperVen, "CP PLUS")
+
+					deviceType = "workstation"
+					if isPrinter {
+						hardware = fmt.Sprintf("%s Network Printer", vendor)
+						osName = "Embedded Print Server OS"
+						role = "Network Printer / Imaging"
+						if hostname == "" {
+							hostname = fmt.Sprintf("printer-%s", lastOctet)
+						}
+					} else if isCamera {
+						hardware = fmt.Sprintf("%s IP Camera", vendor)
+						osName = "Embedded Surveillance OS"
+						role = "IP Security Camera"
+						if hostname == "" {
+							hostname = fmt.Sprintf("cam-%s", lastOctet)
+						}
+					} else {
+						hardware = fmt.Sprintf("%s Web Appliance", vendor)
+						osName = "Embedded Device OS"
+						role = "Web-Managed Device"
+						if hostname == "" {
+							hostname = fmt.Sprintf("web-node-%s", lastOctet)
+						}
 					}
 				} else {
 					// 6. Generic active node

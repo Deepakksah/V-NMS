@@ -81,11 +81,12 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
     if (rawType === 'server') return 'SERVER';
 
     const h = d.hostname.toLowerCase();
-    if (h.startsWith('desktop-') || h.startsWith('belpc') || h === 'admin') return 'WORKSTATION';
+    if (h.startsWith('desktop-') || h.startsWith('laptop-') || h.startsWith('pc-') || h.startsWith('belpc') || h.startsWith('win-client-') || h.startsWith('web-node-') || h.startsWith('printer-') || h.startsWith('cam-') || h.startsWith('host-') || h === 'admin') return 'WORKSTATION';
     if (h.includes('sw') || h.includes('catalyst') || h.includes('unifi')) return 'SWITCH';
     if (h.includes('gw') || h.includes('core-gw') || h.includes('firewall') || d.ip_address === '172.168.1.1') return 'FIREWALL';
     if (h.includes('ntp') || h.includes('time') || d.ip_address === '172.168.1.10') return 'NTP';
-    return 'SERVER';
+    if (h.startsWith('srv') || h.includes('server') || h.includes('sql') || h.includes('vps') || h.includes('solus') || h.includes('dc-')) return 'SERVER';
+    return 'WORKSTATION';
   };
 
   const filteredDevices = useMemo(() => {

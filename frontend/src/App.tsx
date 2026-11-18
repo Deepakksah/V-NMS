@@ -25,8 +25,8 @@ import { AlertContactsView, AlertMatrixView } from './views/personnel';
 import { ReportsView } from './views/reports';
 import type { Device, MetricDataPoint, AuthSession } from './types';
 
-const API_BASE = typeof window !== 'undefined' && window.location.port === '5173' 
-  ? 'http://127.0.0.1:8081/api/v1' 
+const API_BASE = typeof window !== 'undefined' && window.location.port === '5173'
+  ? 'http://127.0.0.1:8081/api/v1'
   : '/api/v1';
 
 export default function App() {
@@ -77,7 +77,7 @@ export default function App() {
       try {
         localStorage.setItem('vnms_theme', next);
         document.documentElement.setAttribute('data-theme', next);
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -91,7 +91,7 @@ export default function App() {
       const next = !prev;
       try {
         localStorage.setItem('vnms_sidebar_collapsed', String(next));
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -270,9 +270,9 @@ export default function App() {
   // If no authenticated session, render Enterprise Login Card
   if (!session) {
     return (
-      <LoginView 
-        onLoginSuccess={handleLoginSuccess} 
-        apiBase={API_BASE} 
+      <LoginView
+        onLoginSuccess={handleLoginSuccess}
+        apiBase={API_BASE}
         theme={theme}
         onToggleTheme={toggleTheme}
       />
@@ -280,12 +280,12 @@ export default function App() {
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      minHeight: '100vh', 
-      backgroundColor: theme === 'dark' ? '#0b1120' : '#f8fafc', 
-      color: theme === 'dark' ? '#f8fafc' : '#0f172a' 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      backgroundColor: theme === 'dark' ? '#0b1120' : '#f8fafc',
+      color: theme === 'dark' ? '#f8fafc' : '#0f172a'
     }}>
       {/* Top Clean Navigation Bar */}
       <Navbar
@@ -491,8 +491,8 @@ export default function App() {
           {activeTab === 'virtualization' && <VirtualizationView devices={devices} />}
           {activeTab === 'pollers' && <PollersView devices={devices} />}
           {activeTab === 'topology' && (
-            <TopologyView 
-              devices={devices} 
+            <TopologyView
+              devices={devices}
               onSelectDevice={(dev) => {
                 setSelectedDevice(dev);
                 setActiveTab('devices');
