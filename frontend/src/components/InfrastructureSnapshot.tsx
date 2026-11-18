@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
-  Filter,
   Layers,
   Server,
   Network,
@@ -15,18 +14,20 @@ import {
   Radio,
   HardDrive,
   Activity,
-  Zap
+  Zap,
+  Maximize2,
+  X
 } from 'lucide-react';
 import type { Device } from '../types';
 
 const getCategoryIcon = (id: string) => {
-  if (id.includes('firewall') || id.includes('security') || id.includes('ngfw')) return <Shield size={13} color="#f43f5e" />;
-  if (id.includes('router') || id.includes('switch') || id.includes('sdn') || id.includes('sdwan')) return <Network size={13} color="#0284c7" />;
-  if (id.includes('wireless') || id.includes('wlc') || id.includes('wap') || id.includes('radio') || id.includes('vision') || id.includes('sensor')) return <Radio size={13} color="#8b5cf6" />;
-  if (id.includes('storage') || id.includes('raid') || id.includes('tape')) return <HardDrive size={13} color="#059669" />;
-  if (id.includes('ups') || id.includes('pdu') || id.includes('cooling') || id.includes('printer') || id.includes('iot')) return <Zap size={13} color="#d97706" />;
-  if (id.includes('wan') || id.includes('voip') || id.includes('balancer')) return <Activity size={13} color="#06b6d4" />;
-  return <Server size={13} color="#3b82f6" />;
+  if (id.includes('firewall') || id.includes('security') || id.includes('ngfw')) return <Shield size={12} color="#f43f5e" />;
+  if (id.includes('router') || id.includes('switch') || id.includes('sdn') || id.includes('sdwan')) return <Network size={12} color="#0284c7" />;
+  if (id.includes('wireless') || id.includes('wlc') || id.includes('wap') || id.includes('radio') || id.includes('vision') || id.includes('sensor')) return <Radio size={12} color="#8b5cf6" />;
+  if (id.includes('storage') || id.includes('raid') || id.includes('tape')) return <HardDrive size={12} color="#059669" />;
+  if (id.includes('ups') || id.includes('pdu') || id.includes('cooling') || id.includes('printer') || id.includes('iot')) return <Zap size={12} color="#d97706" />;
+  if (id.includes('wan') || id.includes('voip') || id.includes('balancer')) return <Activity size={12} color="#06b6d4" />;
+  return <Server size={12} color="#3b82f6" />;
 };
 
 export interface CategorySnapshot {
@@ -38,7 +39,7 @@ export interface CategorySnapshot {
   problematic: number;
 }
 
-// 36 Enterprise Infrastructure Categories exactly matching the reference specification
+// 36 Enterprise Infrastructure Categories
 export const INFRASTRUCTURE_CATEGORIES: { id: string; name: string; group: CategorySnapshot['group'] }[] = [
   { id: 'server', name: 'Server', group: 'compute' },
   { id: 'router', name: 'Router', group: 'network' },
@@ -83,22 +84,26 @@ interface InfrastructureSnapshotProps {
   alerts?: any[];
   onSelectCategory?: (categoryName: string) => void;
   isDark?: boolean;
+  maxHeight?: string;
+  defaultPageSize?: number;
 }
 
 export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
   devices = [],
   alerts = [],
   onSelectCategory,
-  isDark = true
+  isDark = true,
+  maxHeight = '180px',
+  defaultPageSize = 6
 }) => {
   const [search, setSearch] = useState('');
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(25);
+  const [pageSize, setPageSize] = useState<number>(defaultPageSize);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   // Classify devices into the 36 categories dynamically
   const snapshotData = useMemo<CategorySnapshot[]>(() => {
-    // Helper to test if a device belongs to a category
     const categorizeDevice = (d: Device): string => {
       const type = (d.device_type || '').toLowerCase();
       const hardware = (d.hardware || '').toLowerCase();
@@ -107,7 +112,6 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
       const vendor = (d.vendor || '').toLowerCase();
       const desc = (d.sys_descr || '').toLowerCase();
 
-      // Granular checks
       if (type.includes('domain_controller') || host.includes('dc-') || desc.includes('active directory') || desc.includes('domain controller')) return 'domain_controller';
       if (type.includes('ngfw') || hardware.includes('fortigate') || hardware.includes('palo alto') || hardware.includes('firepower')) return 'ngfw';
       if (type.includes('firewall') || hardware.includes('firewall') || host.includes('fw-')) return 'firewall';
@@ -147,13 +151,11 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
       return 'unknown';
     };
 
-    // Calculate counts for all 36 categories
     return INFRASTRUCTURE_CATEGORIES.map(cat => {
       const matchingDevices = devices.filter(d => categorizeDevice(d) === cat.id);
       const devCount = matchingDevices.length;
       const problematicCount = matchingDevices.filter(d => !d.status).length;
 
-      // Calculate alarms associated with these devices
       const matchingDeviceIds = new Set(matchingDevices.map(d => d.id));
       const matchingDeviceIps = new Set(matchingDevices.map(d => d.ip_address));
       const categoryAlarms = alerts.filter(a =>
@@ -172,6 +174,11 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
     });
   }, [devices, alerts]);
 
+  // Total active categories count
+  const activeCount = useMemo(() => {
+    return snapshotData.filter(item => item.devices > 0 || item.alarms > 0).length;
+  }, [snapshotData]);
+
   // Filtered dataset
   const filteredData = useMemo(() => {
     return snapshotData.filter(item => {
@@ -183,10 +190,11 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
 
   // Pagination calculation
   const totalItems = filteredData.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const effectivePageSize = isMaximized ? 36 : pageSize;
+  const totalPages = Math.max(1, Math.ceil(totalItems / effectivePageSize));
   const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const startIndex = (currentPage - 1) * effectivePageSize;
+  const endIndex = Math.min(startIndex + effectivePageSize, totalItems);
   const pagedItems = filteredData.slice(startIndex, endIndex);
 
   const cardBg = isDark ? '#0f172a' : '#ffffff';
@@ -196,279 +204,165 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
   const tableHeaderBg = isDark ? '#1e293b' : '#f8fafc';
   const rowHover = isDark ? '#1e293b' : '#f8fafc';
 
-  return (
-    <div
-      style={{
-        background: cardBg,
-        border: `1px solid ${cardBorder}`,
-        borderRadius: '12px',
-        padding: '18px 20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '14px',
-        boxShadow: isDark ? '0 4px 12px rgba(0, 0, 0, 0.25)' : '0 2px 8px rgba(0, 0, 0, 0.04)',
-        transition: 'all 0.2s ease'
-      }}
-    >
-      {/* Header Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)'
-            }}
-          >
-            <Layers size={17} />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: textMain, margin: 0 }}>
-                Infrastructure Snapshot
-              </h3>
-              <span
-                style={{
-                  fontSize: '0.66rem',
-                  fontWeight: 800,
-                  padding: '2px 7px',
-                  borderRadius: '4px',
-                  background: isDark ? 'rgba(56, 189, 248, 0.15)' : '#e0f2fe',
-                  color: isDark ? '#38bdf8' : '#0369a1',
-                  border: `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : '#bae6fd'}`
-                }}
-              >
-                36 CATEGORIES MONITORED
-              </span>
-            </div>
-            <p style={{ fontSize: '0.74rem', color: textMuted, margin: '2px 0 0 0' }}>
-              Real-time enterprise device distribution, alarm propagation, and problematic node health status
-            </p>
-          </div>
-        </div>
-
-        {/* Toolbar: Search, Active Toggle & Count */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          {/* Quick Search */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: isDark ? '#1e293b' : '#f8fafc',
-              border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
-              borderRadius: '6px',
-              padding: '4px 8px'
-            }}
-          >
-            <Search size={13} color={textMuted} />
-            <input
-              type="text"
-              placeholder="Filter categories (e.g. Meraki, Switch)..."
-              value={search}
-              onChange={e => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                fontSize: '0.74rem',
-                color: textMain,
-                width: '180px'
-              }}
-            />
-          </div>
-
-          {/* Active Only Filter */}
-          <button
-            onClick={() => {
-              setFilterActiveOnly(!filterActiveOnly);
-              setPage(1);
-            }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '5px 10px',
-              borderRadius: '6px',
-              border: `1px solid ${filterActiveOnly ? '#0284c7' : (isDark ? '#334155' : '#cbd5e1')}`,
-              background: filterActiveOnly ? (isDark ? 'rgba(2, 132, 199, 0.25)' : '#eff6ff') : (isDark ? '#1e293b' : '#ffffff'),
-              color: filterActiveOnly ? '#38bdf8' : textMuted,
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            <Filter size={12} />
-            <span>{filterActiveOnly ? 'Active Only (>0)' : 'All 36'}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Snapshot Table */}
+  const renderTableContent = (inModal = false) => (
+    <>
+      {/* Table Body Container with internal scroll */}
       <div
         style={{
-          overflowX: 'auto',
-          borderRadius: '8px',
-          border: `1px solid ${cardBorder}`
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          borderRadius: '6px',
+          border: `1px solid ${cardBorder}`,
+          maxHeight: inModal ? '60vh' : maxHeight,
+          background: isDark ? '#0b1120' : '#ffffff'
         }}
       >
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.76rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.70rem', tableLayout: 'fixed' }}>
           <thead>
-            <tr style={{ background: tableHeaderBg, borderBottom: `1px solid ${cardBorder}` }}>
-              <th style={{ padding: '8px 12px', width: '40px', textAlign: 'center' }}></th>
-              <th style={{ padding: '8px 14px', fontWeight: 700, color: textMuted }}>Name</th>
-              <th style={{ padding: '8px 14px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '110px' }}>Alarms</th>
-              <th style={{ padding: '8px 14px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '110px' }}>Devices</th>
-              <th style={{ padding: '8px 14px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '160px' }}>Problematic Devices</th>
+            <tr style={{ background: tableHeaderBg, borderBottom: `1px solid ${cardBorder}`, position: 'sticky', top: 0, zIndex: 1 }}>
+              <th style={{ padding: '6px 8px', width: '28px', textAlign: 'center' }}></th>
+              <th style={{ padding: '6px 8px', fontWeight: 700, color: textMuted }}>Name</th>
+              <th style={{ padding: '6px 6px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '50px' }}>Alarms</th>
+              <th style={{ padding: '6px 6px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '50px' }}>Devices</th>
+              <th style={{ padding: '6px 6px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '70px' }}>Problematic</th>
             </tr>
           </thead>
           <tbody>
-            {pagedItems.map((item, idx) => {
-              const isProblematic = item.problematic > 0;
-              const hasDevices = item.devices > 0;
+            {pagedItems.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ padding: '16px', textAlign: 'center', color: textMuted, fontSize: '0.70rem' }}>
+                  No matching infrastructure categories found
+                </td>
+              </tr>
+            ) : (
+              pagedItems.map((item, idx) => {
+                const isProblematic = item.problematic > 0;
+                const hasDevices = item.devices > 0;
 
-              return (
-                <tr
-                  key={item.id}
-                  onClick={() => onSelectCategory && hasDevices && onSelectCategory(item.name)}
-                  style={{
-                    borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
-                    cursor: hasDevices && onSelectCategory ? 'pointer' : 'default',
-                    transition: 'background 0.12s ease',
-                    height: '38px',
-                    background: idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = rowHover}
-                  onMouseLeave={e => e.currentTarget.style.backgroundColor = idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent'}
-                >
-                  {/* Status Indicator Icon (Matching Reference Screenshot) */}
-                  <td style={{ padding: '6px 12px', textAlign: 'center', verticalAlign: 'middle' }}>
-                    {isProblematic ? (
-                      <AlertTriangle size={15} color="#ef4444" />
-                    ) : (
-                      <CheckCircle2 size={15} color="#22c55e" />
-                    )}
-                  </td>
+                return (
+                  <tr
+                    key={item.id}
+                    onClick={() => onSelectCategory && hasDevices && onSelectCategory(item.name)}
+                    style={{
+                      borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
+                      cursor: hasDevices && onSelectCategory ? 'pointer' : 'default',
+                      height: '26px',
+                      background: idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent',
+                      transition: 'background 0.1s ease'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = rowHover}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent'}
+                  >
+                    {/* Status Icon */}
+                    <td style={{ padding: '3px 8px', textAlign: 'center', verticalAlign: 'middle', width: '28px' }}>
+                      {isProblematic ? (
+                        <AlertTriangle size={12} color="#ef4444" />
+                      ) : (
+                        <CheckCircle2 size={12} color="#22c55e" />
+                      )}
+                    </td>
 
-                  {/* Category Name */}
-                  <td style={{ padding: '6px 14px', fontWeight: hasDevices ? 800 : 500, color: hasDevices ? (isDark ? '#38bdf8' : '#0284c7') : textMain }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      {getCategoryIcon(item.id)}
-                      <span>{item.name}</span>
-                      {hasDevices && (
+                    {/* Name */}
+                    <td style={{
+                      padding: '3px 8px',
+                      fontWeight: hasDevices ? 700 : 500,
+                      color: hasDevices ? (isDark ? '#38bdf8' : '#0284c7') : textMain,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {getCategoryIcon(item.id)}
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
+                      </div>
+                    </td>
+
+                    {/* Alarms */}
+                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '50px' }}>
+                      {item.alarms > 0 ? (
                         <span
                           style={{
-                            fontSize: '0.62rem',
-                            fontWeight: 700,
-                            padding: '1px 6px',
-                            borderRadius: '4px',
-                            background: isDark ? 'rgba(34, 197, 94, 0.15)' : '#dcfce7',
-                            color: isDark ? '#4ade80' : '#15803d'
+                            padding: '1px 5px',
+                            borderRadius: '9999px',
+                            background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
+                            color: isDark ? '#f87171' : '#b91c1c',
+                            fontSize: '0.64rem',
+                            fontWeight: 800
                           }}
                         >
-                          ACTIVE
+                          {item.alarms}
                         </span>
+                      ) : (
+                        <span style={{ color: textMuted, fontSize: '0.66rem' }}>0</span>
                       )}
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Alarms Count */}
-                  <td style={{ padding: '6px 14px', textAlign: 'center', fontWeight: item.alarms > 0 ? 800 : 500 }}>
-                    {item.alarms > 0 ? (
-                      <span
-                        style={{
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
-                          color: isDark ? '#f87171' : '#b91c1c',
-                          fontSize: '0.72rem',
-                          fontWeight: 800
-                        }}
-                      >
-                        {item.alarms}
-                      </span>
-                    ) : (
-                      <span style={{ color: textMuted }}>0</span>
-                    )}
-                  </td>
+                    {/* Devices */}
+                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '50px' }}>
+                      {hasDevices ? (
+                        <span
+                          style={{
+                            padding: '1px 5px',
+                            borderRadius: '9999px',
+                            background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
+                            color: isDark ? '#38bdf8' : '#0369a1',
+                            fontSize: '0.64rem',
+                            fontWeight: 800
+                          }}
+                        >
+                          {item.devices}
+                        </span>
+                      ) : (
+                        <span style={{ color: textMuted, fontSize: '0.66rem' }}>0</span>
+                      )}
+                    </td>
 
-                  {/* Devices Count */}
-                  <td style={{ padding: '6px 14px', textAlign: 'center', fontWeight: hasDevices ? 800 : 500 }}>
-                    {hasDevices ? (
-                      <span
-                        style={{
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
-                          color: isDark ? '#38bdf8' : '#0369a1',
-                          fontSize: '0.72rem',
-                          fontWeight: 800
-                        }}
-                      >
-                        {item.devices}
-                      </span>
-                    ) : (
-                      <span style={{ color: textMuted }}>0</span>
-                    )}
-                  </td>
-
-                  {/* Problematic Devices */}
-                  <td style={{ padding: '6px 14px', textAlign: 'center', fontWeight: isProblematic ? 800 : 500 }}>
-                    {isProblematic ? (
-                      <span
-                        style={{
-                          padding: '2px 8px',
-                          borderRadius: '9999px',
-                          background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
-                          color: isDark ? '#f87171' : '#b91c1c',
-                          fontSize: '0.72rem',
-                          fontWeight: 800
-                        }}
-                      >
-                        {item.problematic}
-                      </span>
-                    ) : (
-                      <span style={{ color: textMuted }}>0</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+                    {/* Problematic */}
+                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '70px' }}>
+                      {isProblematic ? (
+                        <span
+                          style={{
+                            padding: '1px 5px',
+                            borderRadius: '9999px',
+                            background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
+                            color: isDark ? '#f87171' : '#b91c1c',
+                            fontSize: '0.64rem',
+                            fontWeight: 800
+                          }}
+                        >
+                          {item.problematic}
+                        </span>
+                      ) : (
+                        <span style={{ color: textMuted, fontSize: '0.66rem' }}>0</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination Footer (Matching Reference Screenshot) */}
+      {/* Pagination Footer */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '10px',
-          fontSize: '0.74rem',
+          fontSize: '0.68rem',
           color: textMuted,
-          paddingTop: '4px'
+          paddingTop: '2px',
+          gap: '6px'
         }}
       >
-        {/* Left Pagination Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {/* First Page */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
           <button
             onClick={() => setPage(1)}
             disabled={currentPage === 1}
             style={{
-              padding: '4px 6px',
-              borderRadius: '4px',
+              padding: '2px 4px',
+              borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
               color: currentPage === 1 ? (isDark ? '#334155' : '#cbd5e1') : textMain,
@@ -476,18 +370,16 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               display: 'flex',
               alignItems: 'center'
             }}
-            title="First Page"
+            title="First"
           >
-            <ChevronsLeft size={14} />
+            <ChevronsLeft size={11} />
           </button>
-
-          {/* Prev Page */}
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
             style={{
-              padding: '4px 6px',
-              borderRadius: '4px',
+              padding: '2px 4px',
+              borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
               color: currentPage === 1 ? (isDark ? '#334155' : '#cbd5e1') : textMain,
@@ -495,48 +387,19 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               display: 'flex',
               alignItems: 'center'
             }}
-            title="Previous Page"
+            title="Prev"
           >
-            <ChevronLeft size={14} />
+            <ChevronLeft size={11} />
           </button>
-
-          {/* Page Number Box */}
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '4px', marginRight: '4px' }}>
-            <span>Page</span>
-            <input
-              type="number"
-              value={currentPage}
-              min={1}
-              max={totalPages}
-              onChange={e => {
-                const val = parseInt(e.target.value, 10);
-                if (!isNaN(val) && val >= 1 && val <= totalPages) {
-                  setPage(val);
-                }
-              }}
-              style={{
-                width: '38px',
-                padding: '2px 4px',
-                borderRadius: '4px',
-                border: `1px solid ${cardBorder}`,
-                background: isDark ? '#1e293b' : '#ffffff',
-                color: textMain,
-                textAlign: 'center',
-                fontSize: '0.72rem',
-                fontWeight: 700,
-                outline: 'none'
-              }}
-            />
-            <span>of {totalPages}</span>
+          <span style={{ margin: '0 2px', fontWeight: 600 }}>
+            {currentPage}/{totalPages}
           </span>
-
-          {/* Next Page */}
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
             style={{
-              padding: '4px 6px',
-              borderRadius: '4px',
+              padding: '2px 4px',
+              borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
               color: currentPage === totalPages ? (isDark ? '#334155' : '#cbd5e1') : textMain,
@@ -544,18 +407,16 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               display: 'flex',
               alignItems: 'center'
             }}
-            title="Next Page"
+            title="Next"
           >
-            <ChevronRight size={14} />
+            <ChevronRight size={11} />
           </button>
-
-          {/* Last Page */}
           <button
             onClick={() => setPage(totalPages)}
             disabled={currentPage === totalPages}
             style={{
-              padding: '4px 6px',
-              borderRadius: '4px',
+              padding: '2px 4px',
+              borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
               color: currentPage === totalPages ? (isDark ? '#334155' : '#cbd5e1') : textMain,
@@ -563,42 +424,221 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               display: 'flex',
               alignItems: 'center'
             }}
-            title="Last Page"
+            title="Last"
           >
-            <ChevronsRight size={14} />
+            <ChevronsRight size={11} />
           </button>
 
-          {/* Page Size Select */}
-          <select
-            value={pageSize}
-            onChange={e => {
-              setPageSize(parseInt(e.target.value, 10));
-              setPage(1);
-            }}
-            style={{
-              marginLeft: '8px',
-              padding: '2px 6px',
-              borderRadius: '4px',
-              border: `1px solid ${cardBorder}`,
-              background: isDark ? '#1e293b' : '#ffffff',
-              color: textMain,
-              fontSize: '0.72rem',
-              fontWeight: 600,
-              outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={36}>36 (All)</option>
-          </select>
+          {!inModal && (
+            <select
+              value={pageSize}
+              onChange={e => {
+                setPageSize(parseInt(e.target.value, 10));
+                setPage(1);
+              }}
+              style={{
+                marginLeft: '4px',
+                padding: '1px 3px',
+                borderRadius: '3px',
+                border: `1px solid ${cardBorder}`,
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: textMain,
+                fontSize: '0.64rem',
+                outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value={6}>6</option>
+              <option value={12}>12</option>
+              <option value={25}>25</option>
+              <option value={36}>36</option>
+            </select>
+          )}
         </div>
 
-        {/* Right: View X - Y of Total Count */}
-        <div style={{ fontWeight: 600 }}>
-          View {startIndex + 1} - {endIndex} of {totalItems}
+        <div style={{ fontWeight: 600, fontSize: '0.64rem' }}>
+          {totalItems > 0 ? `${startIndex + 1}-${endIndex} of ${totalItems}` : '0 of 0'}
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Standard Dashboard Card Mode */}
+      <div
+        style={{
+          background: cardBg,
+          borderRadius: '10px',
+          border: `1px solid ${cardBorder}`,
+          padding: '14px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          gap: '8px',
+          boxShadow: isDark ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 1px 3px rgba(0, 0, 0, 0.04)',
+          transition: 'all 0.15s ease'
+        }}
+      >
+        {/* Compact Widget Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Layers size={14} color="#0284c7" />
+            <h4 style={{ fontSize: '0.78rem', fontWeight: 800, color: textMain, margin: 0, whiteSpace: 'nowrap' }}>
+              Infrastructure Snapshot
+            </h4>
+            <span
+              style={{
+                fontSize: '0.58rem',
+                fontWeight: 700,
+                padding: '1px 4px',
+                borderRadius: '3px',
+                background: isDark ? 'rgba(56, 189, 248, 0.15)' : '#e0f2fe',
+                color: isDark ? '#38bdf8' : '#0369a1'
+              }}
+            >
+              36
+            </span>
+          </div>
+
+          {/* Quick Toolbar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            {/* Search Input */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                background: isDark ? '#1e293b' : '#f8fafc',
+                border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
+                borderRadius: '4px',
+                padding: '2px 5px'
+              }}
+            >
+              <Search size={10} color={textMuted} />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={search}
+                onChange={e => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: '0.64rem',
+                  color: textMain,
+                  width: '65px'
+                }}
+              />
+            </div>
+
+            {/* Active Only Filter Pill */}
+            <button
+              onClick={() => {
+                setFilterActiveOnly(!filterActiveOnly);
+                setPage(1);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                border: `1px solid ${filterActiveOnly ? '#0284c7' : (isDark ? '#334155' : '#cbd5e1')}`,
+                background: filterActiveOnly ? (isDark ? 'rgba(2, 132, 199, 0.25)' : '#eff6ff') : 'transparent',
+                color: filterActiveOnly ? '#38bdf8' : textMuted,
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+              title={filterActiveOnly ? "Showing active only. Click for all 36." : "Click to show active nodes only."}
+            >
+              {filterActiveOnly ? `Active (${activeCount})` : 'All'}
+            </button>
+
+            {/* Maximize Button */}
+            <button
+              onClick={() => setIsMaximized(true)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: textMuted,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '2px'
+              }}
+              title="Maximize Snapshot View"
+            >
+              <Maximize2 size={12} />
+            </button>
+          </div>
+        </div>
+
+        {/* Table Content */}
+        {renderTableContent(false)}
+      </div>
+
+      {/* Maximized Full Enterprise Modal View */}
+      {isMaximized && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={() => setIsMaximized(false)}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '850px',
+              backgroundColor: cardBg,
+              borderRadius: '12px',
+              border: `1px solid ${cardBorder}`,
+              padding: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Layers size={18} color="#0284c7" />
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: textMain, margin: 0 }}>
+                  Infrastructure Snapshot (All 36 Categories)
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsMaximized(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: textMuted,
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Table Content */}
+            {renderTableContent(true)}
+          </div>
+        </div>
+      )}
+    </>
   );
 };
