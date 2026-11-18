@@ -93,8 +93,8 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
   alerts = [],
   onSelectCategory,
   isDark = true,
-  maxHeight = '180px',
-  defaultPageSize = 6
+  maxHeight = 'none',
+  defaultPageSize = 25
 }) => {
   const [search, setSearch] = useState('');
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
@@ -448,10 +448,10 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
                 cursor: 'pointer'
               }}
             >
-              <option value={6}>6</option>
-              <option value={12}>12</option>
               <option value={25}>25</option>
-              <option value={36}>36</option>
+              <option value={36}>36 (All)</option>
+              <option value={15}>15</option>
+              <option value={10}>10</option>
             </select>
           )}
         </div>

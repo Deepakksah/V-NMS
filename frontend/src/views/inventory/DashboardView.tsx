@@ -63,7 +63,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [diskSearch, setDiskSearch] = useState('');
   const [modalDevice, setModalDevice] = useState<Device | null>(null);
   const [leaderboardTab, setLeaderboardTab] = useState<'cpu' | 'latency' | 'bandwidth' | 'uptime' | 'memory'>('cpu');
-  const [healthTab, setHealthTab] = useState<'honeycomb' | 'alerts'>('honeycomb');
 
   const isDark = themeMode === 'dark';
 
@@ -645,152 +644,129 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         ))}
       </div>
 
-      {/* ROW 1: Server Availability, Infrastructure Snapshot & Health/Alert Breakdown (3 Cards - Balanced NOC Grid) */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
-        gap: '14px'
-      }}>
-        {/* Widget 1: Server Availability */}
-        <div style={{
-          background: theme.cardBg,
-          borderRadius: '10px',
-          border: `1px solid ${theme.cardBorder}`,
-          padding: '14px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <h4 style={{ fontSize: '0.78rem', fontWeight: 800, color: theme.textMain, margin: '0 0 10px 0' }}>
-            Server Availability
-          </h4>
-          <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-            <RadialRing
-              value={downDevices}
-              label="Down"
-              color="#ef4444"
-              pct={totalDevices > 0 ? Math.round((downDevices / totalDevices) * 100) : 0}
-            />
-            <RadialRing
-              value={0}
-              label="Unreachable"
-              color="#f97316"
-              pct={0}
-            />
-            <RadialRing
-              value={upDevices}
-              label="Up"
-              color="#10b981"
-              pct={totalDevices > 0 ? Math.round((upDevices / totalDevices) * 100) : 0}
-            />
-            <RadialRing
-              value={totalDevices}
-              label="Monitored"
-              color="#3b82f6"
-              pct={100}
-            />
-          </div>
-        </div>
-
-        {/* Widget 2: Infrastructure Snapshot (36 Enterprise Categories Widget) */}
-        <InfrastructureSnapshot
-          devices={devices}
-          alerts={alerts}
-          isDark={isDark}
-          onSelectCategory={() => {
-            if (_onNavigateToTab) _onNavigateToTab('devices');
-          }}
-        />
-
-        {/* Widget 3: Server Health & Alert Breakdown */}
-        <div style={{
-          background: theme.cardBg,
-          borderRadius: '10px',
-          border: `1px solid ${theme.cardBorder}`,
-          padding: '14px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h4 style={{ fontSize: '0.78rem', fontWeight: 800, color: theme.textMain, margin: 0 }}>
-              Server Health &amp; Alerts
-            </h4>
-            <div style={{ display: 'flex', gap: '3px', background: isDark ? '#0f172a' : '#f1f5f9', padding: '2px', borderRadius: '5px' }}>
-              <button
-                onClick={() => setHealthTab('honeycomb')}
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: '3px',
-                  border: 'none',
-                  background: healthTab === 'honeycomb' ? '#0284c7' : 'transparent',
-                  color: healthTab === 'honeycomb' ? '#ffffff' : theme.textMuted,
-                  cursor: 'pointer'
-                }}
-              >
-                Nodes
-              </button>
-              <button
-                onClick={() => setHealthTab('alerts')}
-                style={{
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  padding: '1px 6px',
-                  borderRadius: '3px',
-                  border: 'none',
-                  background: healthTab === 'alerts' ? '#0284c7' : 'transparent',
-                  color: healthTab === 'alerts' ? '#ffffff' : theme.textMuted,
-                  cursor: 'pointer'
-                }}
-              >
-                Severity
-              </button>
-            </div>
-          </div>
-
-          {healthTab === 'honeycomb' ? (
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '6px 0' }}>
-              {devices.slice(0, 4).map(d => (
-                <HexagonBadge
-                  key={d.id}
-                  name={d.hostname || d.ip_address}
-                  status={d.status ? 'up' : 'down'}
-                  label={d.device_type ? d.device_type.toUpperCase() : (d.hardware || 'Device')}
+      {/* 2-Column Split NOC Dashboard Layout: Left Telemetry Grid + Right Infrastructure Snapshot */}
+      <div className="dashboard-split-layout">
+        {/* Left Column: All Telemetry Metrics & NOC Charts */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minWidth: 0 }}>
+          {/* ROW 1: Server Availability, Server Health Summary & Server Alert Summary (3 Cards) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+            gap: '14px'
+          }}>
+            {/* Widget 1: Server Availability */}
+            <div style={{
+              background: theme.cardBg,
+              borderRadius: '10px',
+              border: `1px solid ${theme.cardBorder}`,
+              padding: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <h4 style={{ fontSize: '0.78rem', fontWeight: 800, color: theme.textMain, margin: '0 0 10px 0' }}>
+                Server Availability
+              </h4>
+              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                <RadialRing
+                  value={downDevices}
+                  label="Down"
+                  color="#ef4444"
+                  pct={totalDevices > 0 ? Math.round((downDevices / totalDevices) * 100) : 0}
                 />
-              ))}
+                <RadialRing
+                  value={0}
+                  label="Unreachable"
+                  color="#f97316"
+                  pct={0}
+                />
+                <RadialRing
+                  value={upDevices}
+                  label="Up"
+                  color="#10b981"
+                  pct={totalDevices > 0 ? Math.round((upDevices / totalDevices) * 100) : 0}
+                />
+                <RadialRing
+                  value={totalDevices}
+                  label="Monitored"
+                  color="#3b82f6"
+                  pct={100}
+                />
+              </div>
             </div>
-          ) : (
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-              <RadialRing
-                value={downPercentage}
-                label="Down Rate"
-                color="#ef4444"
-                pct={totalDevices > 0 ? Math.round((downDevices / totalDevices) * 100) : 0}
-              />
-              <RadialRing
-                value={criticalCount}
-                label="Critical"
-                color="#dc2626"
-                pct={criticalCount > 0 ? Math.min(100, criticalCount * 20) : 0}
-              />
-              <RadialRing
-                value={majorCount}
-                label="Major"
-                color="#f97316"
-                pct={majorCount > 0 ? Math.min(100, majorCount * 15) : 0}
-              />
-              <RadialRing
-                value={warningCount}
-                label="Warning"
-                color="#eab308"
-                pct={warningCount > 0 ? Math.min(100, warningCount * 10) : 0}
-              />
+
+            {/* Widget 2: Server Health Summary (Honeycomb Hexagons) */}
+            <div style={{
+              background: theme.cardBg,
+              borderRadius: '10px',
+              border: `1px solid ${theme.cardBorder}`,
+              padding: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <h4 style={{ fontSize: '0.78rem', fontWeight: 800, color: theme.textMain, margin: 0 }}>
+                  Server Health Summary
+                </h4>
+                <span style={{ fontSize: '0.64rem', color: '#10b981', fontWeight: 700 }}>
+                  {upDevices} HEALTHY
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '6px 0' }}>
+                {devices.slice(0, 4).map(d => (
+                  <HexagonBadge
+                    key={d.id}
+                    name={d.hostname || d.ip_address}
+                    status={d.status ? 'up' : 'down'}
+                    label={d.device_type ? d.device_type.toUpperCase() : (d.hardware || 'Device')}
+                  />
+                ))}
+              </div>
             </div>
-          )}
-        </div>
-      </div>
+
+            {/* Widget 3: Server Alert Summary */}
+            <div style={{
+              background: theme.cardBg,
+              borderRadius: '10px',
+              border: `1px solid ${theme.cardBorder}`,
+              padding: '14px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <h4 style={{ fontSize: '0.78rem', fontWeight: 800, color: theme.textMain, margin: '0 0 10px 0' }}>
+                Server Alert Summary
+              </h4>
+              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                <RadialRing
+                  value={downPercentage}
+                  label="Down Rate"
+                  color="#ef4444"
+                  pct={totalDevices > 0 ? Math.round((downDevices / totalDevices) * 100) : 0}
+                />
+                <RadialRing
+                  value={criticalCount}
+                  label="Critical"
+                  color="#dc2626"
+                  pct={criticalCount > 0 ? Math.min(100, criticalCount * 20) : 0}
+                />
+                <RadialRing
+                  value={majorCount}
+                  label="Major"
+                  color="#f97316"
+                  pct={majorCount > 0 ? Math.min(100, majorCount * 15) : 0}
+                />
+                <RadialRing
+                  value={warningCount}
+                  label="Warning"
+                  color="#eab308"
+                  pct={warningCount > 0 ? Math.min(100, warningCount * 10) : 0}
+                />
+              </div>
+            </div>
+          </div>
 
       {/* ROW 2: Top CPU Monitors, Top Memory Monitors & CPU Distribution (3 Cards) */}
       <div style={{
@@ -1445,6 +1421,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+        </div>
+
+        {/* Right Column: Infrastructure Snapshot (25 Rows, exact match to user specification) */}
+        <div style={{
+          position: 'sticky',
+          top: '16px',
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0
+        }}>
+          <InfrastructureSnapshot
+            devices={devices}
+            alerts={alerts}
+            isDark={isDark}
+            defaultPageSize={25}
+            onSelectCategory={() => {
+              if (_onNavigateToTab) _onNavigateToTab('devices');
+            }}
+          />
         </div>
       </div>
       {modalDevice && (
