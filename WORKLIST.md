@@ -401,16 +401,16 @@ Last Updated: 2026-11-13 | Subnet: `172.168.1.0/24` | Database: `PostgreSQL 18`
 - [ ] ⏳ **17.3.10 Enterprise Print Server & Spooler Queue Monitor:** Track stuck print jobs, paper jams, and toner percentages across office printers.
 
 #### 17.4 Virtualization, Containers & Cloud Monitoring (Points 31–40)
-- [ ] ⏳ **17.4.1 VMware vSphere & vCenter API Collector:** Agentless hypervisor telemetry for ESXi hosts, datastore latency, ballooning, and VMs.
-- [ ] ⏳ **17.4.2 Microsoft Hyper-V Cluster Telemetry:** Hyper-V VM replication health, virtual switch throughput, and checkpoint age monitoring.
-- [ ] ⏳ **17.4.3 Proxmox VE Cluster & Container Telemetry:** PVE REST API client tracking cluster quorum, LXC containers, and QEMU VMs.
+- [x] ✅ **17.4.1 VMware vSphere & vCenter API Collector:** Agentless hypervisor telemetry for ESXi hosts, datastore latency, ballooning, and VMs.
+- [x] ✅ **17.4.2 Microsoft Hyper-V Cluster Telemetry:** Hyper-V VM replication health, virtual switch throughput, and checkpoint age monitoring.
+- [x] ✅ **17.4.3 Proxmox VE Cluster & Container Telemetry:** PVE REST API client tracking cluster quorum, LXC containers, and QEMU VMs.
 - [ ] ⏳ **17.4.4 Citrix XenServer / XCP-ng Telemetry:** XenServer RRD metric collector for pool-wide compute and storage utilization.
-- [ ] ⏳ **17.4.5 Docker & Containerd Daemon Telemetry:** Docker socket/REST client tracking container CPU, memory limits, network I/O, and crash loops.
-- [ ] ⏳ **17.4.6 AWS CloudWatch Cloud Infrastructure Telemetry:** EC2, RDS, EBS, S3, and billing alarms via AWS IAM access keys.
-- [ ] ⏳ **17.4.7 Microsoft Azure Cloud Telemetry:** Azure REST client monitoring VM health, Azure SQL DTU utilization, and subscription costs.
+- [x] ✅ **17.4.5 Docker & Containerd Daemon Telemetry:** Docker socket/REST client tracking container CPU, memory limits, network I/O, and crash loops.
+- [x] ✅ **17.4.6 AWS CloudWatch Cloud Infrastructure Telemetry:** EC2, RDS, EBS, S3, and billing alarms via AWS IAM access keys.
+- [x] ✅ **17.4.7 Microsoft Azure Cloud Telemetry:** Azure REST client monitoring VM health, Azure SQL DTU utilization, and subscription costs.
 - [ ] ⏳ **17.4.8 Microsoft 365 SaaS Service Health:** Microsoft Graph API monitor for Exchange Online, SharePoint, Teams status, and license counts.
-- [ ] ⏳ **17.4.9 SSL/TLS Certificate Expiration & Cipher Audit:** Query HTTPS endpoints on port 443; warn 30/15/7 days before cert expiry; audit TLS ciphers.
-- [ ] ⏳ **17.4.10 Public IP DNS Blacklist (DNSBL) Auditor:** Continuously audit public IPs against 25+ spam blacklists (Spamhaus, Barracuda, SORBS).
+- [x] ✅ **17.4.9 SSL/TLS Certificate Expiration & Cipher Audit:** Query HTTPS endpoints on port 443; warn 30/15/7 days before cert expiry; audit TLS ciphers.
+- [x] ✅ **17.4.10 Public IP DNS Blacklist (DNSBL) Auditor:** Continuously audit public IPs against 25+ spam blacklists (Spamhaus, Barracuda, SORBS).
 
 #### 17.5 Enterprise Applications, Databases & Storage Fabric (Points 41–50)
 - [ ] ⏳ **17.5.1 Custom SQL Query Execution Sensors:** Execute custom queries against MSSQL, PostgreSQL, MySQL, and Oracle and graph numeric outputs.

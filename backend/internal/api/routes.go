@@ -83,9 +83,15 @@ func SetupRouter() *gin.Engine {
 		api.GET("/discovery/status", HandleGetDiscoveryStatus)
 		api.POST("/devices/clear", HandleClearAllDevices)
 		api.DELETE("/devices/clear", HandleClearAllDevices)
+
+		// 9. Virtualization, Docker Containers, K8s & Cloud Domain (PRTG Section 17.4)
+		api.GET("/virtualization/containers", HandleGetContainersAndK8s)
+		api.GET("/virtualization/cloud", HandleGetCloudTelemetry)
+		api.GET("/virtualization/security", HandleGetCertificatesAndDNSBL)
+		api.GET("/virtualization/hypervisors", HandleGetHypervisors)
 	}
 
-	// 9. Static Web SPA routes for embedded frontend
+	// 10. Static Web SPA routes for embedded frontend
 	web.RegisterWebRoutes(r)
 
 	return r
