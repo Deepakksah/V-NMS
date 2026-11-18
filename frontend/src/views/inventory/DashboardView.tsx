@@ -508,7 +508,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             devices={devices}
             alerts={alerts}
             isDark={isDark}
-            defaultPageSize={25}
+            defaultPageSize={100}
             onSelectCategory={(catName) => {
               if (_onNavigateToTab) {
                 const lower = catName.toLowerCase();
@@ -1520,7 +1520,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
         </div>
 
-        {/* Right Column: Infrastructure Snapshot (25 Rows, exact match to user specification) */}
+        {/* Right Column: Infrastructure Snapshot (Shows all 36 Categories to eliminate empty space) */}
         <div style={{
           position: 'sticky',
           top: '16px',
@@ -1532,7 +1532,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             devices={devices}
             alerts={alerts}
             isDark={isDark}
-            defaultPageSize={25}
+            defaultPageSize={100}
             onSelectCategory={(catName) => {
               if (_onNavigateToTab) {
                 const lower = catName.toLowerCase();
