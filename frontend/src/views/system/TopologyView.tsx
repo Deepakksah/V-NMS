@@ -16,7 +16,8 @@ import {
   Table,
   X,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Activity
 } from 'lucide-react';
 import type { Device } from '../../types';
 
@@ -72,6 +73,25 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [showMatrixModal, setShowMatrixModal] = useState(false);
   const [matrixTab, setMatrixTab] = useState<'links' | 'vlans' | 'health'>('links');
+
+  // Network Speed Tags Visibility (Default OFF per user requirement to avoid visual clutter)
+  const [showSpeedBadges, setShowSpeedBadges] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('vnms_topo_show_speed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSpeedBadges = () => {
+    setShowSpeedBadges(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('vnms_topo_show_speed', String(next));
+      } catch { }
+      return next;
+    });
+  };
 
   // Canvas Viewport Transforms (Zoom & Pan)
   const [zoomLevel, setZoomLevel] = useState<number>(1);
@@ -185,7 +205,12 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
         name.includes('desk') ||
         name.includes('belpc') ||
         name.includes('win10') ||
-        name.includes('win11')
+        name.includes('win11') ||
+        name.startsWith('web-node-') ||
+        name.startsWith('printer-') ||
+        name.startsWith('cam-') ||
+        name.startsWith('host-') ||
+        name.startsWith('win-client-')
       ) {
         workstations.push(d);
       } else {
@@ -373,29 +398,122 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
     return { switches, servers, workstations };
   }, [topologyNodes]);
 
-  // Filtered Nodes based on Search & Tier
+  // Filtered Nodes based on Search & Tier (Includes related uplinks for selected tier)
   const filteredNodes = useMemo(() => {
-    return topologyNodes.filter(node => {
-      const matchesSearch =
-        searchQuery === '' ||
-        node.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        node.ip.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        node.vendor.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesTier =
-        selectedTier === 'all' ||
-        (selectedTier === 'switch' && (node.tier === 'switch' || node.tier === 'gateway')) ||
-        (selectedTier === 'server' && (node.tier === 'server' || node.tier === 'linux_cluster')) ||
-        (selectedTier === 'workstation' && node.tier === 'workstation');
-
-      return matchesSearch && matchesTier;
+    // 1. Initial filter by search query
+    const searchMatched = topologyNodes.filter(node => {
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        node.label.toLowerCase().includes(q) ||
+        node.ip.toLowerCase().includes(q) ||
+        node.vendor.toLowerCase().includes(q)
+      );
     });
-  }, [topologyNodes, searchQuery, selectedTier]);
+
+    // 2. Filter by Tier
+    if (selectedTier === 'all') {
+      return searchMatched;
+    }
+
+    if (selectedTier === 'switch') {
+      return searchMatched.filter(n => n.tier === 'switch' || n.tier === 'gateway');
+    }
+
+    if (selectedTier === 'server') {
+      // Find which switches or gateways connect to the servers
+      const serverNodes = searchMatched.filter(n => n.tier === 'server' || n.tier === 'linux_cluster');
+      const serverNodeIds = new Set(serverNodes.map(n => n.id));
+
+      // Uplink nodes that directly connect to at least one server
+      const connectedUplinkIds = new Set<string>();
+      topologyLinks.forEach(link => {
+        if (serverNodeIds.has(link.source)) connectedUplinkIds.add(link.target);
+        if (serverNodeIds.has(link.target)) connectedUplinkIds.add(link.source);
+      });
+
+      return searchMatched.filter(n =>
+        n.tier === 'server' ||
+        n.tier === 'linux_cluster' ||
+        connectedUplinkIds.has(n.id) ||
+        (connectedUplinkIds.size === 0 && (n.tier === 'gateway' || n.tier === 'switch'))
+      );
+    }
+
+    if (selectedTier === 'workstation') {
+      const wsNodes = searchMatched.filter(n => n.tier === 'workstation');
+      const wsNodeIds = new Set(wsNodes.map(n => n.id));
+
+      const connectedUplinkIds = new Set<string>();
+      topologyLinks.forEach(link => {
+        if (wsNodeIds.has(link.source)) connectedUplinkIds.add(link.target);
+        if (wsNodeIds.has(link.target)) connectedUplinkIds.add(link.source);
+      });
+
+      return searchMatched.filter(n =>
+        n.tier === 'workstation' ||
+        connectedUplinkIds.has(n.id) ||
+        (connectedUplinkIds.size === 0 && (n.tier === 'gateway' || n.tier === 'switch'))
+      );
+    }
+
+    return searchMatched;
+  }, [topologyNodes, searchQuery, selectedTier, topologyLinks]);
+
+  // Filtered Links: strictly based on visible nodes and selection
+  const filteredLinks = useMemo(() => {
+    const visibleNodeIds = new Set(filteredNodes.map(n => n.id));
+
+    return topologyLinks.filter(link => {
+      // Both source and target must be visible in filteredNodes
+      if (!visibleNodeIds.has(link.source) || !visibleNodeIds.has(link.target)) {
+        return false;
+      }
+
+      // If tier is 'server', only show links that connect to a server or between gateway/switches
+      if (selectedTier === 'server') {
+        const srcNode = topologyNodes.find(n => n.id === link.source);
+        const tgtNode = topologyNodes.find(n => n.id === link.target);
+        const isServerLink =
+          (srcNode && (srcNode.tier === 'server' || srcNode.tier === 'linux_cluster')) ||
+          (tgtNode && (tgtNode.tier === 'server' || tgtNode.tier === 'linux_cluster')) ||
+          (srcNode?.tier === 'gateway' && tgtNode?.tier === 'switch');
+        if (!isServerLink) return false;
+      }
+
+      // If tier is 'workstation', only show links that connect to a workstation or between gateway/switches
+      if (selectedTier === 'workstation') {
+        const srcNode = topologyNodes.find(n => n.id === link.source);
+        const tgtNode = topologyNodes.find(n => n.id === link.target);
+        const isWsLink =
+          (srcNode && srcNode.tier === 'workstation') ||
+          (tgtNode && tgtNode.tier === 'workstation') ||
+          (srcNode?.tier === 'gateway' && tgtNode?.tier === 'switch');
+        if (!isWsLink) return false;
+      }
+
+      // If a specific node is selected: ONLY show links connected directly to this node!
+      if (selectedNodeId) {
+        const isConnectedToSelected = link.source === selectedNodeId || link.target === selectedNodeId;
+        if (!isConnectedToSelected) return false;
+      }
+
+      // If a specific link is selected: ONLY show that link!
+      if (selectedLinkId) {
+        if (link.id !== selectedLinkId) return false;
+      }
+
+      return true;
+    });
+  }, [topologyLinks, filteredNodes, selectedTier, selectedNodeId, selectedLinkId, topologyNodes]);
 
   // Selected Item References
   const activeNode = useMemo(() => {
     if (topologyNodes.length === 0) return null;
-    return topologyNodes.find(n => n.id === selectedNodeId) || topologyNodes[0];
+    if (selectedNodeId) {
+      return topologyNodes.find(n => n.id === selectedNodeId) || null;
+    }
+    return null;
   }, [topologyNodes, selectedNodeId]);
 
   const activeLink = useMemo(() => {
@@ -533,7 +651,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
               {devices.length} {devices.length === 1 ? 'Active Host' : 'Active Hosts'}
             </span>
             <span style={{ fontSize: '0.72rem', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#16a34a' }}>
-              {topologyLinks.length} Active Links
+              {filteredLinks.length} / {topologyLinks.length} Active Links
             </span>
             {totalFabricCapacity > 0 && (
               <span style={{ fontSize: '0.72rem', background: '#eff6ff', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#1d4ed8' }}>
@@ -553,7 +671,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
           ].map(t => (
             <button
               key={t.id}
-              onClick={() => setSelectedTier(t.id)}
+              onClick={() => {
+                setSelectedTier(t.id);
+                setSelectedNodeId('');
+                setSelectedLinkId(null);
+              }}
               style={{
                 padding: '4px 10px',
                 borderRadius: '6px',
@@ -601,6 +723,53 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
               }}
             />
           </div>
+
+          {/* Network Speed Tag Toggle Button */}
+          <button
+            onClick={toggleSpeedBadges}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: `1px solid ${showSpeedBadges ? '#0284c7' : isFullScreen ? '#334155' : '#cbd5e1'}`,
+              backgroundColor: showSpeedBadges ? (isFullScreen ? 'rgba(2, 132, 199, 0.25)' : '#e0f2fe') : (isFullScreen ? '#1e293b' : '#ffffff'),
+              color: showSpeedBadges ? '#0284c7' : (isFullScreen ? '#94a3b8' : '#475569'),
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            title={showSpeedBadges ? 'Hide link speed badges (Cleaner View)' : 'Show link speed and utilization tags on all wires'}
+          >
+            <Activity size={13} color={showSpeedBadges ? '#0284c7' : '#64748b'} />
+            <span>Speed: {showSpeedBadges ? 'ON' : 'OFF'}</span>
+          </button>
+
+          {/* Active Node Isolation Clear Button */}
+          {selectedNodeId && (
+            <button
+              onClick={() => { setSelectedNodeId(''); setSelectedLinkId(null); }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '4px 9px',
+                borderRadius: '6px',
+                backgroundColor: isFullScreen ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
+                border: '1px solid #fca5a5',
+                color: isFullScreen ? '#fca5a5' : '#dc2626',
+                fontSize: '0.74rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+              title="Click to reset node filter and show all connections"
+            >
+              <X size={13} />
+              <span>Show All Lines</span>
+            </button>
+          )}
 
           {/* Interconnect Matrix Modal Button */}
           <button
@@ -765,9 +934,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
               </span>
             </div>
             <span style={{ fontSize: '0.66rem', color: '#64748b' }}>
-              {devices.length > 0
-                ? 'Click any Node or Link to inspect | Drag to pan | Scroll or use +/- to zoom'
-                : 'Zero nodes in inventory | Run discovery to populate network map'}
+              {selectedNodeId
+                ? `Focus: ${activeNode?.label || 'Selected Device'} (Showing only connected lines | Click background or 'Show All Lines' to reset)`
+                : devices.length > 0
+                  ? 'Click any Node or Link to inspect & isolate lines | Drag to pan | Scroll or use +/- to zoom'
+                  : 'Zero nodes in inventory | Run discovery to populate network map'}
             </span>
           </div>
 
@@ -848,33 +1019,44 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
 
             {/* Transform Layer for Zoom & Pan */}
             <g transform={`translate(${panOffset.x}, ${panOffset.y}) scale(${zoomLevel})`} style={{ transformOrigin: '550px 325px', transition: isDragging ? 'none' : 'transform 0.15s ease-out' }}>
-              {/* Background Grid */}
-              <rect x="-1000" y="-1000" width="3500" height="3000" fill="url(#noc-grid)" />
+              {/* Background Grid - Clicking background deselects and restores all lines */}
+              <rect
+                x="-1000"
+                y="-1000"
+                width="3500"
+                height="3000"
+                fill="url(#noc-grid)"
+                onClick={() => {
+                  setSelectedNodeId('');
+                  setSelectedLinkId(null);
+                }}
+                style={{ cursor: selectedNodeId ? 'pointer' : 'default' }}
+              />
 
               {/* Dynamic Tier Background Guides */}
-              {topologyNodes.some(n => n.tier === 'gateway' || n.tier === 'infrastructure') && (
+              {filteredNodes.some(n => n.tier === 'gateway' || n.tier === 'infrastructure') && (
                 <text x="35" y="60" fill="#475569" fontSize="9" fontWeight="700" letterSpacing="1">
                   TIER 1: PERIMETER GATEWAY & INFRASTRUCTURE
                 </text>
               )}
-              {topologyNodes.some(n => n.tier === 'switch') && (
+              {filteredNodes.some(n => n.tier === 'switch') && (
                 <text x="35" y="190" fill="#475569" fontSize="9" fontWeight="700" letterSpacing="1">
                   TIER 2: SWITCHING FABRIC & DISTRIBUTION
                 </text>
               )}
-              {topologyNodes.some(n => n.tier === 'server' || n.tier === 'linux_cluster') && (
+              {filteredNodes.some(n => n.tier === 'server' || n.tier === 'linux_cluster') && (
                 <text x="35" y="340" fill="#475569" fontSize="9" fontWeight="700" letterSpacing="1">
                   TIER 3: CORE COMPUTE, SERVERS & STORAGE
                 </text>
               )}
-              {topologyNodes.some(n => n.tier === 'workstation') && (
+              {filteredNodes.some(n => n.tier === 'workstation') && (
                 <text x="35" y="490" fill="#475569" fontSize="9" fontWeight="700" letterSpacing="1">
                   TIER 4: ACCESS CLIENTS & WORKSTATIONS
                 </text>
               )}
 
               {/* Interconnect Links (Rendered under nodes) */}
-              {topologyLinks.map(link => {
+              {filteredLinks.map(link => {
                 const srcNode = topologyNodes.find(n => n.id === link.source);
                 const tgtNode = topologyNodes.find(n => n.id === link.target);
                 if (!srcNode || !tgtNode) return null;
@@ -918,35 +1100,37 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                       x2={tgtNode.x}
                       y2={tgtNode.y}
                       stroke={isSelected ? '#38bdf8' : isConnectedToActiveNode ? '#38bdf8' : linkColor}
-                      strokeWidth={isSelected ? 3.5 : link.speedGbps >= 10 ? 2.6 : 1.6}
+                      strokeWidth={isSelected ? 3.5 : isConnectedToActiveNode ? 2.8 : link.speedGbps >= 10 ? 2.2 : 1.4}
                       strokeDasharray={isSelected ? '6,4' : link.protocol === 'LACP' ? '8,4' : 'none'}
-                      opacity={isSelected ? 1 : isConnectedToActiveNode ? 0.95 : 0.65}
+                      opacity={isSelected ? 1 : isConnectedToActiveNode ? 0.95 : 0.6}
                     />
 
-                    {/* Mid-line Traffic Pill Badge */}
-                    <g transform={`translate(${midX}, ${midY})`}>
-                      <rect
-                        x="-28"
-                        y="-9"
-                        width="56"
-                        height="18"
-                        rx="5"
-                        fill="#0f172a"
-                        stroke={isSelected ? '#38bdf8' : linkColor}
-                        strokeWidth="1.2"
-                      />
-                      <text
-                        x="0"
-                        y="3.5"
-                        fill="#f8fafc"
-                        fontSize="8.5"
-                        fontWeight="700"
-                        fontFamily="monospace"
-                        textAnchor="middle"
-                      >
-                        {link.speedGbps}G | {link.utilizationPercent}%
-                      </text>
-                    </g>
+                    {/* Mid-line Traffic Pill Badge - Only show when showSpeedBadges is ON or link is selected */}
+                    {(showSpeedBadges || isSelected) && (
+                      <g transform={`translate(${midX}, ${midY})`}>
+                        <rect
+                          x="-28"
+                          y="-9"
+                          width="56"
+                          height="18"
+                          rx="5"
+                          fill="#0f172a"
+                          stroke={isSelected ? '#38bdf8' : linkColor}
+                          strokeWidth="1.2"
+                        />
+                        <text
+                          x="0"
+                          y="3.5"
+                          fill="#f8fafc"
+                          fontSize="8.5"
+                          fontWeight="700"
+                          fontFamily="monospace"
+                          textAnchor="middle"
+                        >
+                          {link.speedGbps}G | {link.utilizationPercent}%
+                        </text>
+                      </g>
+                    )}
                   </g>
                 );
               })}
@@ -954,6 +1138,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
               {/* Dynamic Topology Nodes */}
               {filteredNodes.map(node => {
                 const isSelected = activeNode?.id === node.id;
+                const isConnectedToSelected = activeNode ? (
+                  filteredLinks.some(l =>
+                    (l.source === activeNode.id && l.target === node.id) ||
+                    (l.target === activeNode.id && l.source === node.id)
+                  )
+                ) : false;
+                const isRelevant = !selectedNodeId || isSelected || isConnectedToSelected;
                 const isHighlightedSearch = searchQuery !== '' && (
                   node.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
                   node.ip.toLowerCase().includes(searchQuery.toLowerCase())
@@ -964,13 +1155,19 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                   <g
                     key={node.id}
                     transform={`translate(${node.x}, ${node.y})`}
+                    opacity={isRelevant ? 1 : 0.18}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedNodeId(node.id);
-                      setSelectedLinkId(null);
-                      if (!isInspectorOpen) setIsInspectorOpen(true);
+                      if (selectedNodeId === node.id) {
+                        setSelectedNodeId('');
+                        setSelectedLinkId(null);
+                      } else {
+                        setSelectedNodeId(node.id);
+                        setSelectedLinkId(null);
+                        if (!isInspectorOpen) setIsInspectorOpen(true);
+                      }
                     }}
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: 'pointer', transition: 'opacity 0.2s ease' }}
                   >
                     {/* Animated Pulsing Halo on Selected or Searched Node */}
                     {(isSelected || isHighlightedSearch) && (
@@ -1076,8 +1273,57 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                 </span>
               </div>
 
+              {/* TOPOLOGY FABRIC OVERVIEW WHEN NO NODE IS SELECTED */}
+              {!activeLink && !activeNode && devices.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    background: isFullScreen ? '#1e293b' : '#f8fafc',
+                    border: `1px solid ${isFullScreen ? '#334155' : '#e2e8f0'}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Network size={16} color="#0284c7" />
+                      <span style={{ fontSize: '0.84rem', fontWeight: 800, color: isFullScreen ? '#f8fafc' : '#0f172a' }}>
+                        Topology Fabric Overview
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b', lineHeight: 1.4 }}>
+                      Click any device node to isolate its connection path and inspect real-time interface telemetry.
+                    </p>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '8px',
+                    fontSize: '0.78rem'
+                  }}>
+                    <div style={{ padding: '8px 10px', borderRadius: '8px', background: isFullScreen ? '#1e293b' : '#f1f5f9' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'block' }}>Total Devices</span>
+                      <strong style={{ fontSize: '0.92rem', color: isFullScreen ? '#f8fafc' : '#0f172a' }}>{devices.length}</strong>
+                    </div>
+                    <div style={{ padding: '8px 10px', borderRadius: '8px', background: isFullScreen ? '#1e293b' : '#f1f5f9' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'block' }}>Active Links</span>
+                      <strong style={{ fontSize: '0.92rem', color: '#16a34a' }}>{filteredLinks.length} / {topologyLinks.length}</strong>
+                    </div>
+                    <div style={{ padding: '8px 10px', borderRadius: '8px', background: isFullScreen ? '#1e293b' : '#f1f5f9' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'block' }}>Servers</span>
+                      <strong style={{ fontSize: '0.92rem', color: '#10b981' }}>{tierCounts.servers}</strong>
+                    </div>
+                    <div style={{ padding: '8px 10px', borderRadius: '8px', background: isFullScreen ? '#1e293b' : '#f1f5f9' }}>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', display: 'block' }}>Workstations</span>
+                      <strong style={{ fontSize: '0.92rem', color: '#64748b' }}>{tierCounts.workstations}</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* ZERO NODES INSPECTOR EMPTY STATE */}
-              {!activeLink && !activeNode && (
+              {!activeLink && !activeNode && devices.length === 0 && (
                 <div style={{
                   display: 'flex',
                   flexDirection: 'column',
