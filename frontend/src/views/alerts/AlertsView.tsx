@@ -30,6 +30,7 @@ import {
 import type { Device, AlertRecipient } from '../../types';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
 import { useToast } from '../../context/ToastContext';
+import { ExportButtons } from '../../components/ExportButtons';
 
 const API_BASE = 'http://127.0.0.1:8081/api/v1';
 
@@ -755,6 +756,8 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
 
         {/* Header Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ExportButtons data={alerts} filenamePrefix="vnms_alerts" title="Alerts & Incidents" />
+
           <button
             onClick={() => handleSimulateAlert('down')}
             style={{

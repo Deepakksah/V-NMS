@@ -9,6 +9,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import type { Device } from '../../types';
+import { ExportButtons } from '../../components/ExportButtons';
 
 export interface PortsViewProps {
   devices?: Device[];
@@ -112,6 +113,7 @@ export const PortsView: React.FC<PortsViewProps> = ({ devices = [] }) => {
             Real-time interface traffic counters, bridge forwarding database (FDB), 802.1X security & STP topology states
           </p>
         </div>
+        <ExportButtons data={filteredPorts} filenamePrefix="vnms_interfaces" title="Network Interfaces" />
       </div>
 
       {/* SubTab Navigation */}

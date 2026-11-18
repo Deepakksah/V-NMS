@@ -16,9 +16,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sun,
-  Moon
+  Moon,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import type { AuthUser } from '../types';
+import { soundAlerts } from '../utils/audioAlerts';
 
 interface NavbarProps {
   activeTab: string;
@@ -62,7 +65,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isAudioMuted, setIsAudioMuted] = useState(soundAlerts.getMuted());
+  const prevCriticalCount = useRef(criticalAlertsCount);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Play siren when new critical alerts arrive and sound is enabled
+  useEffect(() => {
+    if (criticalAlertsCount > 0 && criticalAlertsCount > prevCriticalCount.current) {
+      soundAlerts.playCriticalSiren();
+    }
+    prevCriticalCount.current = criticalAlertsCount;
+  }, [criticalAlertsCount]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -233,6 +246,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>{criticalAlertsCount} Alerts</span>
             </div>
           )}
+
+          {/* NOC Audio Alarm Toggle */}
+          <button
+            onClick={() => {
+              const next = soundAlerts.toggleMute();
+              setIsAudioMuted(next);
+            }}
+            title={isAudioMuted ? "Audible Sirens Muted (Click to enable audio alarms)" : "Audible Sirens Active (Click to mute sound)"}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '3px 8px',
+              borderRadius: '5px',
+              background: isAudioMuted ? 'rgba(100, 116, 139, 0.15)' : 'rgba(56, 189, 248, 0.15)',
+              border: `1px solid ${isAudioMuted ? '#475569' : '#0284c7'}`,
+              color: isAudioMuted ? '#94a3b8' : '#38bdf8',
+              cursor: 'pointer',
+              fontSize: '0.70rem',
+              fontWeight: 600,
+              transition: 'all 0.15s ease'
+            }}
+          >
+            {isAudioMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+            <span>{isAudioMuted ? 'Muted' : 'Audio On'}</span>
+          </button>
         </div>
       </div>
 

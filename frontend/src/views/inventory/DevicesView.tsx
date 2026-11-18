@@ -22,6 +22,7 @@ import {
 } from '../../data/mockEnterpriseData';
 import { DeviceChartsModal } from '../../components/DeviceChartsModal';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
+import { ExportButtons } from '../../components/ExportButtons';
 
 export type CategoryFilterType = 'all' | 'server' | 'switch' | 'firewall' | 'workstation' | 'ntp';
 
@@ -192,6 +193,8 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <ExportButtons data={filteredDevices} filenamePrefix="vnms_devices" title="Device Inventory" />
+
           {devices.length > 0 && onClearAllDevices && (
             <button
               onClick={onClearAllDevices}

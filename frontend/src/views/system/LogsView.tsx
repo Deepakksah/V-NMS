@@ -10,6 +10,7 @@ import {
   MOCK_EVENT_LOGS, 
   MOCK_MONITORED_APPS 
 } from '../../data/mockEnterpriseData';
+import { ExportButtons } from '../../components/ExportButtons';
 
 export const LogsView: React.FC = () => {
   const [subTab, setSubTab] = useState<'syslog' | 'events' | 'apps'>('syslog');
@@ -40,6 +41,7 @@ export const LogsView: React.FC = () => {
             High-speed UDP port 514 Syslog receiver, kernel events, auth audit logs & application-specific telemetry
           </p>
         </div>
+        <ExportButtons data={filteredSyslog} filenamePrefix="vnms_syslog" title="System Logs" />
       </div>
 
       {/* SubTab Navigation */}

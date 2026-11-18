@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	_ "embed"
 	"fmt"
 	"log"
 	"net"
@@ -18,6 +19,33 @@ import (
 	"v-nms/internal/models"
 	"v-nms/internal/ping"
 )
+
+//go:embed oui.txt
+var ouiRawData string
+
+var (
+	ouiMapOnce sync.Once
+	ouiMap     = make(map[string]string)
+)
+
+func initOUIMap() {
+	ouiMapOnce.Do(func() {
+		scanner := bufio.NewScanner(strings.NewReader(ouiRawData))
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				prefix := strings.ToLower(strings.TrimSpace(parts[0]))
+				prefix = strings.ReplaceAll(prefix, "-", ":")
+				vendor := strings.TrimSpace(parts[1])
+				ouiMap[prefix] = vendor
+			}
+		}
+	})
+}
 
 type DiscoveredTarget struct {
 	IP         string
@@ -132,13 +160,21 @@ func DetectLocalSubnet() (string, string) {
 	return "192.168.1.0/24", "192.168.1.1"
 }
 
-// GetVendorFromMAC maps MAC OUI prefixes to known hardware vendors
+// GetVendorFromMAC maps MAC OUI prefixes to known hardware vendors using the IEEE database
 func GetVendorFromMAC(mac string) string {
 	clean := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(mac, "-", ":"), " ", ""))
+	if !strings.Contains(clean, ":") && len(clean) >= 6 {
+		clean = fmt.Sprintf("%s:%s:%s", clean[0:2], clean[2:4], clean[4:6])
+	}
 	if len(clean) < 8 {
 		return "Generic Network Device"
 	}
 	prefix := clean[:8]
+
+	initOUIMap()
+	if vendor, ok := ouiMap[prefix]; ok && vendor != "" {
+		return vendor
+	}
 
 	switch {
 	// Cisco

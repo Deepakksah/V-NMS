@@ -20,6 +20,7 @@ import {
   MOCK_STORAGE, 
   MOCK_DISK_IO 
 } from '../../data/mockEnterpriseData';
+import { ExportButtons } from '../../components/ExportButtons';
 
 interface SensorsViewProps {
   apiBase?: string;
@@ -207,6 +208,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
             Physical drive health (HDD/SSD/RAID), logical volumes, filesystem mount points, and environmental telemetry
           </p>
         </div>
+        <ExportButtons data={storageData} filenamePrefix="vnms_storage_sensors" title="Storage & Sensors" />
       </div>
 
       {/* SubTab Navigation */}
