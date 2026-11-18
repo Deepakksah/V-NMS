@@ -29,6 +29,7 @@ import type { Device, MetricDataPoint } from '../../types';
 import { VendorLogo } from '../../components/VendorLogo';
 import { DeviceChartsModal } from '../../components/DeviceChartsModal';
 import { ExportButtons } from '../../components/ExportButtons';
+import { InfrastructureSnapshot } from '../../components/InfrastructureSnapshot';
 
 interface DashboardViewProps {
   devices: Device[];
@@ -400,52 +401,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div style={{
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '65vh',
-        padding: '30px',
+        gap: '20px',
         color: theme.textMain
       }}>
+        {/* Discovery Prompt Card */}
         <div style={{
-          maxWidth: '560px',
-          width: '100%',
           backgroundColor: theme.cardBg,
           borderRadius: '16px',
           border: `1px solid ${theme.cardBorder}`,
-          padding: '44px 32px',
+          padding: '36px 32px',
           textAlign: 'center',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.08)'
         }}>
           <div style={{
-            width: '64px',
-            height: '64px',
-            borderRadius: '16px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '14px',
             background: 'linear-gradient(135deg, #0284c7 0%, #6366f1 100%)',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '20px',
+            marginBottom: '16px',
             boxShadow: '0 8px 16px -4px rgba(2, 132, 199, 0.4)'
           }}>
-            <Activity size={32} color="#ffffff" />
+            <Activity size={28} color="#ffffff" />
           </div>
 
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: theme.textMain, margin: '0 0 10px 0' }}>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: theme.textMain, margin: '0 0 8px 0' }}>
             No Network Devices Discovered Yet
           </h2>
-          <p style={{ fontSize: '0.88rem', color: theme.textMuted, lineHeight: '1.6', margin: '0 0 26px 0' }}>
+          <p style={{ fontSize: '0.84rem', color: theme.textMuted, lineHeight: '1.6', margin: '0 auto 20px auto', maxWidth: '520px' }}>
             V-NMS inventory is currently empty. Click below to initiate network discovery across your subnet. You will be able to watch each IP probed live in the terminal!
           </p>
 
           <button
             onClick={onOpenDiscovery}
             style={{
-              padding: '12px 28px',
+              padding: '11px 26px',
               borderRadius: '10px',
               border: 'none',
               background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
               color: '#ffffff',
-              fontSize: '0.95rem',
+              fontSize: '0.90rem',
               fontWeight: 700,
               cursor: 'pointer',
               display: 'inline-flex',
@@ -458,6 +455,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span>🚀 Fetch &amp; Discover Network Devices</span>
           </button>
         </div>
+
+        {/* Live Infrastructure Snapshot Table (36 Enterprise Categories) */}
+        <InfrastructureSnapshot
+          devices={devices}
+          alerts={alerts}
+          isDark={isDark}
+          onSelectCategory={() => {
+            if (_onNavigateToTab) _onNavigateToTab('devices');
+          }}
+        />
       </div>
     );
   }
@@ -754,6 +761,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Infrastructure Snapshot (36 Enterprise Categories) */}
+      <InfrastructureSnapshot
+        devices={devices}
+        alerts={alerts}
+        isDark={isDark}
+        onSelectCategory={() => {
+          if (_onNavigateToTab) _onNavigateToTab('devices');
+        }}
+      />
 
       {/* ROW 2: Top CPU Monitors, Top Memory Monitors & CPU Distribution (3 Cards) */}
       <div style={{
