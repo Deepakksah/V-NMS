@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import axios from 'axios';
 import {
   X,
   Activity,
@@ -48,11 +49,48 @@ export const DeviceChartsModal: React.FC<DeviceChartsModalProps> = ({
 }) => {
   const [metricTab, setMetricTab] = useState<'traffic' | 'cpu' | 'latency' | 'storage' | 'outages' | 'interfaces'>('traffic');
   const [timeframe, setTimeframe] = useState<ChartTimeframe>('1h');
+  const [dbMetrics, setDbMetrics] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (device?.id) {
+      axios.get(`/api/v1/devices/${device.id}/metrics?type=ping&limit=30`)
+        .then(res => {
+          if (res.data?.metrics && Array.isArray(res.data.metrics) && res.data.metrics.length > 0) {
+            setDbMetrics(res.data.metrics);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [device?.id, pingingId, pollingId]);
 
   const history = useMemo(() => {
     if (!device) return [];
-    return getDeviceTelemetryHistory(device, timeframe);
-  }, [device, timeframe]);
+    const baseHistory = getDeviceTelemetryHistory(device, timeframe);
+
+    // If live 1h view and real metrics exist in PostgreSQL, overlay actual recorded timestamps and ping latencies
+    if (timeframe === '1h' && dbMetrics.length > 0) {
+      const reversedDb = [...dbMetrics].reverse();
+      return reversedDb.map((m, idx) => {
+        const d = new Date(m.recorded_at);
+        const timeStr = !isNaN(d.getTime())
+          ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+          : `T-${reversedDb.length - idx}`;
+
+        const fallbackPoint = baseHistory[idx % baseHistory.length] || { inTraffic: 4.5, outTraffic: 3.2, cpu: 15, memory: 28, packetsPerSec: 120 };
+        return {
+          time: timeStr,
+          inTraffic: fallbackPoint.inTraffic,
+          outTraffic: fallbackPoint.outTraffic,
+          cpu: fallbackPoint.cpu,
+          memory: fallbackPoint.memory,
+          latency: Number(m.val_1.toFixed(2)),
+          packetsPerSec: fallbackPoint.packetsPerSec
+        };
+      });
+    }
+
+    return baseHistory;
+  }, [device, timeframe, dbMetrics]);
 
   const timeframeStats = useMemo(() => {
     if (!history.length) return { peakTraffic: '0.0', avgTraffic: '0.0', peakCpu: 0, avgLatency: '0.0' };
