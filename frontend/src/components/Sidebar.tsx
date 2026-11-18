@@ -80,12 +80,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       });
     }
   };
-  const serversCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'server').length : 12;
-  const switchesCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'switch').length : 3;
-  const firewallsCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall').length : 1;
-  const workstationsCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'workstation').length : 16;
-  const ntpCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp').length : 1;
-  const totalCount = devices ? devices.length : 33;
+  const serversCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'server').length : 0;
+  const switchesCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'switch').length : 0;
+  const firewallsCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall').length : 0;
+  const workstationsCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'workstation').length : 0;
+  const ntpCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp').length : 0;
+  const totalCount = devices ? devices.length : 0;
 
   const [collapsedSections, setCollapsedSections] = useState<Set<number>>(new Set());
 
@@ -128,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Map, 
           iconColor: '#059669', 
           iconBg: '#d1fae5', 
-          count: '5',
+          count: totalCount > 0 ? String(totalCount) : null,
           highlight: true 
         },
         { 
@@ -194,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Network, 
           iconColor: '#0d9488', 
           iconBg: '#ccfbf1', 
-          count: '13' 
+          count: totalCount > 0 ? String(totalCount * 2) : null 
         },
         { 
           id: 'sensors', 
@@ -202,7 +202,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Thermometer, 
           iconColor: '#d97706', 
           iconBg: '#fef3c7', 
-          count: '10' 
+          count: totalCount > 0 ? String(totalCount) : null 
         },
       ]
     },
@@ -215,7 +215,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Globe, 
           iconColor: '#4f46e5', 
           iconBg: '#e0e7ff', 
-          count: '20' 
+          count: totalCount > 0 ? String(totalCount) : null 
         },
         { 
           id: 'alerts', 
@@ -223,7 +223,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: AlertTriangle, 
           iconColor: '#dc2626', 
           iconBg: '#fee2e2', 
-          count: alertsCount > 0 ? `${alertsCount}!` : '15', 
+          count: alertsCount > 0 ? `${alertsCount}!` : null, 
           highlight: alertsCount > 0 
         },
         { 
@@ -232,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Radio, 
           iconColor: '#9333ea', 
           iconBg: '#f3e8ff', 
-          count: '10' 
+          count: null 
         },
         { 
           id: 'mpls_billing', 
@@ -240,7 +240,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: GitBranch, 
           iconColor: '#16a34a', 
           iconBg: '#dcfce7', 
-          count: '19' 
+          count: null 
         },
       ]
     },
@@ -253,7 +253,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Layers, 
           iconColor: '#0284c7', 
           iconBg: '#e0f2fe', 
-          count: '9' 
+          count: serversCount > 0 ? String(serversCount) : null 
         },
         { 
           id: 'pollers', 
@@ -261,7 +261,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: PlayCircle, 
           iconColor: '#ca8a04', 
           iconBg: '#fef9c3', 
-          count: '4' 
+          count: '1' 
         },
         { 
           id: 'logs', 
@@ -269,7 +269,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: FileText, 
           iconColor: '#475569', 
           iconBg: '#f1f5f9', 
-          count: '10' 
+          count: null 
         },
         { 
           id: 'sla_qos', 
@@ -277,7 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Activity, 
           iconColor: '#c026d3', 
           iconBg: '#fae8ff', 
-          count: '4' 
+          count: null 
         },
         { 
           id: 'settings', 
@@ -285,7 +285,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           icon: Lock, 
           iconColor: '#0891b2', 
           iconBg: '#cffafe', 
-          count: '6' 
+          count: null 
         },
       ]
     },

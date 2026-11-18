@@ -1,14 +1,14 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { 
-  ZoomIn, 
+import {
+  ZoomIn,
   ZoomOut,
   Maximize2,
   Minimize2,
   RotateCcw,
   Search,
-  Server, 
-  Shield, 
-  Network, 
+  Server,
+  Shield,
+  Network,
   CheckCircle2,
   Clock,
   ExternalLink,
@@ -60,10 +60,10 @@ interface CustomLink {
   status: 'UP' | 'DEGRADED' | 'DOWN';
 }
 
-export const TopologyView: React.FC<TopologyViewProps> = ({ 
-  devices = [], 
+export const TopologyView: React.FC<TopologyViewProps> = ({
+  devices = [],
   onSelectDevice,
-  onOpenDiscovery 
+  onOpenDiscovery
 }) => {
   // Navigation & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,16 +88,16 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
       try {
         const el = containerRef.current || document.documentElement;
         if (el && el.requestFullscreen) {
-          el.requestFullscreen().catch(() => {});
+          el.requestFullscreen().catch(() => { });
         }
-      } catch (e) {}
+      } catch (e) { }
     } else {
       setIsFullScreen(false);
       try {
         if (document.fullscreenElement) {
-          document.exitFullscreen?.().catch(() => {});
+          document.exitFullscreen?.().catch(() => { });
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   };
 
@@ -106,7 +106,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
       if (e.key === 'Escape' && isFullScreen) {
         setIsFullScreen(false);
         if (document.fullscreenElement) {
-          document.exitFullscreen?.().catch(() => {});
+          document.exitFullscreen?.().catch(() => { });
         }
       }
     };
@@ -146,45 +146,45 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
       const ip = d.ip_address || '';
 
       if (
-        type.includes('firewall') || 
-        type.includes('router') || 
-        name.includes('gw') || 
-        name.includes('firewall') || 
-        name.includes('router') || 
-        name.includes('checkpoint') || 
-        name.includes('pfsense') || 
-        name.includes('forti') || 
+        type.includes('firewall') ||
+        type.includes('router') ||
+        name.includes('gw') ||
+        name.includes('firewall') ||
+        name.includes('router') ||
+        name.includes('checkpoint') ||
+        name.includes('pfsense') ||
+        name.includes('forti') ||
         ip.endsWith('.1')
       ) {
         gateways.push(d);
       } else if (
-        name.includes('ntp') || 
-        name.includes('clock') || 
-        name.includes('dns') || 
-        type.includes('controller') || 
+        name.includes('ntp') ||
+        name.includes('clock') ||
+        name.includes('dns') ||
+        type.includes('controller') ||
         ip.endsWith('.10')
       ) {
         infra.push(d);
       } else if (
-        type.includes('switch') || 
-        name.includes('sw') || 
-        name.includes('catalyst') || 
-        name.includes('ubnt') || 
-        name.includes('cisco') || 
-        vendor.includes('cisco') || 
-        vendor.includes('ubiquiti') || 
-        vendor.includes('aruba') || 
+        type.includes('switch') ||
+        name.includes('sw') ||
+        name.includes('catalyst') ||
+        name.includes('ubnt') ||
+        name.includes('cisco') ||
+        vendor.includes('cisco') ||
+        vendor.includes('ubiquiti') ||
+        vendor.includes('aruba') ||
         vendor.includes('juniper')
       ) {
         switches.push(d);
       } else if (
-        type.includes('workstation') || 
-        type.includes('desktop') || 
-        type.includes('laptop') || 
-        name.includes('pc') || 
-        name.includes('desk') || 
-        name.includes('belpc') || 
-        name.includes('win10') || 
+        type.includes('workstation') ||
+        type.includes('desktop') ||
+        type.includes('laptop') ||
+        name.includes('pc') ||
+        name.includes('desk') ||
+        name.includes('belpc') ||
+        name.includes('win10') ||
         name.includes('win11')
       ) {
         workstations.push(d);
@@ -276,10 +276,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
       // Connect Switches together with LACP Trunk
       for (let i = 0; i < sws.length - 1; i++) {
         links.push({
-          id: `link-${sws[i].id}-${sws[i+1].id}`,
+          id: `link-${sws[i].id}-${sws[i + 1].id}`,
           source: sws[i].id,
-          target: sws[i+1].id,
-          label: `${sws[i].label} ↔ ${sws[i+1].label} LACP Trunk`,
+          target: sws[i + 1].id,
+          label: `${sws[i].label} ↔ ${sws[i + 1].label} LACP Trunk`,
           srcPort: 'Po1 (LAG1)',
           tgtPort: 'Po1 (LAG1)',
           speedGbps: 20,
@@ -376,13 +376,13 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
   // Filtered Nodes based on Search & Tier
   const filteredNodes = useMemo(() => {
     return topologyNodes.filter(node => {
-      const matchesSearch = 
+      const matchesSearch =
         searchQuery === '' ||
         node.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
         node.ip.toLowerCase().includes(searchQuery.toLowerCase()) ||
         node.vendor.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesTier = 
+      const matchesTier =
         selectedTier === 'all' ||
         (selectedTier === 'switch' && (node.tier === 'switch' || node.tier === 'gateway')) ||
         (selectedTier === 'server' && (node.tier === 'server' || node.tier === 'linux_cluster')) ||
@@ -460,7 +460,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
   };
 
   return (
-    <div 
+    <div
       ref={containerRef}
       style={isFullScreen ? {
         position: 'fixed',
@@ -728,7 +728,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
         overflow: 'hidden'
       }}>
         {/* Full-Height SVG Interactive Canvas */}
-        <div 
+        <div
           ref={canvasRef}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -765,8 +765,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
               </span>
             </div>
             <span style={{ fontSize: '0.66rem', color: '#64748b' }}>
-              {devices.length > 0 
-                ? 'Click any Node or Link to inspect | Drag to pan | Scroll or use +/- to zoom' 
+              {devices.length > 0
+                ? 'Click any Node or Link to inspect | Drag to pan | Scroll or use +/- to zoom'
                 : 'Zero nodes in inventory | Run discovery to populate network map'}
             </span>
           </div>
@@ -883,23 +883,23 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                 const isConnectedToActiveNode = activeNode && (activeNode.id === srcNode.id || activeNode.id === tgtNode.id);
 
                 // Link Color by Traffic Utilization
-                const linkColor = link.utilizationPercent > 70 
-                  ? '#ef4444' 
-                  : link.utilizationPercent > 50 
-                    ? '#f59e0b' 
+                const linkColor = link.utilizationPercent > 70
+                  ? '#ef4444'
+                  : link.utilizationPercent > 50
+                    ? '#f59e0b'
                     : '#0284c7';
 
                 const midX = (srcNode.x + tgtNode.x) / 2;
                 const midY = (srcNode.y + tgtNode.y) / 2;
 
                 return (
-                  <g 
-                    key={link.id} 
+                  <g
+                    key={link.id}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedLinkId(link.id);
                       if (!isInspectorOpen) setIsInspectorOpen(true);
-                    }} 
+                    }}
                     style={{ cursor: 'pointer' }}
                   >
                     {/* Transparent wide line for easy clicking */}
@@ -1519,7 +1519,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                       <span style={{ fontSize: '0.82rem' }}>Dynamic Mesh Verification</span>
                     </div>
                     <p style={{ fontSize: '0.76rem', color: '#166534', margin: 0 }}>
-                      {devices.length > 0 
+                      {devices.length > 0
                         ? `All ${devices.length} network nodes dynamically linked across ${topologyLinks.length} topology paths with zero loops.`
                         : 'Topology engine is active and waiting for discovered inventory hosts.'}
                     </p>

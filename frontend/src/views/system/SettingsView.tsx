@@ -19,7 +19,6 @@ import {
   RefreshCw
 } from 'lucide-react';
 import {
-  MOCK_USERS,
   MOCK_VAULT_SECRETS,
   MOCK_SYSTEM_CONFIGS,
   MOCK_PEERING_IXPS
@@ -73,20 +72,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         setUserList(res.data.users);
       }
     } catch (err) {
-      console.warn('Failed to load users from backend, using fallback:', err);
-      // Fallback to MOCK_USERS if backend is unreachable
-      if (userList.length === 0) {
-        setUserList(MOCK_USERS.map(u => ({
-          id: u.id,
-          username: u.username,
-          email: u.email,
-          full_name: u.username === 'deepak.sah' ? 'Deepak Sah' : u.username === 'vikram.admin' ? 'Vikram Sharma' : u.username,
-          phone: '+91 9876543210',
-          department: 'NOC Operations',
-          role: u.role,
-          created_at: u.lastLogin
-        })));
-      }
+      console.warn('Failed to load users from backend:', err);
     } finally {
       setLoadingUsers(false);
     }

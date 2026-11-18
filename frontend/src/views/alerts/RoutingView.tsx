@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Search, 
   Tag, 
@@ -8,18 +8,45 @@ import {
   Users, 
   Box
 } from 'lucide-react';
-import { 
-  MOCK_SUBNETS, 
-  MOCK_ARP, 
-  MOCK_VLANS, 
-  MOCK_VRFS, 
-  MOCK_ROUTES, 
-  MOCK_BGP_PEERS, 
-  MOCK_OSPF_NEIGHBORS 
-} from '../../data/mockEnterpriseData';
+import type { Device } from '../../types';
 
-export const RoutingView: React.FC = () => {
+export interface RoutingViewProps {
+  devices?: Device[];
+}
+
+export const RoutingView: React.FC<RoutingViewProps> = ({ devices = [] }) => {
   const [subTab, setSubTab] = useState<'subnets' | 'arp' | 'vlans' | 'vrf' | 'routes' | 'bgp' | 'ospf'>('subnets');
+
+  // Dynamic Subnets calculated from real devices
+  const liveSubnets = useMemo(() => {
+    if (!devices || devices.length === 0) return [];
+    const map: { [prefix: string]: { prefix: string; totalIps: number; usedIps: number; vlanId: number } } = {};
+    devices.forEach(d => {
+      const parts = (d.ip_address || '').split('.');
+      if (parts.length >= 3) {
+        const prefix = `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
+        if (!map[prefix]) {
+          map[prefix] = { prefix, totalIps: 254, usedIps: 0, vlanId: 1 };
+        }
+        map[prefix].usedIps++;
+      }
+    });
+    return Object.values(map);
+  }, [devices]);
+
+  // Dynamic ARP entries from real devices
+  const liveArp = useMemo(() => {
+    if (!devices || devices.length === 0) return [];
+    return devices.map((d, idx) => ({
+      id: d.id || idx + 1,
+      ipAddress: d.ip_address,
+      macAddress: d.mac_address || '00:00:00:00:00:00',
+      interfaceName: 'eth0',
+      deviceHostname: d.hostname || d.ip_address,
+      status: d.status ? 'REACHABLE' : 'STALE',
+      vlan: 1
+    }));
+  }, [devices]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -29,7 +56,7 @@ export const RoutingView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>IP, Routing, Switching & Protocols</h2>
             <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              Models #36 - #55
+              Live Routing Tables
             </span>
           </div>
           <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
@@ -41,13 +68,13 @@ export const RoutingView: React.FC = () => {
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', flexWrap: 'wrap' }}>
         {[
-          { id: 'subnets', label: 'IPAM Subnets (#36, #38)', icon: Box, count: MOCK_SUBNETS.length },
-          { id: 'arp', label: 'ARP / IPv4-MAC (#37, #40)', icon: Search, count: MOCK_ARP.length },
-          { id: 'vlans', label: '802.1Q VLANs (#42)', icon: Tag, count: MOCK_VLANS.length },
-          { id: 'vrf', label: 'VRF Instances (#43)', icon: Share, count: MOCK_VRFS.length },
-          { id: 'routes', label: 'Routing Tables (#44)', icon: Navigation, count: MOCK_ROUTES.length },
-          { id: 'bgp', label: 'BGP Neighbor Sessions (#46, #47)', icon: Zap, count: MOCK_BGP_PEERS.length },
-          { id: 'ospf', label: 'OSPF Adjacencies (#48-#55)', icon: Users, count: MOCK_OSPF_NEIGHBORS.length }
+          { id: 'subnets', label: 'IPAM Subnets', icon: Box, count: liveSubnets.length },
+          { id: 'arp', label: 'ARP / IPv4-MAC', icon: Search, count: liveArp.length },
+          { id: 'vlans', label: '802.1Q VLANs', icon: Tag, count: liveSubnets.length },
+          { id: 'vrf', label: 'VRF Instances', icon: Share, count: 0 },
+          { id: 'routes', label: 'Routing Tables', icon: Navigation, count: liveSubnets.length },
+          { id: 'bgp', label: 'BGP Neighbor Sessions', icon: Zap, count: 0 },
+          { id: 'ospf', label: 'OSPF Adjacencies', icon: Users, count: 0 }
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = subTab === tab.id;
@@ -85,122 +112,79 @@ export const RoutingView: React.FC = () => {
         })}
       </div>
 
-      {/* Subnets Tab */}
-      {subTab === 'subnets' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
-            IP Address Management (IPAM) Subnet Pools
+      {/* EMPTY STATE */}
+      {devices.length === 0 && (
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          padding: '48px 24px',
+          textAlign: 'center',
+          color: '#64748b'
+        }}>
+          <Navigation size={40} color="#94a3b8" style={{ margin: '0 auto 12px auto' }} />
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+            No Routing Protocols or Subnets Registered
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>SUBNET PREFIX</th>
-                <th style={{ padding: '10px 14px' }}>VLAN ID</th>
-                <th style={{ padding: '10px 14px' }}>DESCRIPTION</th>
-                <th style={{ padding: '10px 14px' }}>USED / TOTAL IPS</th>
-                <th style={{ padding: '10px 14px' }}>UTILIZATION</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_SUBNETS.map(sub => {
-                const percent = Math.round((sub.usedIps / sub.totalIps) * 100);
-                return (
-                  <tr key={sub.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#0284c7', fontWeight: 700 }}>
-                      {sub.prefix}
-                    </td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>VLAN {sub.vlanId}</td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{sub.description}</td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>
-                      {sub.usedIps} / {sub.totalIps} hosts
-                    </td>
-                    <td style={{ padding: '12px 14px', width: '200px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ flex: 1, height: '6px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
-                          <div style={{ width: `${percent}%`, height: '100%', background: percent > 80 ? '#dc2626' : '#16a34a' }} />
-                        </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0f172a', width: '35px' }}>{percent}%</span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <p style={{ fontSize: '0.84rem', margin: 0, maxWidth: '440px', marginInline: 'auto' }}>
+            Dynamic routing tables, ARP entries, and VLAN segments will populate automatically upon device discovery.
+          </p>
         </div>
       )}
 
-      {/* ARP Table */}
-      {subTab === 'arp' && (
+      {/* Subnets View */}
+      {devices.length > 0 && subTab === 'subnets' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+          {liveSubnets.map(s => {
+            const utilization = Math.round((s.usedIps / s.totalIps) * 100);
+            return (
+              <div key={s.prefix} className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '0.78rem', color: '#0284c7', fontWeight: 700 }}>VLAN {s.vlanId} Default</span>
+                  <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{s.usedIps} / {s.totalIps} Assigned</span>
+                </div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', marginBottom: '10px' }}>{s.prefix}</h3>
+                <div style={{ width: '100%', height: '8px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
+                  <div style={{ width: `${Math.max(5, utilization)}%`, height: '100%', background: '#0284c7' }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.76rem', color: '#64748b', marginTop: '6px' }}>
+                  <span>Utilization</span>
+                  <span style={{ fontWeight: 700, color: '#0f172a' }}>{utilization}%</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ARP View */}
+      {devices.length > 0 && subTab === 'arp' && (
         <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
-            IPv4 to MAC Address ARP Resolution Table
+            Live ARP Cache / IPv4 to MAC Resolution Table
           </h3>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
                 <th style={{ padding: '10px 14px' }}>IP ADDRESS</th>
                 <th style={{ padding: '10px 14px' }}>MAC ADDRESS</th>
-                <th style={{ padding: '10px 14px' }}>RESOLVED HOST</th>
                 <th style={{ padding: '10px 14px' }}>INTERFACE</th>
-                <th style={{ padding: '10px 14px' }}>OUI VENDOR</th>
+                <th style={{ padding: '10px 14px' }}>HOSTNAME</th>
+                <th style={{ padding: '10px 14px' }}>STATUS</th>
               </tr>
             </thead>
             <tbody>
-              {MOCK_ARP.map(arp => (
-                <tr key={arp.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0284c7', fontWeight: 700 }}>
-                    {arp.ipAddress}
-                  </td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#334155' }}>
-                    {arp.macAddress}
-                  </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{arp.deviceHostname}</td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', fontSize: '0.82rem' }}>{arp.interfaceName}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.8rem', color: '#b45309', fontWeight: 600 }}>{arp.manufacturer}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* BGP Peers */}
-      {subTab === 'bgp' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
-            BGP Autonomous System Peer Sessions
-          </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>STATE</th>
-                <th style={{ padding: '10px 14px' }}>PEER IP</th>
-                <th style={{ padding: '10px 14px' }}>REMOTE ASN</th>
-                <th style={{ padding: '10px 14px' }}>LOCAL ASN</th>
-                <th style={{ padding: '10px 14px' }}>PREFIXES RCVD / ACCEPTED</th>
-                <th style={{ padding: '10px 14px' }}>PEER UPTIME</th>
-                <th style={{ padding: '10px 14px' }}>HOST ROUTER</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_BGP_PEERS.map(bgp => (
-                <tr key={bgp.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+              {liveArp.map(a => (
+                <tr key={a.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 700, color: '#0284c7' }}>{a.ipAddress}</td>
+                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#334155' }}>{a.macAddress}</td>
+                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{a.interfaceName}</td>
+                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', fontSize: '0.82rem' }}>{a.deviceHostname}</td>
                   <td style={{ padding: '12px 14px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: '#dcfce7', color: '#15803d', fontWeight: 700, fontSize: '0.72rem' }}>
-                      {bgp.state.toUpperCase()}
+                    <span className="status-badge status-up">
+                      <span className="pulse-dot up" /> {a.status}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0284c7', fontWeight: 700 }}>
-                    {bgp.peerIp}
-                  </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>AS{bgp.remoteAsn}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>AS{bgp.localAsn}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#0369a1', fontWeight: 600 }}>
-                    {bgp.prefixesReceived.toLocaleString()} / {bgp.prefixesAccepted.toLocaleString()}
-                  </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#16a34a', fontWeight: 600 }}>{bgp.uptime}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{bgp.deviceHostname}</td>
                 </tr>
               ))}
             </tbody>
@@ -208,121 +192,19 @@ export const RoutingView: React.FC = () => {
         </div>
       )}
 
-      {/* OSPF */}
-      {subTab === 'ospf' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
-            OSPF Routing Neighbor Adjacencies
-          </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>ADJACENCY STATE</th>
-                <th style={{ padding: '10px 14px' }}>ROUTER ID</th>
-                <th style={{ padding: '10px 14px' }}>NEIGHBOR IP</th>
-                <th style={{ padding: '10px 14px' }}>OSPF AREA</th>
-                <th style={{ padding: '10px 14px' }}>INTERFACE</th>
-                <th style={{ padding: '10px 14px' }}>LOCAL HOST</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_OSPF_NEIGHBORS.map(ospf => (
-                <tr key={ospf.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: ospf.state === 'Full' ? '#dcfce7' : '#fef3c7', color: ospf.state === 'Full' ? '#15803d' : '#b45309', fontWeight: 700, fontSize: '0.72rem' }}>
-                      {ospf.state.toUpperCase()}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>{ospf.routerId}</td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0284c7', fontWeight: 600 }}>{ospf.neighborIp}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>Area {ospf.area}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{ospf.interfaceName}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{ospf.deviceHostname}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* VLANs */}
-      {subTab === 'vlans' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-          {MOCK_VLANS.map(vlan => (
-            <div key={vlan.id} className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0284c7' }}>
-                  VLAN #{vlan.vlanId}
-                </span>
-                <span style={{ fontSize: '0.72rem', padding: '1px 6px', borderRadius: '4px', background: '#dcfce7', color: '#15803d', fontWeight: 700 }}>
-                  ACTIVE
-                </span>
-              </div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>{vlan.name}</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '14px' }}>Switch: {vlan.deviceHostname}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                <div><span style={{ color: '#64748b' }}>Tagged: </span><span style={{ color: '#334155' }}>{vlan.taggedPorts.join(', ') || 'None'}</span></div>
-                <div><span style={{ color: '#64748b' }}>Untagged: </span><span style={{ color: '#334155' }}>{vlan.untaggedPorts.join(', ') || 'None'}</span></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* VRFs */}
-      {subTab === 'vrf' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
-          {MOCK_VRFS.map(vrf => (
-            <div key={vrf.id} className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff' }}>
-              <span style={{ fontSize: '0.72rem', padding: '2px 8px', borderRadius: '4px', background: '#f3e8ff', color: '#7e22ce', fontWeight: 700 }}>
-                VRF INSTANCE
-              </span>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', marginTop: '8px', marginBottom: '4px' }}>{vrf.name}</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '12px' }}>Router: {vrf.deviceHostname}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.78rem', borderTop: '1px solid #e2e8f0', paddingTop: '10px' }}>
-                <div><span style={{ color: '#64748b' }}>RD: </span><span style={{ color: '#0284c7', fontFamily: 'var(--font-mono)' }}>{vrf.routeDistinguisher}</span></div>
-                <div><span style={{ color: '#64748b' }}>Target Export: </span><span style={{ color: '#334155', fontFamily: 'var(--font-mono)' }}>{vrf.routeTargetExport}</span></div>
-                <div><span style={{ color: '#64748b' }}>Interfaces: </span><span style={{ color: '#16a34a', fontWeight: 700 }}>{vrf.interfacesCount} bound</span></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Routes */}
-      {subTab === 'routes' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
-            IP Routing Tables
-          </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>PROTOCOL</th>
-                <th style={{ padding: '10px 14px' }}>DESTINATION PREFIX</th>
-                <th style={{ padding: '10px 14px' }}>NEXT HOP GATEWAY</th>
-                <th style={{ padding: '10px 14px' }}>METRIC</th>
-                <th style={{ padding: '10px 14px' }}>EGRESS INTERFACE</th>
-                <th style={{ padding: '10px 14px' }}>DEVICE</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_ROUTES.map(rt => (
-                <tr key={rt.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.72rem', fontWeight: 700 }}>
-                      {rt.protocol.toUpperCase()}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0f172a', fontWeight: 700 }}>{rt.destination}</td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0284c7' }}>{rt.gateway}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{rt.metric}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{rt.interfaceName}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{rt.deviceHostname}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Protocols Empty State */}
+      {devices.length > 0 && (subTab === 'bgp' || subTab === 'ospf' || subTab === 'vrf') && (
+        <div style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          padding: '48px 24px',
+          textAlign: 'center',
+          color: '#64748b'
+        }}>
+          <Zap size={36} color="#94a3b8" style={{ margin: '0 auto 10px auto' }} />
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', margin: '0 0 4px 0' }}>No Dynamic Adjacencies Established</h4>
+          <p style={{ fontSize: '0.8rem', margin: 0 }}>Configure BGP ASN peering or OSPF Area 0 on core routers to inspect neighbor states.</p>
         </div>
       )}
     </div>

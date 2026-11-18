@@ -455,9 +455,9 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'ports' && <PortsView />}
+          {activeTab === 'ports' && <PortsView devices={devices} />}
           {activeTab === 'sensors' && <SensorsView apiBase={API_BASE} />}
-          {activeTab === 'routing' && <RoutingView />}
+          {activeTab === 'routing' && <RoutingView devices={devices} />}
           {activeTab === 'alerts' && <AlertsView realAlerts={alerts} devices={devices} />}
           {activeTab === 'alert_contacts' && (
             <AlertContactsView
@@ -488,8 +488,8 @@ export default function App() {
           {activeTab === 'users' && <SettingsView apiBase={API_BASE} />}
           {activeTab === 'wireless' && <WirelessView />}
           {activeTab === 'mpls_billing' && <MplsBillingView />}
-          {activeTab === 'virtualization' && <VirtualizationView />}
-          {activeTab === 'pollers' && <PollersView />}
+          {activeTab === 'virtualization' && <VirtualizationView devices={devices} />}
+          {activeTab === 'pollers' && <PollersView devices={devices} />}
           {activeTab === 'topology' && (
             <TopologyView 
               devices={devices} 

@@ -2192,7 +2192,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Deepak Sah"
+                        placeholder="e.g. Network Engineer"
                         value={recipName}
                         onChange={e => setRecipName(e.target.value)}
                         style={{ width: '100%', padding: '8px 0', border: 'none', outline: 'none', fontSize: '0.82rem' }}

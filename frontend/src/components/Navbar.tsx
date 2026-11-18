@@ -75,15 +75,15 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const username = currentUser?.username || 'deepak.sah';
+  const username = currentUser?.username || 'admin';
   const role = currentUser?.role || 'superadmin';
-  const email = currentUser?.email || 'deepak.sah@vnms.local';
+  const email = currentUser?.email || 'admin@v-nms.com';
   const initials = username
     .split(/[\._\-]/)
     .filter(Boolean)
     .slice(0, 2)
     .map(p => p[0].toUpperCase())
-    .join('') || 'DS';
+    .join('') || 'AD';
 
   const isSuperAdmin = role.toLowerCase() === 'superadmin';
   return (

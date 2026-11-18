@@ -312,7 +312,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 <input
                   type="text"
                   required
-                  placeholder="deepak.sah or email"
+                  placeholder="admin or username"
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   style={{
@@ -537,15 +537,15 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
               <button
                 type="button"
-                onClick={() => handleQuickFill('deepak.sah', 'admin123')}
+                onClick={() => handleQuickFill('operator', 'operator123')}
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'flex-start',
                   padding: '8px 10px',
                   borderRadius: '8px',
-                  border: `1px solid ${username === 'deepak.sah' ? '#38bdf8' : (isDark ? '#334155' : '#cbd5e1')}`,
-                  background: username === 'deepak.sah' 
+                  border: `1px solid ${username === 'operator' ? '#38bdf8' : (isDark ? '#334155' : '#cbd5e1')}`,
+                  background: username === 'operator' 
                     ? (isDark ? 'rgba(2, 132, 199, 0.25)' : '#e0f2fe') 
                     : (isDark ? '#1e293b' : '#ffffff'),
                   cursor: 'pointer',
@@ -553,7 +553,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>deepak.sah</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>operator</span>
                   <span style={{ 
                     fontSize: '0.62rem', 
                     fontWeight: 700, 
@@ -562,10 +562,10 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     padding: '1px 4px', 
                     borderRadius: '4px' 
                   }}>
-                    ADMIN
+                    STAFF
                   </span>
                 </div>
-                <span style={{ fontSize: '0.7rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '2px' }}>SuperAdmin</span>
+                <span style={{ fontSize: '0.7rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '2px' }}>Network Ops</span>
               </button>
 
               <button

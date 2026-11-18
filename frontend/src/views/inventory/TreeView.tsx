@@ -602,6 +602,72 @@ export const TreeView: React.FC<TreeViewProps> = ({
     }
   };
 
+  if (devices.length === 0) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '65vh',
+        padding: '30px',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          maxWidth: '560px',
+          width: '100%',
+          backgroundColor: '#ffffff',
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          padding: '44px 32px',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)'
+        }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '18px',
+            boxShadow: '0 8px 16px -4px rgba(2, 132, 199, 0.35)'
+          }}>
+            <FolderTree size={32} color="#ffffff" />
+          </div>
+          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: '0 0 10px 0' }}>
+            Infrastructure Tree is Empty
+          </h2>
+          <p style={{ fontSize: '0.86rem', color: '#64748b', lineHeight: '1.6', margin: '0 0 24px 0' }}>
+            Zero devices are currently indexed in your inventory. Run Network Discovery to scan your subnet and automatically build the interactive infrastructure hierarchy.
+          </p>
+          {onOpenAddDevice && (
+            <button
+              onClick={() => onOpenAddDevice()}
+              style={{
+                padding: '11px 26px',
+                borderRadius: '8px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                color: '#ffffff',
+                fontSize: '0.92rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)'
+              }}
+            >
+              <Plus size={16} />
+              <span>Add / Discover Network Devices</span>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {/* Top Header Card */}

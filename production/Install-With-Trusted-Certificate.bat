@@ -33,3 +33,4 @@ echo [*] Launching V-NMS Enterprise Setup GUI...
 start "" "%~dp0V-NMS-Enterprise-Setup.exe"
 
 exit /b 0
+

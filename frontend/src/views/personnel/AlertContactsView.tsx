@@ -353,7 +353,7 @@ export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="e.g. Deepak Sah"
+                    placeholder="e.g. Network Administrator"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     style={{ width: '100%', padding: '9px 0', border: 'none', outline: 'none', fontSize: '0.85rem' }}
@@ -370,7 +370,7 @@ export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
                   <input
                     type="email"
                     required
-                    placeholder="deepak.sah@veracity.com"
+                    placeholder="noc-admin@enterprise.com"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     style={{ width: '100%', padding: '9px 0', border: 'none', outline: 'none', fontSize: '0.85rem' }}
