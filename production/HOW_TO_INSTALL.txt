@@ -1,68 +1,54 @@
 ================================================================================
-  VERACITY NETWORK MANAGEMENT SYSTEM (V-NMS) — ENTERPRISE SETUP v2.0.0
+          V-NMS ENTERPRISE EDITION v2.0.0 - INSTALLATION & DEPLOYMENT GUIDE
 ================================================================================
 
-Package Contents:
------------------
-1. V-NMS-Enterprise-Setup.exe  -> [RECOMMENDED] 1-Click All-in-One Automated Setup
-                                  Supports: Install, Atomic Repair, & Custom Clean Removal
-2. V-NMS.msi                  -> Core Windows MSI Package (V-NMS Engine & Windows Service)
-3. Setup-Client-PC-Domain.bat -> 1-Click Local Domain Configurator for Client PCs
-4. V-NMS_ERROR_AND_SOLUTION_GUIDE.pdf -> Full Troubleshooting & Architecture Guide
+1. WINDOWS 11 SMART APP CONTROL (SAC) NOTICE & QUICK FIX:
+--------------------------------------------------------------------------------
+If Windows 11 displays:
+"Smart App Control blocked an app that may be unsafe... because we could not verify its publisher"
 
---------------------------------------------------------------------------------
-1. FRESH INSTALLATION:
---------------------------------------------------------------------------------
-1. Right-click 'V-NMS-Enterprise-Setup.exe' -> Select 'Run as administrator'.
-2. Review selected components:
-   - PostgreSQL 18 Engine
-   - V-NMS Core Suite & Poller
-   - Database Schema & Tables
-   - Official Windows Service ('VNMSService')
-   - Windows Firewall Rules (Port 80 & 8081)
-3. Click [ ✔ Install V-NMS Now ].
-4. The dashboard will automatically launch in your browser.
+Choose ANY of the simple solutions below:
 
---------------------------------------------------------------------------------
-2. REPAIR / REINSTALLATION:
---------------------------------------------------------------------------------
-If V-NMS is already installed on the computer:
-1. Run 'V-NMS-Enterprise-Setup.exe' as administrator.
-2. Click [ 🔧 Repair V-NMS ].
-3. The setup will automatically:
-   - Stop and terminate active processes
-   - Verify and repair application files
-   - Re-register 'VNMSService' with auto-start
-   - Re-apply Windows Firewall rules for Port 80 and 8081
-   - Verify PostgreSQL connection and tables
-   - Start the service and verify health
+OPTION A (Recommended - 1 Click Automatic):
+  - Right-click "Install-With-Trusted-Certificate.bat" and select "Run as administrator".
+  - This automatically removes the internet download lock (Zone.Identifier),
+    registers the Veracity Enterprise Digital Certificate into the Windows Trusted Store,
+    and starts the setup with full verified publisher clearance!
 
---------------------------------------------------------------------------------
-3. INTERACTIVE REMOVAL / ZERO-TRACE CLEAN WIPEOUT:
---------------------------------------------------------------------------------
-If you want to uninstall V-NMS:
-1. Run 'V-NMS-Enterprise-Setup.exe' as administrator.
-2. Click [ 🗑️ Remove / Uninstall ].
-3. Select what to remove via interactive checkboxes:
-   [x] V-NMS Application & Binaries (C:\Program Files\V-NMS, Shortcuts)
-   [x] Windows Service ('VNMSService' stopped & deleted)
-   [x] Windows Firewall Rules (Ports 80 & 8081 deleted)
-   [x] 'vnms' Database Data & Tables (Dropped from PostgreSQL)
-   [ ] PostgreSQL 18 Server & Engine (Optional: tick for full engine wipeout)
-   [x] Temporary Files & Payload Cache (%TEMP% staging wiped)
-   [x] Local Domain (v-nms.com) from Hosts & Registry Keys
+OPTION B (Direct Command-Line Unblock via PowerShell):
+  - Open PowerShell as Administrator and run:
+      Unblock-File -Path ".\V-NMS-Enterprise-Setup-v2.0.0.exe"
+      Start-Process ".\V-NMS-Enterprise-Setup-v2.0.0.exe"
 
-   * OR TICK: [x] TOTAL CLEAN WIPE (KOI SABOOT NAHI)
-     Permanently erases 100% of files, PostgreSQL, services, temp files, 
-     firewall rules, and registry keys with ZERO residual bytes left on the PC!
+OPTION C (Direct MSI Installation):
+  - You can install directly via Windows Installer without triggering SAC:
+      msiexec /i ".\V-NMS.msi"
 
-4. Click [ 🗑️ Confirm & Execute Clean Removal ].
+OPTION D (Disable Smart App Control in Windows 11 Settings):
+  1. Open Windows Settings (Win + I).
+  2. Navigate to "Privacy & Security" -> "Windows Security".
+  3. Click "App & browser control" -> "Smart App Control settings".
+  4. Toggle Smart App Control to "Off".
 
+================================================================================
+2. LOCAL NETWORK ACCESS (HTTP WITHOUT SSL):
 --------------------------------------------------------------------------------
-ACCESS CREDENTIALS & URLS:
+  Access V-NMS from any client PC, laptop, or phone on the same network:
+  
+  URL: http://v-nms.com  (or http://<SERVER-IP>)
+  Default Username: admin
+  Default Password: admin
+
+  To map "http://v-nms.com" on client workstations, right-click and run:
+  "Setup-Client-PC-Domain.bat" as Administrator.
+
+================================================================================
+3. UNINSTALLATION & CLEAN REMOVAL ("KOI SABOOT NHI"):
 --------------------------------------------------------------------------------
-- Direct Browser URL : http://v-nms.com  (Port 80)
-- Alternate Port URL : http://localhost:8081  (or http://<server-ip>:8081)
-- SuperAdmin Account : deepak.sah / admin123  (or admin / admin)
-- Windows Service    : VNMSService (Running / Automatic)
+  - Re-run "V-NMS-Enterprise-Setup.exe" anytime.
+  - The installer will automatically detect an existing installation and prompt:
+      [Install]  [Repair]  [Remove]
+  - When clicking "Remove", select:
+      [X] Total Clean Removal (Removes PostgreSQL DB, credentials, services & temp files)
+  - Zero traces left behind.
 ================================================================================

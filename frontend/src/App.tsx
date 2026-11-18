@@ -497,6 +497,7 @@ export default function App() {
                 setSelectedDevice(dev);
                 setActiveTab('devices');
               }}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
               apiBase={API_BASE}
             />
           )}
