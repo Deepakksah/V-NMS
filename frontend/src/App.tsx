@@ -486,7 +486,7 @@ export default function App() {
             />
           )}
           {activeTab === 'users' && <SettingsView apiBase={API_BASE} />}
-          {activeTab === 'wireless' && <WirelessView />}
+          {activeTab === 'wireless' && <WirelessView devices={devices} />}
           {activeTab === 'mpls_billing' && <MplsBillingView />}
           {activeTab === 'virtualization' && <VirtualizationView devices={devices} />}
           {activeTab === 'pollers' && <PollersView devices={devices} />}
