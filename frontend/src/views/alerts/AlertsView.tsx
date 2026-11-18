@@ -918,16 +918,16 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
               </p>
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.72rem', fontWeight: 700 }}>
-                  <th style={{ padding: '8px 12px' }}>SEVERITY</th>
-                  <th style={{ padding: '8px 12px' }}>RULE TRIGGERED</th>
-                  <th style={{ padding: '8px 12px' }}>DEVICE HOST</th>
-                  <th style={{ padding: '8px 12px' }}>INCIDENT DETAILS</th>
-                  <th style={{ padding: '8px 12px' }}>STATUS</th>
-                  <th style={{ padding: '8px 12px' }}>TIME FIRED</th>
-                  <th style={{ padding: '8px 12px', textAlign: 'right' }}>ACTION</th>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                  <th style={{ padding: '6px 10px' }}>SEVERITY</th>
+                  <th style={{ padding: '6px 10px' }}>RULE TRIGGERED</th>
+                  <th style={{ padding: '6px 10px' }}>DEVICE HOST</th>
+                  <th style={{ padding: '6px 10px' }}>INCIDENT DETAILS</th>
+                  <th style={{ padding: '6px 10px' }}>STATUS</th>
+                  <th style={{ padding: '6px 10px' }}>TIME FIRED</th>
+                  <th style={{ padding: '6px 10px', textAlign: 'right' }}>ACTION</th>
                 </tr>
               </thead>
               <tbody>
@@ -939,9 +939,9 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
 
                   return (
                     <tr key={inc.id} style={{ borderBottom: '1px solid #f1f5f9', opacity: isCleared ? 0.6 : 1 }}>
-                      <td style={{ padding: '10px 12px' }}>
+                      <td style={{ padding: '4px 10px' }}>
                         <span style={{
-                          padding: '2px 7px',
+                          padding: '1.5px 6px',
                           borderRadius: '4px',
                           fontSize: '0.66rem',
                           fontWeight: 800,
@@ -953,36 +953,36 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                         </span>
                       </td>
 
-                      <td style={{ padding: '10px 12px', fontWeight: 700, color: '#0f172a', fontSize: '0.78rem' }}>
+                      <td style={{ padding: '4px 10px', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
                         {inc.rule_name || 'HostDown'}
                       </td>
 
-                      <td style={{ padding: '10px 12px' }}>
+                      <td style={{ padding: '4px 10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {dev?.vendor && <VendorLogo vendor={dev.vendor} size="xs" showLabel={false} />}
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.76rem' }}>
+                              <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
                                 {dev?.hostname || `Device #${inc.device_id}`}
                               </span>
                               {dev?.device_type && <DeviceTypeBadge type={dev.device_type} size="xs" />}
                             </div>
-                            <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
+                            <div style={{ fontSize: '0.66rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
                               {dev?.ip_address || 'Unassigned IP'}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      <td style={{ padding: '10px 12px', fontSize: '0.76rem', color: '#334155' }}>
+                      <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>
                         {inc.message}
                       </td>
 
-                      <td style={{ padding: '10px 12px' }}>
+                      <td style={{ padding: '4px 10px' }}>
                         <span style={{
                           fontSize: '0.66rem',
                           fontWeight: 700,
-                          padding: '2px 6px',
+                          padding: '1.5px 6px',
                           borderRadius: '4px',
                           background: isCleared ? '#f0fdf4' : isAck ? '#e0f2fe' : '#fee2e2',
                           color: isCleared ? '#15803d' : isAck ? '#0369a1' : '#b91c1c',
@@ -992,22 +992,22 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                         </span>
                       </td>
 
-                      <td style={{ padding: '10px 12px', fontSize: '0.72rem', color: '#64748b' }}>
+                      <td style={{ padding: '4px 10px', fontSize: '0.70rem', color: '#64748b' }}>
                         {inc.fired_at ? new Date(inc.fired_at).toLocaleTimeString() : 'Just now'}
                       </td>
 
-                      <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                      <td style={{ padding: '4px 10px', textAlign: 'right' }}>
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '6px' }}>
                           {!isAck && !isCleared && (
                             <button
                               onClick={() => handleAcknowledge(inc.id)}
                               style={{
-                                padding: '4px 8px',
+                                padding: '2px 7px',
                                 borderRadius: '4px',
                                 background: '#ffffff',
                                 border: '1px solid #cbd5e1',
                                 color: '#0f172a',
-                                fontSize: '0.70rem',
+                                fontSize: '0.68rem',
                                 fontWeight: 600,
                                 cursor: 'pointer'
                               }}
@@ -1891,14 +1891,14 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                       {/* Device Table Matrix */}
                       <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
                         <div style={{ maxHeight: '460px', overflowY: 'auto' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
                             <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: '#f8fafc' }}>
-                              <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.74rem', fontWeight: 700 }}>
-                                <th style={{ padding: '10px 14px' }}>MONITORED SERVER / HOST</th>
-                                <th style={{ padding: '10px 14px', width: '130px', textAlign: 'center' }}>EMAIL DISPATCH</th>
-                                <th style={{ padding: '10px 14px', width: '130px', textAlign: 'center' }}>SMS DISPATCH</th>
-                                <th style={{ padding: '10px 14px', width: '110px', textAlign: 'center' }}>QUICK TOGGLE</th>
-                                <th style={{ padding: '10px 14px', width: '170px', textAlign: 'center' }}>ACTIVE CHANNELS</th>
+                              <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                                <th style={{ padding: '6px 10px' }}>MONITORED SERVER / HOST</th>
+                                <th style={{ padding: '6px 10px', width: '130px', textAlign: 'center' }}>EMAIL DISPATCH</th>
+                                <th style={{ padding: '6px 10px', width: '130px', textAlign: 'center' }}>SMS DISPATCH</th>
+                                <th style={{ padding: '6px 10px', width: '110px', textAlign: 'center' }}>QUICK TOGGLE</th>
+                                <th style={{ padding: '6px 10px', width: '170px', textAlign: 'center' }}>ACTIVE CHANNELS</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1918,17 +1918,17 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                                     }}
                                   >
                                     {/* Host & IP */}
-                                    <td style={{ padding: '10px 14px' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <td style={{ padding: '4px 10px' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {d.vendor && <VendorLogo vendor={d.vendor} size="xs" showLabel={false} />}
                                         <div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.82rem' }}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.76rem' }}>
                                               {d.hostname}
                                             </span>
                                             {d.device_type && <DeviceTypeBadge type={d.device_type} size="xs" />}
                                           </div>
-                                          <div style={{ fontSize: '0.72rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
+                                          <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
                                             {d.ip_address} • {d.hardware || d.vendor || 'Infrastructure'}
                                           </div>
                                         </div>
@@ -1936,43 +1936,43 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                                     </td>
 
                                     {/* Email Checkbox */}
-                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.78rem', color: sub.send_email ? '#0284c7' : '#64748b', fontWeight: sub.send_email ? 700 : 500 }}>
+                                    <td style={{ padding: '4px 10px', textAlign: 'center' }}>
+                                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.74rem', color: sub.send_email ? '#0284c7' : '#64748b', fontWeight: sub.send_email ? 700 : 500 }}>
                                         <input
                                           type="checkbox"
                                           checked={sub.send_email}
                                           onChange={() => handleToggleDeviceEmail(d.id)}
-                                          style={{ accentColor: '#0284c7', width: '15px', height: '15px', cursor: 'pointer' }}
+                                          style={{ accentColor: '#0284c7', width: '13px', height: '13px', cursor: 'pointer' }}
                                         />
                                         <span>Email</span>
                                       </label>
                                     </td>
 
                                     {/* SMS Checkbox */}
-                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.78rem', color: sub.send_sms ? '#7c3aed' : '#64748b', fontWeight: sub.send_sms ? 700 : 500 }}>
+                                    <td style={{ padding: '4px 10px', textAlign: 'center' }}>
+                                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.74rem', color: sub.send_sms ? '#7c3aed' : '#64748b', fontWeight: sub.send_sms ? 700 : 500 }}>
                                         <input
                                           type="checkbox"
                                           checked={sub.send_sms}
                                           onChange={() => handleToggleDeviceSMS(d.id)}
-                                          style={{ accentColor: '#7c3aed', width: '15px', height: '15px', cursor: 'pointer' }}
+                                          style={{ accentColor: '#7c3aed', width: '13px', height: '13px', cursor: 'pointer' }}
                                         />
                                         <span>SMS</span>
                                       </label>
                                     </td>
 
                                     {/* Quick Toggle Button */}
-                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                    <td style={{ padding: '4px 10px', textAlign: 'center' }}>
                                       <button
                                         type="button"
                                         onClick={() => handleToggleDeviceBoth(d.id)}
                                         style={{
-                                          padding: '4px 9px',
-                                          borderRadius: '5px',
+                                          padding: '2px 7px',
+                                          borderRadius: '4px',
                                           border: isBoth ? '1px solid #16a34a' : '1px solid #cbd5e1',
                                           background: isBoth ? '#dcfce7' : '#ffffff',
                                           color: isBoth ? '#15803d' : '#475569',
-                                          fontSize: '0.70rem',
+                                          fontSize: '0.68rem',
                                           fontWeight: 700,
                                           cursor: 'pointer'
                                         }}
@@ -1982,21 +1982,21 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                                     </td>
 
                                     {/* Active Channels Badge */}
-                                    <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                    <td style={{ padding: '4px 10px', textAlign: 'center' }}>
                                       {isBoth && (
                                         <span style={{
                                           display: 'inline-flex',
                                           alignItems: 'center',
-                                          gap: '4px',
-                                          padding: '3px 8px',
+                                          gap: '3px',
+                                          padding: '2px 6px',
                                           borderRadius: '4px',
                                           background: '#dcfce7',
                                           color: '#15803d',
-                                          fontSize: '0.70rem',
+                                          fontSize: '0.67rem',
                                           fontWeight: 700,
                                           border: '1px solid #86efac'
                                         }}>
-                                          <Mail size={11} /> + <Smartphone size={11} /> Both Active
+                                          <Mail size={10} /> + <Smartphone size={10} /> Both Active
                                         </span>
                                       )}
                                       {isEmailOnly && (

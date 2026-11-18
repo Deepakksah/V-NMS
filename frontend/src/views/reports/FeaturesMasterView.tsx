@@ -496,16 +496,16 @@ export const FeaturesMasterView: React.FC<FeaturesMasterViewProps> = ({ onNaviga
           </div>
 
           {/* Clean Data Table */}
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px', width: '50px' }}>#</th>
-                <th style={{ padding: '10px 14px' }}>LIBRENMS MODEL</th>
-                <th style={{ padding: '10px 14px' }}>DISPLAY NAME & SCOPE</th>
-                <th style={{ padding: '10px 14px' }}>SUITE DOMAIN</th>
-                <th style={{ padding: '10px 14px' }}>TARGET GO & POSTGRESQL ENGINE</th>
-                <th style={{ padding: '10px 14px' }}>STATUS</th>
-                <th style={{ padding: '10px 14px', textAlign: 'right' }}>ACTION</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px', width: '45px' }}>#</th>
+                <th style={{ padding: '6px 10px' }}>LIBRENMS MODEL</th>
+                <th style={{ padding: '6px 10px' }}>DISPLAY NAME &amp; SCOPE</th>
+                <th style={{ padding: '6px 10px' }}>SUITE DOMAIN</th>
+                <th style={{ padding: '6px 10px' }}>TARGET GO &amp; POSTGRESQL ENGINE</th>
+                <th style={{ padding: '6px 10px' }}>STATUS</th>
+                <th style={{ padding: '6px 10px', textAlign: 'right' }}>ACTION</th>
               </tr>
             </thead>
             <tbody>
@@ -521,49 +521,49 @@ export const FeaturesMasterView: React.FC<FeaturesMasterViewProps> = ({ onNaviga
                   onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#64748b' }}>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#64748b' }}>
                     #{f.id}
                   </td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0284c7', fontWeight: 700 }}>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#0284c7', fontWeight: 700 }}>
                     {f.modelName}
                   </td>
-                  <td style={{ padding: '12px 14px' }}>
-                    <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.84rem' }}>{f.displayName}</div>
-                    <div style={{ fontSize: '0.74rem', color: '#64748b', maxWidth: '380px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <td style={{ padding: '4px 10px' }}>
+                    <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.75rem' }}>{f.displayName}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#64748b', maxWidth: '380px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {f.description}
                     </div>
                   </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.8rem', color: '#334155' }}>
+                  <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#334155' }}>
                     Suite {f.categoryNumber}: {f.categoryName}
                   </td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#16a34a' }}>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#16a34a' }}>
                     {f.targetImplementation}
                   </td>
-                  <td style={{ padding: '12px 14px' }}>
+                  <td style={{ padding: '4px 10px' }}>
                     <span style={{
-                      padding: '2px 8px',
+                      padding: '1.5px 6px',
                       borderRadius: '4px',
                       background: '#dcfce7',
                       color: '#15803d',
-                      fontSize: '0.7rem',
+                      fontSize: '0.67rem',
                       fontWeight: 700
                     }}>
                       {f.status}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', textAlign: 'right' }}>
+                  <td style={{ padding: '4px 10px', textAlign: 'right' }}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         onNavigateToTab(f.viewTab);
                       }}
                       style={{
-                        padding: '4px 10px',
-                        borderRadius: '6px',
+                        padding: '2px 7px',
+                        borderRadius: '4px',
                         background: '#eff6ff',
                         color: '#0284c7',
                         border: '1px solid #bfdbfe',
-                        fontSize: '0.72rem',
+                        fontSize: '0.68rem',
                         fontWeight: 600,
                         cursor: 'pointer'
                       }}

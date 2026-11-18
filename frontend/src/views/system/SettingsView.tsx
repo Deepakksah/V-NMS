@@ -288,68 +288,68 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                  <th style={{ padding: '10px 14px' }}>FULL NAME &amp; USERNAME</th>
-                  <th style={{ padding: '10px 14px' }}>CORPORATE EMAIL</th>
-                  <th style={{ padding: '10px 14px' }}>PHONE</th>
-                  <th style={{ padding: '10px 14px' }}>DEPARTMENT</th>
-                  <th style={{ padding: '10px 14px' }}>SYSTEM ROLE</th>
-                  <th style={{ padding: '10px 14px' }}>PASSWORD POLICY</th>
-                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>ACTIONS</th>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                  <th style={{ padding: '6px 10px' }}>FULL NAME &amp; USERNAME</th>
+                  <th style={{ padding: '6px 10px' }}>CORPORATE EMAIL</th>
+                  <th style={{ padding: '6px 10px' }}>PHONE</th>
+                  <th style={{ padding: '6px 10px' }}>DEPARTMENT</th>
+                  <th style={{ padding: '6px 10px' }}>SYSTEM ROLE</th>
+                  <th style={{ padding: '6px 10px' }}>PASSWORD POLICY</th>
+                  <th style={{ padding: '6px 10px', textAlign: 'center' }}>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
                 {userList.map(u => (
                   <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.85rem' }}>
+                    <td style={{ padding: '4px 10px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
                         {u.full_name || u.username}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      <div style={{ fontSize: '0.65rem', color: '#64748b' }}>
                         @{u.username}
                       </div>
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>
+                    <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>
                       {u.email}
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.8rem', color: '#475569' }}>
+                    <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#475569' }}>
                       {u.phone || '—'}
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.8rem', color: '#475569' }}>
+                    <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#475569' }}>
                       {u.department || 'NOC Operations'}
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
+                    <td style={{ padding: '4px 10px' }}>
                       <span style={{
-                        padding: '3px 8px',
+                        padding: '1.5px 6px',
                         borderRadius: '4px',
                         background: u.role === 'superadmin' ? '#f3e8ff' : u.role === 'operator' ? '#e0f2fe' : '#f1f5f9',
                         color: u.role === 'superadmin' ? '#7e22ce' : u.role === 'operator' ? '#0369a1' : '#475569',
-                        fontSize: '0.72rem',
+                        fontSize: '0.67rem',
                         fontWeight: 700,
                         textTransform: 'uppercase'
                       }}>
                         {u.role.replace('_', ' ')}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
+                    <td style={{ padding: '4px 10px' }}>
                       <span style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        fontSize: '0.72rem',
+                        gap: '3px',
+                        fontSize: '0.68rem',
                         color: '#15803d',
                         background: '#dcfce7',
-                        padding: '2px 7px',
+                        padding: '1.5px 6px',
                         borderRadius: '4px',
                         fontWeight: 600
                       }}>
-                        <ShieldCheck size={12} />
+                        <ShieldCheck size={11} />
                         <span>&ge; 12 Char Bcrypt</span>
                       </span>
                     </td>
-                    <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                    <td style={{ padding: '4px 10px', textAlign: 'center' }}>
                       {u.id === 1 ? (
                         <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontStyle: 'italic' }}>
                           Root Protected
@@ -412,29 +412,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {/* System Configs Tab */}
       {subTab === 'configs' && (
         <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
             System Global Configurations &amp; Engine Defaults
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>SUBSYSTEM GROUP</th>
-                <th style={{ padding: '10px 14px' }}>CONFIG KEY</th>
-                <th style={{ padding: '10px 14px' }}>VALUE</th>
-                <th style={{ padding: '10px 14px' }}>DESCRIPTION</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>SUBSYSTEM GROUP</th>
+                <th style={{ padding: '6px 10px' }}>CONFIG KEY</th>
+                <th style={{ padding: '6px 10px' }}>VALUE</th>
+                <th style={{ padding: '6px 10px' }}>DESCRIPTION</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_SYSTEM_CONFIGS.map(cfg => (
                 <tr key={cfg.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.72rem', fontWeight: 700 }}>
+                  <td style={{ padding: '4px 10px' }}>
+                    <span style={{ padding: '1.5px 6px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.68rem', fontWeight: 700 }}>
                       {cfg.group}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>{cfg.key}</td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: '#16a34a', fontWeight: 700 }}>{cfg.value}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{cfg.description}</td>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#0f172a', fontWeight: 600 }}>{cfg.key}</td>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>{cfg.value}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{cfg.description}</td>
                 </tr>
               ))}
             </tbody>

@@ -162,15 +162,15 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
             </span>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '2px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '12px 14px' }}>SERVER / HOST</th>
-                <th style={{ padding: '12px 14px' }}>MOUNT / DRIVE</th>
-                <th style={{ padding: '12px 14px' }}>FS TYPE</th>
-                <th style={{ padding: '12px 14px' }}>USED / TOTAL</th>
-                <th style={{ padding: '12px 14px' }}>UTILIZATION</th>
-                <th style={{ padding: '12px 14px' }}>STATUS</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <th style={{ padding: '6px 10px' }}>SERVER / HOST</th>
+                <th style={{ padding: '6px 10px' }}>MOUNT / DRIVE</th>
+                <th style={{ padding: '6px 10px' }}>FS TYPE</th>
+                <th style={{ padding: '6px 10px' }}>USED / TOTAL</th>
+                <th style={{ padding: '6px 10px' }}>UTILIZATION</th>
+                <th style={{ padding: '6px 10px' }}>STATUS</th>
               </tr>
             </thead>
             <tbody>
@@ -180,26 +180,26 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                 const isCritical = percent >= 90;
                 return (
                   <tr key={st.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '12px 14px', fontSize: '0.82rem', fontWeight: 600, color: '#1e293b' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Server size={15} color="#0284c7" />
+                    <td style={{ padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, color: '#1e293b' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Server size={13} color="#0284c7" />
                         <span>{st.deviceHostname}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0f172a', fontSize: '0.84rem' }}>
+                    <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
                       {st.mountPoint}
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.80rem', color: '#64748b' }}>
-                      <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                    <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#64748b' }}>
+                      <span style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
                         {st.fileSystem}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155', fontWeight: 500 }}>
+                    <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155', fontWeight: 500 }}>
                       {st.usedGb} GB / {st.totalGb} GB
                     </td>
-                    <td style={{ padding: '12px 14px', width: '220px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ flex: 1, height: '7px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
+                    <td style={{ padding: '4px 10px', width: '200px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
                           <div style={{ 
                             width: `${percent}%`, 
                             height: '100%', 
@@ -207,28 +207,28 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                           }} />
                         </div>
                         <span style={{ 
-                          fontSize: '0.75rem', 
+                          fontSize: '0.70rem', 
                           fontWeight: 700, 
                           color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a', 
-                          width: '42px' 
+                          width: '36px' 
                         }}>
                           {percent}%
                         </span>
                       </div>
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
+                    <td style={{ padding: '4px 10px' }}>
                       <span style={{ 
-                        fontSize: '0.70rem', 
-                        padding: '2px 8px', 
+                        fontSize: '0.68rem', 
+                        padding: '1.5px 6px', 
                         borderRadius: '4px', 
                         background: '#f0fdf4', 
                         color: '#16a34a', 
                         fontWeight: 700, 
                         display: 'inline-flex', 
                         alignItems: 'center', 
-                        gap: '4px' 
+                        gap: '3px' 
                       }}>
-                        <CheckCircle2 size={12} />
+                        <CheckCircle2 size={11} />
                         Healthy
                       </span>
                     </td>

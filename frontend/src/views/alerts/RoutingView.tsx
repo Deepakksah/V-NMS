@@ -159,30 +159,30 @@ export const RoutingView: React.FC<RoutingViewProps> = ({ devices = [] }) => {
 
       {/* ARP View */}
       {devices.length > 0 && subTab === 'arp' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+        <div className="glass-panel" style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
             Live ARP Cache / IPv4 to MAC Resolution Table
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>IP ADDRESS</th>
-                <th style={{ padding: '10px 14px' }}>MAC ADDRESS</th>
-                <th style={{ padding: '10px 14px' }}>INTERFACE</th>
-                <th style={{ padding: '10px 14px' }}>HOSTNAME</th>
-                <th style={{ padding: '10px 14px' }}>STATUS</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>IP ADDRESS</th>
+                <th style={{ padding: '6px 10px' }}>MAC ADDRESS</th>
+                <th style={{ padding: '6px 10px' }}>INTERFACE</th>
+                <th style={{ padding: '6px 10px' }}>HOSTNAME</th>
+                <th style={{ padding: '6px 10px' }}>STATUS</th>
               </tr>
             </thead>
             <tbody>
               {liveArp.map(a => (
                 <tr key={a.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 700, color: '#0284c7' }}>{a.ipAddress}</td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#334155' }}>{a.macAddress}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{a.interfaceName}</td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', fontSize: '0.82rem' }}>{a.deviceHostname}</td>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span className="status-badge status-up">
-                      <span className="pulse-dot up" /> {a.status}
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.74rem', fontWeight: 700, color: '#0284c7' }}>{a.ipAddress}</td>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#334155' }}>{a.macAddress}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#64748b' }}>{a.interfaceName}</td>
+                  <td style={{ padding: '4px 10px', fontWeight: 600, color: '#0f172a', fontSize: '0.75rem' }}>{a.deviceHostname}</td>
+                  <td style={{ padding: '4px 10px' }}>
+                    <span className="status-badge status-up" style={{ padding: '1.5px 6px', fontSize: '0.67rem' }}>
+                      <span className="pulse-dot up" style={{ width: '5px', height: '5px' }} /> {a.status}
                     </span>
                   </td>
                 </tr>

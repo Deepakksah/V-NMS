@@ -132,25 +132,25 @@ export const LogsView: React.FC = () => {
             </div>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>TIME</th>
-                <th style={{ padding: '10px 14px' }}>SEVERITY</th>
-                <th style={{ padding: '10px 14px' }}>HOST</th>
-                <th style={{ padding: '10px 14px' }}>PROGRAM</th>
-                <th style={{ padding: '10px 14px' }}>SYSLOG MESSAGE</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>TIME</th>
+                <th style={{ padding: '6px 10px' }}>SEVERITY</th>
+                <th style={{ padding: '6px 10px' }}>HOST</th>
+                <th style={{ padding: '6px 10px' }}>PROGRAM</th>
+                <th style={{ padding: '6px 10px' }}>SYSLOG MESSAGE</th>
               </tr>
             </thead>
             <tbody>
               {filteredSyslog.map(log => (
                 <tr key={log.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px', fontSize: '0.78rem', color: '#334155', whiteSpace: 'nowrap' }}>{log.timestamp}</td>
-                  <td style={{ padding: '12px 14px' }}>
+                  <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#334155', whiteSpace: 'nowrap' }}>{log.timestamp}</td>
+                  <td style={{ padding: '4px 10px' }}>
                     <span style={{
-                      padding: '2px 8px',
+                      padding: '1.5px 6px',
                       borderRadius: '4px',
-                      fontSize: '0.7rem',
+                      fontSize: '0.67rem',
                       fontWeight: 800,
                       textTransform: 'uppercase',
                       background: log.severity === 'crit' ? '#fee2e2' : log.severity === 'warning' ? '#fef3c7' : '#e0f2fe',
@@ -159,9 +159,9 @@ export const LogsView: React.FC = () => {
                       {log.severity}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>{log.host}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.8rem', color: '#7e22ce', fontFamily: 'var(--font-mono)' }}>{log.program}</td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: '#334155' }}>{log.message}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.75rem', color: '#0f172a', fontWeight: 600 }}>{log.host}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#7e22ce', fontFamily: 'var(--font-mono)' }}>{log.program}</td>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#334155' }}>{log.message}</td>
                 </tr>
               ))}
             </tbody>
@@ -171,30 +171,30 @@ export const LogsView: React.FC = () => {
 
       {/* Events */}
       {subTab === 'events' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+        <div className="glass-panel" style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
             Significant Device Event Logs
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>TIMESTAMP</th>
-                <th style={{ padding: '10px 14px' }}>DEVICE HOSTNAME</th>
-                <th style={{ padding: '10px 14px' }}>EVENT TYPE</th>
-                <th style={{ padding: '10px 14px' }}>DETAILS & AUDIT MESSAGE</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>TIMESTAMP</th>
+                <th style={{ padding: '6px 10px' }}>DEVICE HOSTNAME</th>
+                <th style={{ padding: '6px 10px' }}>EVENT TYPE</th>
+                <th style={{ padding: '6px 10px' }}>DETAILS & AUDIT MESSAGE</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_EVENT_LOGS.map(evt => (
                 <tr key={evt.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px', fontSize: '0.78rem', color: '#334155' }}>{evt.timestamp}</td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', fontSize: '0.82rem' }}>{evt.deviceHostname}</td>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.72rem', fontWeight: 700 }}>
+                  <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#334155' }}>{evt.timestamp}</td>
+                  <td style={{ padding: '4px 10px', fontWeight: 600, color: '#0f172a', fontSize: '0.75rem' }}>{evt.deviceHostname}</td>
+                  <td style={{ padding: '4px 10px' }}>
+                    <span style={{ padding: '1.5px 6px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.68rem', fontWeight: 700 }}>
                       {evt.eventType}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{evt.message}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{evt.message}</td>
                 </tr>
               ))}
             </tbody>

@@ -325,23 +325,23 @@ export const WirelessView: React.FC<WirelessViewProps> = ({ devices = [] }) => {
 
             {/* Table */}
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.76rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569' }}>
-                    <th style={{ padding: '8px 12px' }}>STATUS</th>
-                    <th style={{ padding: '8px 12px' }}>DEVICE HOSTNAME</th>
-                    <th style={{ padding: '8px 12px' }}>IP ADDRESS</th>
-                    <th style={{ padding: '8px 12px' }}>MAC ADDRESS</th>
-                    <th style={{ padding: '8px 12px' }}>CONNECTION TYPE</th>
-                    <th style={{ padding: '8px 12px' }}>BAND &amp; RADIO</th>
-                    <th style={{ padding: '8px 12px' }}>SIGNAL / LINK</th>
-                    <th style={{ padding: '8px 12px' }}>PHY RATE</th>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                    <th style={{ padding: '6px 10px' }}>STATUS</th>
+                    <th style={{ padding: '6px 10px' }}>DEVICE HOSTNAME</th>
+                    <th style={{ padding: '6px 10px' }}>IP ADDRESS</th>
+                    <th style={{ padding: '6px 10px' }}>MAC ADDRESS</th>
+                    <th style={{ padding: '6px 10px' }}>CONNECTION TYPE</th>
+                    <th style={{ padding: '6px 10px' }}>BAND &amp; RADIO</th>
+                    <th style={{ padding: '6px 10px' }}>SIGNAL / LINK</th>
+                    <th style={{ padding: '6px 10px' }}>PHY RATE</th>
                   </tr>
                 </thead>
                 <tbody>
                   {displayedDevices.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+                      <td colSpan={8} style={{ padding: '16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem' }}>
                         No devices match the search query "{searchTerm}"
                       </td>
                     </tr>
@@ -361,64 +361,65 @@ export const WirelessView: React.FC<WirelessViewProps> = ({ devices = [] }) => {
                             transition: 'background-color 0.15s ease'
                           }}
                         >
-                          <td style={{ padding: '8px 12px' }}>
+                          <td style={{ padding: '4px 8px' }}>
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
-                              padding: '2px 7px',
+                              padding: '1.5px 6px',
                               borderRadius: '4px',
-                              fontSize: '0.68rem',
+                              fontSize: '0.67rem',
                               fontWeight: 800,
                               background: d.status === 'ONLINE' ? '#dcfce7' : '#fee2e2',
                               color: d.status === 'ONLINE' ? '#15803d' : '#b91c1c'
                             }}>
-                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: d.status === 'ONLINE' ? '#22c55e' : '#ef4444' }} />
+                              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: d.status === 'ONLINE' ? '#22c55e' : '#ef4444' }} />
                               {d.status}
                             </span>
                           </td>
-                          <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              {isWired ? <Server size={13} color="#475569" /> : <Laptop size={13} color="#0284c7" />}
+                          <td style={{ padding: '4px 8px', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              {isWired ? <Server size={12} color="#475569" /> : <Laptop size={12} color="#0284c7" />}
                               <span>{d.hostname}</span>
                             </div>
-                            <div style={{ fontSize: '0.66rem', color: '#64748b' }}>{d.hardware}</div>
+                            <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{d.hardware}</div>
                           </td>
-                          <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#0284c7' }}>
+                          <td style={{ padding: '4px 8px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#0284c7', fontSize: '0.74rem' }}>
                             {d.ip_address}
                           </td>
-                          <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', color: '#475569', fontSize: '0.72rem' }}>
+                          <td style={{ padding: '4px 8px', fontFamily: 'var(--font-mono)', color: '#475569', fontSize: '0.70rem' }}>
                             {d.mac_address}
                           </td>
-                          <td style={{ padding: '8px 12px' }}>
+                          <td style={{ padding: '4px 8px' }}>
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px',
-                              padding: '2px 6px',
+                              gap: '3px',
+                              padding: '1.5px 6px',
                               borderRadius: '4px',
-                              fontSize: '0.68rem',
+                              fontSize: '0.67rem',
                               fontWeight: 700,
                               background: isWired ? '#f1f5f9' : '#e0f2fe',
                               color: isWired ? '#334155' : '#0369a1'
                             }}>
-                              {isWired ? <Network size={11} /> : <Wifi size={11} />}
+                              {isWired ? <Network size={10} /> : <Wifi size={10} />}
                               {d.connType}
                             </span>
                           </td>
-                          <td style={{ padding: '8px 12px', color: '#334155', fontWeight: 600 }}>
+                          <td style={{ padding: '4px 8px', color: '#334155', fontWeight: 600, fontSize: '0.72rem' }}>
                             <div>{d.band}</div>
-                            <div style={{ fontSize: '0.66rem', color: '#64748b' }}>{d.channel} • {d.apName}</div>
+                            <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{d.channel} • {d.apName}</div>
                           </td>
-                          <td style={{ padding: '8px 12px' }}>
+                          <td style={{ padding: '4px 8px' }}>
                             {isWired ? (
-                              <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '0.70rem' }}>
+                              <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '0.68rem' }}>
                                 Full Duplex (Wired)
                               </span>
                             ) : (
                               <div>
                                 <span style={{
                                   fontWeight: 800,
+                                  fontSize: '0.72rem',
                                   color: d.rssiDbm > -60 ? '#16a34a' : d.rssiDbm > -75 ? '#d97706' : '#dc2626'
                                 }}>
                                   {d.rssiDbm} dBm ({d.signalPercent}%)
@@ -426,7 +427,7 @@ export const WirelessView: React.FC<WirelessViewProps> = ({ devices = [] }) => {
                               </div>
                             )}
                           </td>
-                          <td style={{ padding: '8px 12px', fontWeight: 800, color: '#0f172a', fontFamily: 'var(--font-mono)' }}>
+                          <td style={{ padding: '4px 8px', fontWeight: 800, color: '#0f172a', fontFamily: 'var(--font-mono)', fontSize: '0.74rem' }}>
                             {d.linkRate}
                           </td>
                         </tr>
@@ -442,42 +443,42 @@ export const WirelessView: React.FC<WirelessViewProps> = ({ devices = [] }) => {
 
       {/* Optical Transceivers DOM */}
       {subTab === 'transceivers' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+        <div className="glass-panel" style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
             Optical Transceivers Digital Optical Monitoring (DOM / DDM)
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>STATUS</th>
-                <th style={{ padding: '10px 14px' }}>DEVICE / ROUTER</th>
-                <th style={{ padding: '10px 14px' }}>PORT</th>
-                <th style={{ padding: '10px 14px' }}>OPTICAL MODULE</th>
-                <th style={{ padding: '10px 14px' }}>RX POWER</th>
-                <th style={{ padding: '10px 14px' }}>TX POWER</th>
-                <th style={{ padding: '10px 14px' }}>WAVELENGTH</th>
-                <th style={{ padding: '10px 14px' }}>TEMP</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>STATUS</th>
+                <th style={{ padding: '6px 10px' }}>DEVICE / ROUTER</th>
+                <th style={{ padding: '6px 10px' }}>PORT</th>
+                <th style={{ padding: '6px 10px' }}>OPTICAL MODULE</th>
+                <th style={{ padding: '6px 10px' }}>RX POWER</th>
+                <th style={{ padding: '6px 10px' }}>TX POWER</th>
+                <th style={{ padding: '6px 10px' }}>WAVELENGTH</th>
+                <th style={{ padding: '6px 10px' }}>TEMP</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_TRANSCEIVERS.map(tr => (
                 <tr key={tr.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: tr.status === 'OPTIMAL' ? '#dcfce7' : '#fef3c7', color: tr.status === 'OPTIMAL' ? '#15803d' : '#b45309', fontWeight: 700, fontSize: '0.72rem' }}>
+                  <td style={{ padding: '4px 10px' }}>
+                    <span style={{ padding: '1.5px 6px', borderRadius: '4px', background: tr.status === 'OPTIMAL' ? '#dcfce7' : '#fef3c7', color: tr.status === 'OPTIMAL' ? '#15803d' : '#b45309', fontWeight: 700, fontSize: '0.68rem' }}>
                       {tr.status}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{tr.deviceHostname}</td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', fontSize: '0.82rem' }}>{tr.portName}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#0284c7' }}>{tr.type}</td>
-                  <td style={{ padding: '12px 14px', fontWeight: 700, color: tr.rxPowerDbm < -15 ? '#dc2626' : '#16a34a', fontSize: '0.82rem' }}>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{tr.deviceHostname}</td>
+                  <td style={{ padding: '4px 10px', fontWeight: 600, color: '#0f172a', fontSize: '0.74rem' }}>{tr.portName}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#0284c7' }}>{tr.type}</td>
+                  <td style={{ padding: '4px 10px', fontWeight: 700, color: tr.rxPowerDbm < -15 ? '#dc2626' : '#16a34a', fontSize: '0.74rem' }}>
                     {tr.rxPowerDbm} dBm
                   </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0284c7', fontSize: '0.82rem' }}>
+                  <td style={{ padding: '4px 10px', fontWeight: 700, color: '#0284c7', fontSize: '0.74rem' }}>
                     {tr.txPowerDbm} dBm
                   </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{tr.wavelengthNm} nm</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#d97706' }}>{tr.temperatureC}°C</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{tr.wavelengthNm} nm</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#d97706' }}>{tr.temperatureC}°C</td>
                 </tr>
               ))}
             </tbody>

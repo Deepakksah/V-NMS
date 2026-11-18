@@ -115,30 +115,30 @@ export const SlaQosView: React.FC = () => {
 
       {/* QoS Shaping */}
       {subTab === 'qos' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+        <div className="glass-panel" style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
             Quality of Service (QoS) Class-Map Policing &amp; Drop Counters
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>ROUTER DEVICE</th>
-                <th style={{ padding: '10px 14px' }}>POLICY NAME</th>
-                <th style={{ padding: '10px 14px' }}>CLASS MAP</th>
-                <th style={{ padding: '10px 14px' }}>ALLOCATED BANDWIDTH</th>
-                <th style={{ padding: '10px 14px' }}>CURRENT THROUGHPUT</th>
-                <th style={{ padding: '10px 14px' }}>DROPPED PACKETS</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>ROUTER DEVICE</th>
+                <th style={{ padding: '6px 10px' }}>POLICY NAME</th>
+                <th style={{ padding: '6px 10px' }}>CLASS MAP</th>
+                <th style={{ padding: '6px 10px' }}>ALLOCATED BANDWIDTH</th>
+                <th style={{ padding: '6px 10px' }}>CURRENT THROUGHPUT</th>
+                <th style={{ padding: '6px 10px' }}>DROPPED PACKETS</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_QOS_CLASSES.map(qos => (
                 <tr key={qos.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{qos.deviceHostname}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>{qos.policyName}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#0284c7', fontWeight: 700 }}>{qos.classMap}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{(qos.allocatedBps / 1000000000).toFixed(1)} Gbps</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#7e22ce', fontWeight: 700 }}>{(qos.currentBps / 1000000).toFixed(0)} Mbps</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: qos.droppedPackets > 0 ? '#dc2626' : '#16a34a', fontWeight: 700 }}>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{qos.deviceHostname}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#0f172a', fontWeight: 600 }}>{qos.policyName}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#0284c7', fontWeight: 700 }}>{qos.classMap}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{(qos.allocatedBps / 1000000000).toFixed(1)} Gbps</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#7e22ce', fontWeight: 700 }}>{(qos.currentBps / 1000000).toFixed(0)} Mbps</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: qos.droppedPackets > 0 ? '#dc2626' : '#16a34a', fontWeight: 700 }}>
                     {qos.droppedPackets} drops
                   </td>
                 </tr>

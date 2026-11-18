@@ -1718,42 +1718,42 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                     </div>
                   ) : (
                     <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
                         <thead>
-                          <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#64748b' }}>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Source Node</th>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Src Port</th>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Target Node</th>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Tgt Port</th>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Protocol</th>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Bandwidth</th>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Utilization</th>
-                            <th style={{ padding: '7px 10px', fontWeight: 700 }}>Status</th>
+                          <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                            <th style={{ padding: '6px 10px' }}>Source Node</th>
+                            <th style={{ padding: '6px 10px' }}>Src Port</th>
+                            <th style={{ padding: '6px 10px' }}>Target Node</th>
+                            <th style={{ padding: '6px 10px' }}>Tgt Port</th>
+                            <th style={{ padding: '6px 10px' }}>Protocol</th>
+                            <th style={{ padding: '6px 10px' }}>Bandwidth</th>
+                            <th style={{ padding: '6px 10px' }}>Utilization</th>
+                            <th style={{ padding: '6px 10px' }}>Status</th>
                           </tr>
                         </thead>
                         <tbody>
                           {topologyLinks.map((l) => (
                             <tr key={l.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                              <td style={{ padding: '7px 10px', fontWeight: 700, color: '#0f172a' }}>{l.source}</td>
-                              <td style={{ padding: '7px 10px', fontFamily: 'monospace', color: '#0284c7' }}>{l.srcPort}</td>
-                              <td style={{ padding: '7px 10px', fontWeight: 700, color: '#0f172a' }}>{l.target}</td>
-                              <td style={{ padding: '7px 10px', fontFamily: 'monospace', color: '#0284c7' }}>{l.tgtPort}</td>
-                              <td style={{ padding: '7px 10px' }}>
-                                <span style={{ fontSize: '0.68rem', background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                              <td style={{ padding: '4px 10px', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>{l.source}</td>
+                              <td style={{ padding: '4px 10px', fontFamily: 'monospace', color: '#0284c7', fontSize: '0.74rem' }}>{l.srcPort}</td>
+                              <td style={{ padding: '4px 10px', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>{l.target}</td>
+                              <td style={{ padding: '4px 10px', fontFamily: 'monospace', color: '#0284c7', fontSize: '0.74rem' }}>{l.tgtPort}</td>
+                              <td style={{ padding: '4px 10px' }}>
+                                <span style={{ fontSize: '0.67rem', background: '#f1f5f9', padding: '1.5px 5px', borderRadius: '4px', fontWeight: 700 }}>
                                   {l.protocol}
                                 </span>
                               </td>
-                              <td style={{ padding: '7px 10px', fontWeight: 700 }}>{l.speedGbps} Gbps</td>
-                              <td style={{ padding: '7px 10px' }}>
+                              <td style={{ padding: '4px 10px', fontWeight: 700, fontSize: '0.74rem' }}>{l.speedGbps} Gbps</td>
+                              <td style={{ padding: '4px 10px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <div style={{ width: '45px', height: '6px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
+                                  <div style={{ width: '45px', height: '5px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
                                     <div style={{ width: `${l.utilizationPercent}%`, height: '100%', background: l.utilizationPercent > 70 ? '#ef4444' : '#10b981' }} />
                                   </div>
-                                  <span style={{ fontWeight: 700, fontSize: '0.72rem' }}>{l.utilizationPercent}%</span>
+                                  <span style={{ fontWeight: 700, fontSize: '0.70rem' }}>{l.utilizationPercent}%</span>
                                 </div>
                               </td>
-                              <td style={{ padding: '7px 10px' }}>
-                                <span style={{ fontSize: '0.7rem', color: '#16a34a', background: '#dcfce7', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                              <td style={{ padding: '4px 10px' }}>
+                                <span style={{ fontSize: '0.67rem', color: '#16a34a', background: '#dcfce7', padding: '1.5px 5px', borderRadius: '4px', fontWeight: 700 }}>
                                   Active
                                 </span>
                               </td>

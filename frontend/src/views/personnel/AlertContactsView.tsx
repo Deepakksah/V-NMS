@@ -543,22 +543,22 @@ export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
 
         {/* Directory Table */}
         <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.76rem', fontWeight: 700 }}>
-                <th style={{ padding: '12px 16px' }}>PERSON NAME &amp; ROLE</th>
-                <th style={{ padding: '12px 16px' }}>CORPORATE EMAIL</th>
-                <th style={{ padding: '12px 16px' }}>MOBILE PHONE</th>
-                <th style={{ padding: '12px 16px' }}>DEPARTMENT</th>
-                <th style={{ padding: '12px 16px' }}>ON-CALL STATUS</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>SERVER LINKING ACTION</th>
-                <th style={{ padding: '12px 16px', textAlign: 'center' }}>DELETE</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>PERSON NAME &amp; ROLE</th>
+                <th style={{ padding: '6px 10px' }}>CORPORATE EMAIL</th>
+                <th style={{ padding: '6px 10px' }}>MOBILE PHONE</th>
+                <th style={{ padding: '6px 10px' }}>DEPARTMENT</th>
+                <th style={{ padding: '6px 10px' }}>ON-CALL STATUS</th>
+                <th style={{ padding: '6px 10px', textAlign: 'center' }}>SERVER LINKING ACTION</th>
+                <th style={{ padding: '6px 10px', textAlign: 'center' }}>DELETE</th>
               </tr>
             </thead>
             <tbody>
               {filteredRecipients.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  <td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem' }}>
                     No alert contacts found. Use the form above to add a person.
                   </td>
                 </tr>
@@ -566,11 +566,11 @@ export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
                 filteredRecipients.map(r => (
                   <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     {/* Name & Role */}
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <td style={{ padding: '4px 10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{
-                          width: '36px',
-                          height: '36px',
+                          width: '24px',
+                          height: '24px',
                           borderRadius: '50%',
                           background: '#e0f2fe',
                           color: '#0284c7',
@@ -578,87 +578,87 @@ export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontWeight: 800,
-                          fontSize: '0.90rem'
+                          fontSize: '0.72rem'
                         }}>
                           {r.name.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>{r.name}</div>
-                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{r.role}</div>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.76rem' }}>{r.name}</div>
+                          <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{r.role}</div>
                         </div>
                       </div>
                     </td>
 
                     {/* Email */}
-                    <td style={{ padding: '12px 16px', fontSize: '0.82rem', color: '#334155' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Mail size={13} color="#0284c7" />
+                    <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Mail size={12} color="#0284c7" />
                         <span>{r.email}</span>
                       </div>
                     </td>
 
                     {/* Phone */}
-                    <td style={{ padding: '12px 16px', fontSize: '0.82rem', color: '#334155' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Phone size={13} color="#16a34a" />
+                    <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Phone size={12} color="#16a34a" />
                         <span>{r.phone}</span>
                       </div>
                     </td>
 
                     {/* Department */}
-                    <td style={{ padding: '12px 16px', fontSize: '0.80rem', color: '#475569' }}>
-                      <span style={{ padding: '2px 8px', borderRadius: '4px', background: '#f1f5f9', color: '#475569', fontWeight: 600 }}>
+                    <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#475569' }}>
+                      <span style={{ padding: '1.5px 6px', borderRadius: '4px', background: '#f1f5f9', color: '#475569', fontWeight: 600 }}>
                         {r.department}
                       </span>
                     </td>
 
                     {/* On-Call Status */}
-                    <td style={{ padding: '12px 16px' }}>
+                    <td style={{ padding: '4px 10px' }}>
                       <span style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '5px',
-                        padding: '3px 8px',
+                        gap: '4px',
+                        padding: '1.5px 6px',
                         borderRadius: '4px',
-                        fontSize: '0.70rem',
+                        fontSize: '0.67rem',
                         fontWeight: 700,
                         background: r.on_call_status === 'active' ? '#dcfce7' : '#fef3c7',
                         color: r.on_call_status === 'active' ? '#15803d' : '#b45309',
                         border: r.on_call_status === 'active' ? '1px solid #bbf7d0' : '1px solid #fde68a'
                       }}>
-                        <ShieldCheck size={12} />
+                        <ShieldCheck size={11} />
                         <span>{r.on_call_status === 'active' ? 'ACTIVE 24x7' : r.on_call_status.toUpperCase()}</span>
                       </span>
                     </td>
 
                     {/* Link Action */}
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <td style={{ padding: '4px 10px', textAlign: 'center' }}>
                       {onNavigateToMatrix && (
                         <button
                           onClick={() => onNavigateToMatrix(r.id)}
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '5px',
-                            padding: '6px 14px',
-                            borderRadius: '6px',
+                            gap: '4px',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
                             background: '#e0f2fe',
                             border: '1px solid #bae6fd',
                             color: '#0369a1',
-                            fontSize: '0.76rem',
+                            fontSize: '0.68rem',
                             fontWeight: 700,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
                         >
-                          <Link2 size={13} />
+                          <Link2 size={11} />
                           <span>Link to Servers &rarr;</span>
                         </button>
                       )}
                     </td>
 
                     {/* Delete */}
-                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                    <td style={{ padding: '4px 10px', textAlign: 'center' }}>
                       <button
                         onClick={() => handleDeletePerson(r.id, r.name)}
                         title="Delete Person"
@@ -667,10 +667,10 @@ export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
                           border: 'none',
                           color: '#ef4444',
                           cursor: 'pointer',
-                          padding: '4px'
+                          padding: '2px'
                         }}
                       >
-                        <Trash2 size={16} />
+                        <Trash2 size={13} />
                       </button>
                     </td>
                   </tr>

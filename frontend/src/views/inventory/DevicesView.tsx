@@ -338,18 +338,18 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
             </div>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '12px 14px' }}>STATUS</th>
-                <th style={{ padding: '12px 14px' }}>TYPE</th>
-                <th style={{ padding: '12px 14px' }}>BRAND / VENDOR</th>
-                <th style={{ padding: '12px 14px' }}>HOSTNAME</th>
-                <th style={{ padding: '12px 14px' }}>IP / MAC ADDRESS</th>
-                <th style={{ padding: '12px 14px' }}>HARDWARE & OS</th>
-                <th style={{ padding: '12px 14px' }}>SNMP</th>
-                <th style={{ padding: '12px 14px' }}>LATENCY</th>
-                <th style={{ padding: '12px 14px', textAlign: 'right' }}>CHARTS & ACTIONS</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>STATUS</th>
+                <th style={{ padding: '6px 8px' }}>TYPE</th>
+                <th style={{ padding: '6px 8px' }}>BRAND / VENDOR</th>
+                <th style={{ padding: '6px 10px' }}>HOSTNAME</th>
+                <th style={{ padding: '6px 10px' }}>IP / MAC ADDRESS</th>
+                <th style={{ padding: '6px 10px' }}>HARDWARE &amp; OS</th>
+                <th style={{ padding: '6px 8px' }}>SNMP</th>
+                <th style={{ padding: '6px 8px' }}>LATENCY</th>
+                <th style={{ padding: '6px 10px', textAlign: 'right' }}>CHARTS &amp; ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -372,39 +372,39 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                       if (selectedDevice?.id !== dev.id) e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <td style={{ padding: '12px 14px' }}>
-                      <span className={`status-badge ${dev.status ? 'status-up' : 'status-down'}`}>
-                        <span className={`pulse-dot ${dev.status ? 'up' : 'down'}`}></span>
+                    <td style={{ padding: '4px 10px' }}>
+                      <span className={`status-badge ${dev.status ? 'status-up' : 'status-down'}`} style={{ padding: '1.5px 6px', fontSize: '0.67rem' }}>
+                        <span className={`pulse-dot ${dev.status ? 'up' : 'down'}`} style={{ width: '5px', height: '5px' }}></span>
                         {dev.status ? 'UP' : 'DOWN'}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
-                      <DeviceTypeBadge type={dev.device_type || devType} />
+                    <td style={{ padding: '4px 8px' }}>
+                      <DeviceTypeBadge type={dev.device_type || devType} size="xs" />
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
-                      <VendorLogo vendor={dev.vendor || 'Generic'} size="sm" />
+                    <td style={{ padding: '4px 8px' }}>
+                      <VendorLogo vendor={dev.vendor || 'Generic'} size="xs" />
                     </td>
-                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#0f172a' }}>{dev.hostname}</td>
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.82rem', color: '#0284c7', fontWeight: 600 }}>
+                    <td style={{ padding: '4px 10px', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>{dev.hostname}</td>
+                    <td style={{ padding: '4px 10px' }}>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#0284c7', fontWeight: 600 }}>
                         {dev.ip_address}
                       </div>
                       {dev.mac_address && (
-                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', color: '#94a3b8' }}>
+                        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.64rem', color: '#94a3b8' }}>
                           {dev.mac_address}
                         </div>
                       )}
                     </td>
-                    <td style={{ padding: '12px 14px' }}>
-                      <div style={{ fontSize: '0.82rem', color: '#0f172a', fontWeight: 600 }}>{dev.hardware || 'Enterprise Hardware'}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{dev.os || 'Enterprise OS'}</div>
+                    <td style={{ padding: '4px 10px' }}>
+                      <div style={{ fontSize: '0.74rem', color: '#0f172a', fontWeight: 600 }}>{dev.hardware || 'Enterprise Hardware'}</div>
+                      <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{dev.os || 'Enterprise OS'}</div>
                     </td>
-                    <td style={{ padding: '12px 14px', fontSize: '0.8rem', color: '#64748b' }}>{dev.snmp_version.toUpperCase()}</td>
-                    <td style={{ padding: '12px 14px', fontWeight: 600, color: dev.last_ping_ms < 10 ? '#16a34a' : '#d97706', fontSize: '0.82rem' }}>
+                    <td style={{ padding: '4px 8px', fontSize: '0.72rem', color: '#64748b' }}>{dev.snmp_version.toUpperCase()}</td>
+                    <td style={{ padding: '4px 8px', fontWeight: 600, color: dev.last_ping_ms < 10 ? '#16a34a' : '#d97706', fontSize: '0.74rem' }}>
                       {dev.last_ping_ms.toFixed(1)} ms
                     </td>
-                    <td style={{ padding: '12px 14px', textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '6px' }}>
+                    <td style={{ padding: '4px 10px', textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '4px' }}>
                         {/* Dedicated Interactive Chart Button */}
                         <button
                           onClick={(e) => {
@@ -413,21 +413,22 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                             setChartDevice(dev);
                           }}
                           style={{
-                            padding: '5px 10px',
-                            borderRadius: '6px',
+                            padding: '2px 7px',
+                            height: '24px',
+                            borderRadius: '4px',
                             background: '#f0fdf4',
                             border: '1px solid #bbf7d0',
                             color: '#15803d',
-                            fontSize: '0.72rem',
+                            fontSize: '0.68rem',
                             fontWeight: 700,
                             cursor: 'pointer',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px'
+                            gap: '3px'
                           }}
                           title="Open Real-time Telemetry & Bandwidth Charts"
                         >
-                          <BarChart2 size={13} color="#16a34a" />
+                          <BarChart2 size={12} color="#16a34a" />
                           <span>Charts</span>
                         </button>
 
@@ -435,12 +436,13 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                           onClick={(e) => { e.stopPropagation(); onPing(dev.id); }}
                           disabled={pingingId === dev.id}
                           style={{
-                            padding: '5px 10px',
-                            borderRadius: '6px',
+                            padding: '2px 7px',
+                            height: '24px',
+                            borderRadius: '4px',
                             background: '#ffffff',
                             border: '1px solid #cbd5e1',
                             color: '#0f172a',
-                            fontSize: '0.72rem',
+                            fontSize: '0.68rem',
                             cursor: 'pointer'
                           }}
                         >
@@ -450,12 +452,13 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                           onClick={(e) => { e.stopPropagation(); onPoll(dev.id); }}
                           disabled={pollingId === dev.id}
                           style={{
-                            padding: '5px 10px',
-                            borderRadius: '6px',
+                            padding: '2px 7px',
+                            height: '24px',
+                            borderRadius: '4px',
                             background: '#eff6ff',
                             border: '1px solid #bfdbfe',
                             color: '#1d4ed8',
-                            fontSize: '0.72rem',
+                            fontSize: '0.68rem',
                             cursor: 'pointer',
                             fontWeight: 600
                           }}
@@ -500,28 +503,28 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
 
       {/* SubTab: Outages */}
       {subTab === 'outages' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+        <div className="glass-panel" style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
             Device Outage History &amp; Downtime MTTR
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>STATUS</th>
-                <th style={{ padding: '10px 14px' }}>DEVICE</th>
-                <th style={{ padding: '10px 14px' }}>OUTAGE START</th>
-                <th style={{ padding: '10px 14px' }}>DURATION</th>
-                <th style={{ padding: '10px 14px' }}>ROOT CAUSE / INCIDENT</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>STATUS</th>
+                <th style={{ padding: '6px 10px' }}>DEVICE</th>
+                <th style={{ padding: '6px 10px' }}>OUTAGE START</th>
+                <th style={{ padding: '6px 10px' }}>DURATION</th>
+                <th style={{ padding: '6px 10px' }}>ROOT CAUSE / INCIDENT</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_DEVICE_OUTAGES.map(outage => (
                 <tr key={outage.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px' }}>
+                  <td style={{ padding: '4px 10px' }}>
                     <span style={{
-                      padding: '3px 8px',
+                      padding: '2px 7px',
                       borderRadius: '4px',
-                      fontSize: '0.72rem',
+                      fontSize: '0.68rem',
                       fontWeight: 700,
                       background: outage.status === 'RESOLVED' ? '#dcfce7' : '#fee2e2',
                       color: outage.status === 'RESOLVED' ? '#15803d' : '#b91c1c'
@@ -529,12 +532,12 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                       {outage.status}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a' }}>{outage.deviceHostname}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#334155' }}>{outage.startTime}</td>
-                  <td style={{ padding: '12px 14px', fontWeight: 700, color: '#b45309', fontSize: '0.82rem' }}>
+                  <td style={{ padding: '4px 10px', fontWeight: 600, color: '#0f172a', fontSize: '0.75rem' }}>{outage.deviceHostname}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{outage.startTime}</td>
+                  <td style={{ padding: '4px 10px', fontWeight: 700, color: '#b45309', fontSize: '0.74rem' }}>
                     {outage.durationMin.toFixed(1)} min
                   </td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{outage.reason}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#64748b' }}>{outage.reason}</td>
                 </tr>
               ))}
             </tbody>
@@ -546,14 +549,14 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
       {subTab === 'locations' && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px' }}>
           {MOCK_LOCATIONS.map(loc => (
-            <div key={loc.id} className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff' }}>
+            <div key={loc.id} className="glass-panel" style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <MapPin size={18} color="#0284c7" />
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>{loc.siteName}</h3>
+                <MapPin size={16} color="#0284c7" />
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>{loc.siteName}</h3>
               </div>
-              <p style={{ fontSize: '0.82rem', color: '#334155', marginBottom: '4px' }}>{loc.building} • {loc.room}</p>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '14px' }}>Rack: {loc.rack}</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '10px', fontSize: '0.78rem' }}>
+              <p style={{ fontSize: '0.78rem', color: '#334155', marginBottom: '4px' }}>{loc.building} • {loc.room}</p>
+              <p style={{ fontSize: '0.74rem', color: '#64748b', marginBottom: '10px' }}>Rack: {loc.rack}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '8px', fontSize: '0.74rem' }}>
                 <span style={{ color: '#64748b' }}>GPS: {loc.lat}, {loc.lng}</span>
                 <span style={{ color: '#0284c7', fontWeight: 700 }}>{loc.deviceCount} Devices Mounted</span>
               </div>
@@ -564,37 +567,37 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
 
       {/* SubTab: EntPhysical */}
       {subTab === 'ent_physical' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>
+        <div className="glass-panel" style={{ padding: '16px', backgroundColor: '#ffffff', borderRadius: '8px' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', marginBottom: '12px' }}>
             RFC 6933 Entity MIB Hardware Inventory
           </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.78rem' }}>
-                <th style={{ padding: '10px 14px' }}>CLASS</th>
-                <th style={{ padding: '10px 14px' }}>HOST DEVICE</th>
-                <th style={{ padding: '10px 14px' }}>ENTITY NAME</th>
-                <th style={{ padding: '10px 14px' }}>MODEL / DESCR</th>
-                <th style={{ padding: '10px 14px' }}>SERIAL NUMBER</th>
-                <th style={{ padding: '10px 14px' }}>FIRMWARE</th>
-                <th style={{ padding: '10px 14px' }}>STATUS</th>
+              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                <th style={{ padding: '6px 10px' }}>CLASS</th>
+                <th style={{ padding: '6px 10px' }}>HOST DEVICE</th>
+                <th style={{ padding: '6px 10px' }}>ENTITY NAME</th>
+                <th style={{ padding: '6px 10px' }}>MODEL / DESCR</th>
+                <th style={{ padding: '6px 10px' }}>SERIAL NUMBER</th>
+                <th style={{ padding: '6px 10px' }}>FIRMWARE</th>
+                <th style={{ padding: '6px 10px' }}>STATUS</th>
               </tr>
             </thead>
             <tbody>
               {MOCK_ENT_PHYSICAL.map(item => (
                 <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.72rem', fontWeight: 700 }}>
+                  <td style={{ padding: '4px 10px' }}>
+                    <span style={{ padding: '1.5px 6px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontSize: '0.68rem', fontWeight: 700 }}>
                       {item.clazz.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', fontSize: '0.82rem' }}>{item.deviceHostname}</td>
-                  <td style={{ padding: '12px 14px', color: '#334155', fontSize: '0.82rem' }}>{item.name}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.82rem', color: '#64748b' }}>{item.modelNumber}</td>
-                  <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: '#b45309', fontWeight: 600 }}>{item.serialNumber}</td>
-                  <td style={{ padding: '12px 14px', fontSize: '0.78rem', color: '#334155' }}>{item.firmwareRev}</td>
-                  <td style={{ padding: '12px 14px' }}>
-                    <span style={{ color: item.status === 'OK' ? '#16a34a' : '#dc2626', fontWeight: 700, fontSize: '0.75rem' }}>
+                  <td style={{ padding: '4px 10px', fontWeight: 600, color: '#0f172a', fontSize: '0.75rem' }}>{item.deviceHostname}</td>
+                  <td style={{ padding: '4px 10px', color: '#334155', fontSize: '0.74rem' }}>{item.name}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#64748b' }}>{item.modelNumber}</td>
+                  <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#b45309', fontWeight: 600 }}>{item.serialNumber}</td>
+                  <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155' }}>{item.firmwareRev}</td>
+                  <td style={{ padding: '4px 10px' }}>
+                    <span style={{ color: item.status === 'OK' ? '#16a34a' : '#dc2626', fontWeight: 700, fontSize: '0.72rem' }}>
                       {item.status}
                     </span>
                   </td>

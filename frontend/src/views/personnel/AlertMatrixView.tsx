@@ -507,14 +507,14 @@ export const AlertMatrixView: React.FC<AlertMatrixViewProps> = ({
         {/* Matrix Table */}
         <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ maxHeight: '540px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
               <thead style={{ position: 'sticky', top: 0, zIndex: 10, background: '#f8fafc' }}>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.76rem', fontWeight: 700 }}>
-                  <th style={{ padding: '12px 16px' }}>MONITORED SERVER / HOST</th>
-                  <th style={{ padding: '12px 16px', width: '150px', textAlign: 'center' }}>EMAIL DISPATCH</th>
-                  <th style={{ padding: '12px 16px', width: '150px', textAlign: 'center' }}>SMS DISPATCH</th>
-                  <th style={{ padding: '12px 16px', width: '130px', textAlign: 'center' }}>QUICK TOGGLE</th>
-                  <th style={{ padding: '12px 16px', width: '190px', textAlign: 'center' }}>ACTIVE CHANNELS</th>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '0.70rem', fontWeight: 700 }}>
+                  <th style={{ padding: '6px 10px' }}>MONITORED SERVER / HOST</th>
+                  <th style={{ padding: '6px 10px', width: '130px', textAlign: 'center' }}>EMAIL DISPATCH</th>
+                  <th style={{ padding: '6px 10px', width: '130px', textAlign: 'center' }}>SMS DISPATCH</th>
+                  <th style={{ padding: '6px 10px', width: '110px', textAlign: 'center' }}>QUICK TOGGLE</th>
+                  <th style={{ padding: '6px 10px', width: '170px', textAlign: 'center' }}>ACTIVE CHANNELS</th>
                 </tr>
               </thead>
               <tbody>
@@ -534,17 +534,17 @@ export const AlertMatrixView: React.FC<AlertMatrixViewProps> = ({
                       }}
                     >
                       {/* Server & IP Details */}
-                      <td style={{ padding: '12px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <td style={{ padding: '4px 10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {d.vendor && <VendorLogo vendor={d.vendor} size="xs" showLabel={false} />}
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.76rem' }}>
                                 {d.hostname}
                               </span>
                               {d.device_type && <DeviceTypeBadge type={d.device_type} size="xs" />}
                             </div>
-                            <div style={{ fontSize: '0.74rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
+                            <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
                               {d.ip_address} • {d.hardware || d.vendor || 'Compute Node'}
                             </div>
                           </div>
@@ -552,43 +552,43 @@ export const AlertMatrixView: React.FC<AlertMatrixViewProps> = ({
                       </td>
 
                       {/* Email Checkbox */}
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.80rem', color: sub.send_email ? '#0284c7' : '#64748b', fontWeight: sub.send_email ? 700 : 500 }}>
+                      <td style={{ padding: '4px 10px', textAlign: 'center' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.74rem', color: sub.send_email ? '#0284c7' : '#64748b', fontWeight: sub.send_email ? 700 : 500 }}>
                           <input
                             type="checkbox"
                             checked={sub.send_email}
                             onChange={() => handleToggleDeviceEmail(d.id)}
-                            style={{ accentColor: '#0284c7', width: '16px', height: '16px', cursor: 'pointer' }}
+                            style={{ accentColor: '#0284c7', width: '13px', height: '13px', cursor: 'pointer' }}
                           />
-                          <span>Send Email</span>
+                          <span>Email</span>
                         </label>
                       </td>
 
                       {/* SMS Checkbox */}
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '0.80rem', color: sub.send_sms ? '#7c3aed' : '#64748b', fontWeight: sub.send_sms ? 700 : 500 }}>
+                      <td style={{ padding: '4px 10px', textAlign: 'center' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.74rem', color: sub.send_sms ? '#7c3aed' : '#64748b', fontWeight: sub.send_sms ? 700 : 500 }}>
                           <input
                             type="checkbox"
                             checked={sub.send_sms}
                             onChange={() => handleToggleDeviceSMS(d.id)}
-                            style={{ accentColor: '#7c3aed', width: '16px', height: '16px', cursor: 'pointer' }}
+                            style={{ accentColor: '#7c3aed', width: '13px', height: '13px', cursor: 'pointer' }}
                           />
-                          <span>Send SMS</span>
+                          <span>SMS</span>
                         </label>
                       </td>
 
                       {/* Quick Toggle Button */}
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <td style={{ padding: '4px 10px', textAlign: 'center' }}>
                         <button
                           type="button"
                           onClick={() => handleToggleDeviceBoth(d.id)}
                           style={{
-                            padding: '5px 12px',
-                            borderRadius: '5px',
+                            padding: '2px 7px',
+                            borderRadius: '4px',
                             border: isBoth ? '1px solid #16a34a' : '1px solid #cbd5e1',
                             background: isBoth ? '#dcfce7' : '#ffffff',
                             color: isBoth ? '#15803d' : '#475569',
-                            fontSize: '0.72rem',
+                            fontSize: '0.68rem',
                             fontWeight: 700,
                             cursor: 'pointer'
                           }}
@@ -598,60 +598,60 @@ export const AlertMatrixView: React.FC<AlertMatrixViewProps> = ({
                       </td>
 
                       {/* Active Channels Badge */}
-                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                      <td style={{ padding: '4px 10px', textAlign: 'center' }}>
                         {isBoth && (
                           <span style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            padding: '4px 9px',
-                            borderRadius: '5px',
+                            gap: '3px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
                             background: '#dcfce7',
                             color: '#15803d',
-                            fontSize: '0.72rem',
+                            fontSize: '0.67rem',
                             fontWeight: 700,
                             border: '1px solid #86efac'
                           }}>
-                            <Mail size={12} /> + <Smartphone size={12} /> Both Active
+                            <Mail size={11} /> + <Smartphone size={11} /> Both Active
                           </span>
                         )}
                         {isEmailOnly && (
                           <span style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            padding: '4px 9px',
-                            borderRadius: '5px',
+                            gap: '3px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
                             background: '#e0f2fe',
                             color: '#0369a1',
-                            fontSize: '0.72rem',
+                            fontSize: '0.67rem',
                             fontWeight: 700,
                             border: '1px solid #bae6fd'
                           }}>
-                            <Mail size={12} /> Email Only
+                            <Mail size={11} /> Email Only
                           </span>
                         )}
                         {isSmsOnly && (
                           <span style={{
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '4px',
-                            padding: '4px 9px',
-                            borderRadius: '5px',
+                            gap: '3px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
                             background: '#f3e8ff',
                             color: '#7e22ce',
-                            fontSize: '0.72rem',
+                            fontSize: '0.67rem',
                             fontWeight: 700,
                             border: '1px solid #ddd6fe'
                           }}>
-                            <Smartphone size={12} /> SMS Only
+                            <Smartphone size={11} /> SMS Only
                           </span>
                         )}
                         {isNone && (
                           <span style={{
                             display: 'inline-block',
-                            padding: '4px 9px',
-                            borderRadius: '5px',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
                             background: '#f1f5f9',
                             color: '#94a3b8',
                             fontSize: '0.72rem',
