@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Server,
   Search,
@@ -14,7 +14,9 @@ import {
   Wifi,
   Clock,
   Trophy,
-  ArrowUpRight
+  ArrowUpRight,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import {
   AreaChart,
@@ -63,6 +65,50 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [diskSearch, setDiskSearch] = useState('');
   const [modalDevice, setModalDevice] = useState<Device | null>(null);
   const [leaderboardTab, setLeaderboardTab] = useState<'cpu' | 'latency' | 'bandwidth' | 'uptime' | 'memory'>('cpu');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullScreen = () => {
+    if (!isFullScreen) {
+      setIsFullScreen(true);
+      try {
+        const el = dashboardRef.current || document.documentElement;
+        if (el && el.requestFullscreen) {
+          el.requestFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+    } else {
+      setIsFullScreen(false);
+      try {
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      } catch (e) {}
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullScreen) {
+        setIsFullScreen(false);
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      }
+    };
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isFullScreen) {
+        setIsFullScreen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [isFullScreen]);
 
   const isDark = themeMode === 'dark';
 
@@ -481,13 +527,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '16px',
-      color: theme.textMain,
-      transition: 'all 0.2s ease'
-    }}>
+    <div
+      ref={dashboardRef}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        color: theme.textMain,
+        transition: 'all 0.2s ease',
+        ...(isFullScreen ? {
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99999,
+          backgroundColor: themeMode === 'dark' ? '#0b1120' : '#f8fafc',
+          padding: '16px 24px',
+          overflowY: 'auto',
+          height: '100vh',
+          maxHeight: '100vh'
+        } : {})
+      }}
+    >
       {/* Top Enterprise Dark NOC Control Header */}
       <div style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
@@ -500,7 +559,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         justifyContent: 'space-between',
         gap: '14px',
         color: '#ffffff',
-        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
+        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+        position: isFullScreen ? 'sticky' : 'relative',
+        top: isFullScreen ? '0px' : undefined,
+        zIndex: 50
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
@@ -616,6 +678,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           >
             {isDark ? <Sun size={13} color="#f59e0b" /> : <Moon size={13} color="#6366f1" />}
             <span>{isDark ? 'Light' : 'NOC Dark'}</span>
+          </button>
+
+          {/* Full Screen NOC Command Center Mode Toggle */}
+          <button
+            onClick={toggleFullScreen}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              background: isFullScreen ? '#0284c7' : '#1e293b',
+              border: `1px solid ${isFullScreen ? '#38bdf8' : '#334155'}`,
+              color: '#f8fafc',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: isFullScreen ? '0 0 12px rgba(56, 189, 248, 0.45)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            title={isFullScreen ? "Exit Fullscreen Mode (Esc)" : "Expand Server Overview to Full Screen NOC Command Display"}
+          >
+            {isFullScreen ? <Minimize2 size={13} color="#ffffff" /> : <Maximize2 size={13} color="#38bdf8" />}
+            <span>{isFullScreen ? 'Exit Full Screen' : 'Full Screen'}</span>
           </button>
         </div>
       </div>

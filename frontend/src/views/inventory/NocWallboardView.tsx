@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Tv, 
   Play, 
   Pause, 
   QrCode, 
-  Link2
+  Link2,
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -34,6 +36,50 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
   const [showQrModal, setShowQrModal] = useState(false);
   const [floorPlanData, setFloorPlanData] = useState<any>(null);
   const [selectedRackId, setSelectedRackId] = useState<string>('RACK-A01');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const wallboardRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullScreen = () => {
+    if (!isFullScreen) {
+      setIsFullScreen(true);
+      try {
+        const el = wallboardRef.current || document.documentElement;
+        if (el && el.requestFullscreen) {
+          el.requestFullscreen().catch(() => {});
+        }
+      } catch (e) {}
+    } else {
+      setIsFullScreen(false);
+      try {
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      } catch (e) {}
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullScreen) {
+        setIsFullScreen(false);
+        if (document.fullscreenElement) {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      }
+    };
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement && isFullScreen) {
+        setIsFullScreen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, [isFullScreen]);
 
   useEffect(() => {
     fetch('http://127.0.0.1:8081/api/v1/wallboard/floor-plan')
@@ -90,7 +136,25 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div
+      ref={wallboardRef}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px',
+        transition: 'all 0.2s ease',
+        ...(isFullScreen ? {
+          position: 'fixed',
+          inset: 0,
+          zIndex: 99999,
+          backgroundColor: '#0b1120',
+          padding: '16px 24px',
+          overflowY: 'auto',
+          height: '100vh',
+          maxHeight: '100vh'
+        } : {})
+      }}
+    >
       {/* Top Controls Bar */}
       <div style={{
         background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
@@ -185,6 +249,30 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
           >
             <QrCode size={13} />
             <span>Rack QR Generator</span>
+          </button>
+
+          {/* Full Screen Mode Toggle */}
+          <button
+            onClick={toggleFullScreen}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: isFullScreen ? '#0284c7' : '#1e293b',
+              border: `1px solid ${isFullScreen ? '#38bdf8' : '#334155'}`,
+              color: '#ffffff',
+              borderRadius: '6px',
+              padding: '6px 12px',
+              fontSize: '0.74rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              boxShadow: isFullScreen ? '0 0 12px rgba(56, 189, 248, 0.45)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+            title={isFullScreen ? "Exit Fullscreen Mode (Esc)" : "Expand NOC Wallboard to Full Screen"}
+          >
+            {isFullScreen ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+            <span>{isFullScreen ? 'Exit Full Screen' : 'Full Screen'}</span>
           </button>
 
           <ExportButtons data={devices} filenamePrefix="vnms_noc_wallboard" title="NOC Wallboard" />
