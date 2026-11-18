@@ -252,6 +252,16 @@ func RunAutoMigrations() error {
 	  AND hostname NOT ILIKE 'desktop-%'
 	  AND hostname NOT ILIKE 'laptop-%'
 	  AND device_type != 'server';
+
+	-- Self-healing: Ensure D-Link managed switch is properly typed as switch
+	UPDATE devices
+	SET hostname = 'dlink-sw-31',
+	    device_type = 'switch',
+	    vendor = 'D-Link',
+	    hardware = 'D-Link DGS-1210-10/ME Gigabit Switch',
+	    os = 'D-Link Managed Switch OS'
+	WHERE (ip_address = '172.168.1.31' OR hostname ILIKE '%dlink%')
+	  AND device_type != 'switch';
 	`
 
 	_, err := Pool.Exec(ctx, schemaSQL)
