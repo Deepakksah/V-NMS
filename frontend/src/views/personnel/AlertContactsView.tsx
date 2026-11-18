@@ -26,8 +26,8 @@ interface AlertContactsViewProps {
 
 export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
   onNavigateToMatrix,
-  apiBase = typeof window !== 'undefined' && window.location.port === '5173' 
-    ? 'http://127.0.0.1:8081/api/v1' 
+  apiBase = typeof window !== 'undefined' && window.location.port === '5173'
+    ? 'http://127.0.0.1:8081/api/v1'
     : '/api/v1'
 }) => {
   const toast = useToast();

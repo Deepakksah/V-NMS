@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Network, 
-  Search, 
-  Binary, 
-  ShieldAlert, 
-  Radio, 
-  ArrowDownRight, 
+import {
+  Network,
+  Search,
+  Binary,
+  ShieldAlert,
+  Radio,
+  ArrowDownRight,
   ArrowUpRight
 } from 'lucide-react';
 import type { Device } from '../../types';
@@ -77,7 +77,7 @@ export const PortsView: React.FC<PortsViewProps> = ({ devices = [] }) => {
     }));
   }, [devices]);
 
-  const filteredPorts = livePorts.filter(p => 
+  const filteredPorts = livePorts.filter(p =>
     p.ifName.toLowerCase().includes(search.toLowerCase()) ||
     p.ifAlias.toLowerCase().includes(search.toLowerCase()) ||
     p.deviceHostname.toLowerCase().includes(search.toLowerCase())
@@ -193,8 +193,8 @@ export const PortsView: React.FC<PortsViewProps> = ({ devices = [] }) => {
               width: '320px'
             }}>
               <Search size={16} color="#64748b" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search interface name, alias or device..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}

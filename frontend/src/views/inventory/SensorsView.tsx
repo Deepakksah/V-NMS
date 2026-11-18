@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { 
   Thermometer, 
@@ -8,7 +8,10 @@ import {
   TrendingUp, 
   CheckCircle2, 
   AlertTriangle,
-  Server
+  Server,
+  Search,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { 
   MOCK_SENSORS, 
@@ -27,6 +30,9 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   const [storageData, setStorageData] = useState<any[]>(MOCK_STORAGE);
   const [diskData, setDiskData] = useState<any[]>(MOCK_DISK_IO);
   const [isLive, setIsLive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'grouped' | 'flat'>('grouped');
+  const [collapsedServers, setCollapsedServers] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchStorageAndDisks = async () => {
@@ -40,6 +46,8 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
           const mapped = resStorage.value.data.storage.map((s: any) => ({
             id: s.id,
             deviceId: s.device_id,
+            rawHostname: s.device_hostname,
+            ipAddress: s.ip_address,
             deviceHostname: `${s.device_hostname} (${s.ip_address})`,
             mountPoint: `${s.mount_point} (${s.volume_label})`,
             fileSystem: s.file_system,
@@ -76,6 +84,107 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
 
     fetchStorageAndDisks();
   }, [apiBase]);
+
+  // Group storage records by Server so server name appears ONCE with all its drives underneath
+  const groupedStorage = useMemo(() => {
+    const groups: { [key: string]: {
+      key: string;
+      deviceId?: number;
+      rawHostname: string;
+      ipAddress: string;
+      deviceHostname: string;
+      isLinux: boolean;
+      totalCapacityGb: number;
+      totalUsedGb: number;
+      overallPercent: number;
+      volumes: any[];
+    } } = {};
+
+    storageData.forEach(item => {
+      let rawHost = item.rawHostname || '';
+      let ip = item.ipAddress || '';
+
+      if (!rawHost || !ip) {
+        const full = item.deviceHostname || '';
+        const match = full.match(/\((.*?)\)/);
+        if (match) {
+          ip = match[1];
+          rawHost = full.replace(/\(.*?\)/, '').trim();
+        } else {
+          rawHost = full.trim();
+        }
+      }
+
+      const key = item.deviceId ? `dev-${item.deviceId}` : rawHost;
+      if (!groups[key]) {
+        const isLinux = rawHost.toLowerCase().includes('linux') || 
+                        item.fileSystem === 'ext4' || 
+                        item.fileSystem === 'xfs' ||
+                        (item.mountPoint && String(item.mountPoint).startsWith('/'));
+
+        groups[key] = {
+          key,
+          deviceId: item.deviceId,
+          rawHostname: rawHost,
+          ipAddress: ip,
+          deviceHostname: item.deviceHostname,
+          isLinux,
+          totalCapacityGb: 0,
+          totalUsedGb: 0,
+          overallPercent: 0,
+          volumes: []
+        };
+      }
+
+      groups[key].volumes.push(item);
+      groups[key].totalCapacityGb += (Number(item.totalGb) || 0);
+      groups[key].totalUsedGb += (Number(item.usedGb) || 0);
+    });
+
+    return Object.values(groups).map(g => ({
+      ...g,
+      overallPercent: g.totalCapacityGb > 0 ? Math.round((g.totalUsedGb / g.totalCapacityGb) * 100) : 0
+    }));
+  }, [storageData]);
+
+  // Filter groups by search query
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return groupedStorage;
+    const q = searchQuery.toLowerCase();
+    return groupedStorage.filter(g => 
+      g.rawHostname.toLowerCase().includes(q) ||
+      g.ipAddress.toLowerCase().includes(q) ||
+      g.volumes.some(v => 
+        (v.mountPoint || '').toLowerCase().includes(q) || 
+        (v.fileSystem || '').toLowerCase().includes(q)
+      )
+    );
+  }, [groupedStorage, searchQuery]);
+
+  // Filter flat list for flat mode
+  const filteredFlatStorage = useMemo(() => {
+    if (!searchQuery.trim()) return storageData;
+    const q = searchQuery.toLowerCase();
+    return storageData.filter(st => 
+      (st.deviceHostname || '').toLowerCase().includes(q) ||
+      (st.mountPoint || '').toLowerCase().includes(q) ||
+      (st.fileSystem || '').toLowerCase().includes(q)
+    );
+  }, [storageData, searchQuery]);
+
+  const toggleServerExpand = (key: string) => {
+    setCollapsedServers(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const expandAll = () => setCollapsedServers({});
+  const collapseAll = () => {
+    const allCollapsed: { [key: string]: boolean } = {};
+    groupedStorage.forEach(g => { allCollapsed[g.key] = true; });
+    setCollapsedServers(allCollapsed);
+  };
 
   const formatBytes = (bytes: number) => {
     const gb = bytes / (1024 * 1024 * 1024);
@@ -147,96 +256,368 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
 
       {/* 1. Storage & Partitions View */}
       {subTab === 'storage' && (
-        <div className="glass-panel" style={{ padding: '24px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
             <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
                 Filesystem Mount Points &amp; Logical Disk Partitions
               </h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '3px 0 0 0' }}>
-                Real-time storage capacities across all monitored enterprise Windows &amp; Linux servers
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '3px 0 0 0' }}>
+                Real-time storage capacities grouped by enterprise Windows &amp; Linux servers
               </p>
             </div>
-            <span style={{ fontSize: '0.74rem', padding: '3px 10px', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '6px', fontWeight: 600 }}>
-              ✔ All Volumes Healthy
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.72rem', padding: '2px 8px', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '6px', fontWeight: 600 }}>
+                ✔ All Volumes Healthy
+              </span>
+              <span style={{ fontSize: '0.72rem', padding: '2px 8px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: '6px', fontWeight: 700 }}>
+                {filteredGroups.length} Servers Monitored
+              </span>
+            </div>
           </div>
 
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '6px 10px' }}>SERVER / HOST</th>
-                <th style={{ padding: '6px 10px' }}>MOUNT / DRIVE</th>
-                <th style={{ padding: '6px 10px' }}>FS TYPE</th>
-                <th style={{ padding: '6px 10px' }}>USED / TOTAL</th>
-                <th style={{ padding: '6px 10px' }}>UTILIZATION</th>
-                <th style={{ padding: '6px 10px' }}>STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {storageData.map(st => {
-                const percent = Math.round(st.percentUsed);
-                const isWarning = percent >= 80;
-                const isCritical = percent >= 90;
-                return (
-                  <tr key={st.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, color: '#1e293b' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Server size={13} color="#0284c7" />
-                        <span>{st.deviceHostname}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
-                      {st.mountPoint}
-                    </td>
-                    <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#64748b' }}>
-                      <span style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
-                        {st.fileSystem}
-                      </span>
-                    </td>
-                    <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155', fontWeight: 500 }}>
-                      {st.usedGb} GB / {st.totalGb} GB
-                    </td>
-                    <td style={{ padding: '4px 10px', width: '200px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
-                          <div style={{ 
-                            width: `${percent}%`, 
-                            height: '100%', 
-                            background: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#16a34a' 
-                          }} />
-                        </div>
-                        <span style={{ 
-                          fontSize: '0.70rem', 
-                          fontWeight: 700, 
-                          color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a', 
-                          width: '36px' 
-                        }}>
-                          {percent}%
-                        </span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '4px 10px' }}>
-                      <span style={{ 
-                        fontSize: '0.68rem', 
-                        padding: '1.5px 6px', 
-                        borderRadius: '4px', 
-                        background: '#f0fdf4', 
-                        color: '#16a34a', 
-                        fontWeight: 700, 
-                        display: 'inline-flex', 
-                        alignItems: 'center', 
-                        gap: '3px' 
-                      }}>
-                        <CheckCircle2 size={11} />
-                        Healthy
-                      </span>
-                    </td>
+          {/* Controls: Search, Expand All, and View Mode Toggle */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+            {/* Search Box */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: '#f8fafc',
+              border: '1px solid #cbd5e1',
+              borderRadius: '6px',
+              padding: '4px 10px',
+              width: '320px'
+            }}>
+              <Search size={14} color="#64748b" />
+              <input
+                type="text"
+                placeholder="Search server name, IP, mount, or FS..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  outline: 'none',
+                  fontSize: '0.74rem',
+                  color: '#0f172a',
+                  width: '100%'
+                }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{ border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: '0.75rem', padding: 0 }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Quick Actions & View Mode Toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {viewMode === 'grouped' && (
+                <>
+                  <button
+                    onClick={expandAll}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      color: '#475569',
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Expand All
+                  </button>
+                  <button
+                    onClick={collapseAll}
+                    style={{
+                      padding: '3px 8px',
+                      borderRadius: '4px',
+                      background: '#ffffff',
+                      border: '1px solid #cbd5e1',
+                      color: '#475569',
+                      fontSize: '0.68rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Collapse All
+                  </button>
+                </>
+              )}
+
+              {/* View Toggle */}
+              <div style={{ display: 'inline-flex', background: '#f1f5f9', borderRadius: '6px', padding: '2px', border: '1px solid #e2e8f0' }}>
+                <button
+                  onClick={() => setViewMode('grouped')}
+                  style={{
+                    padding: '3px 9px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: viewMode === 'grouped' ? '#ffffff' : 'transparent',
+                    color: viewMode === 'grouped' ? '#0284c7' : '#64748b',
+                    fontWeight: viewMode === 'grouped' ? 700 : 500,
+                    fontSize: '0.68rem',
+                    cursor: 'pointer',
+                    boxShadow: viewMode === 'grouped' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none'
+                  }}
+                >
+                  🏢 Grouped by Server
+                </button>
+                <button
+                  onClick={() => setViewMode('flat')}
+                  style={{
+                    padding: '3px 9px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: viewMode === 'flat' ? '#ffffff' : 'transparent',
+                    color: viewMode === 'flat' ? '#0284c7' : '#64748b',
+                    fontWeight: viewMode === 'flat' ? 700 : 500,
+                    fontSize: '0.68rem',
+                    cursor: 'pointer',
+                    boxShadow: viewMode === 'flat' ? '0 1px 2px rgba(0,0,0,0.06)' : 'none'
+                  }}
+                >
+                  📋 Flat Table
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Grouped by Server View */}
+          {viewMode === 'grouped' ? (
+            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <th style={{ padding: '6px 10px 6px 34px' }}>MOUNT POINT / LOGICAL DRIVE</th>
+                    <th style={{ padding: '6px 10px' }}>FS TYPE</th>
+                    <th style={{ padding: '6px 10px' }}>USED / TOTAL CAPACITY</th>
+                    <th style={{ padding: '6px 10px' }}>UTILIZATION</th>
+                    <th style={{ padding: '6px 10px' }}>FREE SPACE</th>
+                    <th style={{ padding: '6px 10px' }}>STATUS</th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {filteredGroups.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem' }}>
+                        No servers match "{searchQuery}"
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredGroups.map(group => {
+                      const isCollapsed = collapsedServers[group.key];
+                      return (
+                        <React.Fragment key={group.key}>
+                          {/* Server Banner Header Row (Server Name Shown Once) */}
+                          <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+                            <td colSpan={6} style={{ padding: '6px 10px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <button
+                                    onClick={() => toggleServerExpand(group.key)}
+                                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '1px', display: 'flex', alignItems: 'center', color: '#64748b' }}
+                                    title={isCollapsed ? 'Expand Server Volumes' : 'Collapse Server Volumes'}
+                                  >
+                                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                                  </button>
+                                  <Server size={14} color="#0284c7" />
+                                  <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#0f172a' }}>
+                                    {group.rawHostname}
+                                  </span>
+                                  {group.ipAddress && (
+                                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.70rem', color: '#0284c7', background: '#e0f2fe', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                                      {group.ipAddress}
+                                    </span>
+                                  )}
+                                  <span style={{
+                                    fontSize: '0.65rem',
+                                    padding: '1px 6px',
+                                    borderRadius: '4px',
+                                    background: group.isLinux ? '#fef3c7' : '#e0e7ff',
+                                    color: group.isLinux ? '#b45309' : '#3730a3',
+                                    fontWeight: 700
+                                  }}>
+                                    {group.isLinux ? 'Enterprise Linux' : 'Windows Server'}
+                                  </span>
+                                  <span style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>
+                                    • {group.volumes.length} {group.volumes.length === 1 ? 'Volume' : 'Volumes'}
+                                  </span>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '0.70rem' }}>
+                                  <span style={{ color: '#64748b' }}>
+                                    Total: <strong style={{ color: '#0f172a' }}>{group.totalCapacityGb.toFixed(0)} GB</strong>
+                                  </span>
+                                  <span style={{ color: '#64748b' }}>
+                                    Used: <strong style={{ color: group.overallPercent > 80 ? '#dc2626' : group.overallPercent > 60 ? '#d97706' : '#16a34a' }}>
+                                      {group.totalUsedGb.toFixed(1)} GB ({group.overallPercent}%)
+                                    </strong>
+                                  </span>
+                                  <span style={{ color: '#16a34a', fontWeight: 700 }}>
+                                    {(group.totalCapacityGb - group.totalUsedGb).toFixed(1)} GB Free
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+
+                          {/* Related Volumes / Partitions belonging to this Server */}
+                          {!isCollapsed && group.volumes.map(st => {
+                            const percent = Math.round(st.percentUsed);
+                            const isWarning = percent >= 80;
+                            const isCritical = percent >= 90;
+                            const freeGb = st.freeGb ?? (st.totalGb - st.usedGb);
+                            return (
+                              <tr key={st.id} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
+                                <td style={{ padding: '4px 10px 4px 34px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <HardDrive size={12} color="#0284c7" />
+                                    <span>{st.mountPoint}</span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#64748b' }}>
+                                  <span style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
+                                    {st.fileSystem}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155', fontWeight: 500 }}>
+                                  {st.usedGb} GB / {st.totalGb} GB
+                                </td>
+                                <td style={{ padding: '4px 10px', width: '200px' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
+                                      <div style={{ 
+                                        width: `${percent}%`, 
+                                        height: '100%', 
+                                        background: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#16a34a' 
+                                      }} />
+                                    </div>
+                                    <span style={{ 
+                                      fontSize: '0.70rem', 
+                                      fontWeight: 700, 
+                                      color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a', 
+                                      width: '36px' 
+                                    }}>
+                                      {percent}%
+                                    </span>
+                                  </div>
+                                </td>
+                                <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#16a34a', fontWeight: 600 }}>
+                                  {Number(freeGb).toFixed(1)} GB Free
+                                </td>
+                                <td style={{ padding: '4px 10px' }}>
+                                  <span style={{ 
+                                    fontSize: '0.68rem', 
+                                    padding: '1.5px 6px', 
+                                    borderRadius: '4px', 
+                                    background: '#f0fdf4', 
+                                    color: '#16a34a', 
+                                    fontWeight: 700, 
+                                    display: 'inline-flex', 
+                                    alignItems: 'center', 
+                                    gap: '3px' 
+                                  }}>
+                                    <CheckCircle2 size={11} />
+                                    Healthy
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </React.Fragment>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            /* Flat Table View */
+            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    <th style={{ padding: '6px 10px' }}>SERVER / HOST</th>
+                    <th style={{ padding: '6px 10px' }}>MOUNT / DRIVE</th>
+                    <th style={{ padding: '6px 10px' }}>FS TYPE</th>
+                    <th style={{ padding: '6px 10px' }}>USED / TOTAL</th>
+                    <th style={{ padding: '6px 10px' }}>UTILIZATION</th>
+                    <th style={{ padding: '6px 10px' }}>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredFlatStorage.map(st => {
+                    const percent = Math.round(st.percentUsed);
+                    const isWarning = percent >= 80;
+                    const isCritical = percent >= 90;
+                    return (
+                      <tr key={st.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, color: '#1e293b' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Server size={13} color="#0284c7" />
+                            <span>{st.deviceHostname}</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '4px 10px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
+                          {st.mountPoint}
+                        </td>
+                        <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#64748b' }}>
+                          <span style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
+                            {st.fileSystem}
+                          </span>
+                        </td>
+                        <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155', fontWeight: 500 }}>
+                          {st.usedGb} GB / {st.totalGb} GB
+                        </td>
+                        <td style={{ padding: '4px 10px', width: '200px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
+                              <div style={{ 
+                                width: `${percent}%`, 
+                                height: '100%', 
+                                background: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#16a34a' 
+                              }} />
+                            </div>
+                            <span style={{ 
+                              fontSize: '0.70rem', 
+                              fontWeight: 700, 
+                              color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a', 
+                              width: '36px' 
+                            }}>
+                              {percent}%
+                            </span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '4px 10px' }}>
+                          <span style={{ 
+                            fontSize: '0.68rem', 
+                            padding: '1.5px 6px', 
+                            borderRadius: '4px', 
+                            background: '#f0fdf4', 
+                            color: '#16a34a', 
+                            fontWeight: 700, 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '3px' 
+                          }}>
+                            <CheckCircle2 size={11} />
+                            Healthy
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
