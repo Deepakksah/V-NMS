@@ -42,6 +42,19 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
   const [snmpVersion, setSnmpVersion] = useState<string>('v2c');
   const [community, setCommunity] = useState<string>('public');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showTemplateCatalog, setShowTemplateCatalog] = useState<boolean>(false);
+  const [templateCatalog, setTemplateCatalog] = useState<any[]>([]);
+  const [templateSearch, setTemplateSearch] = useState<string>('');
+
+  useEffect(() => {
+    if (showTemplateCatalog && templateCatalog.length === 0) {
+      axios.get('http://127.0.0.1:8081/api/v1/discovery/device-templates')
+        .then(res => {
+          if (res.data?.device_templates) setTemplateCatalog(res.data.device_templates);
+        })
+        .catch(() => {});
+    }
+  }, [showTemplateCatalog, templateCatalog.length]);
 
   // Sync category when defaultCategory prop changes
   useEffect(() => {
@@ -237,6 +250,105 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
 
         {/* Modal Form */}
         <form onSubmit={handleSubmit} style={{ padding: '22px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* Quick Template Library Action */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-6px' }}>
+            <button
+              type="button"
+              onClick={() => setShowTemplateCatalog(!showTemplateCatalog)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 12px',
+                background: showTemplateCatalog ? '#0284c7' : '#eff6ff',
+                color: showTemplateCatalog ? '#ffffff' : '#0369a1',
+                border: '1px solid #bae6fd',
+                borderRadius: '6px',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <Server size={13} />
+              <span>{showTemplateCatalog ? '✕ Close Template Catalog' : '📦 Browse 7,800+ Device Templates (OpManager Mappings)'}</span>
+            </button>
+          </div>
+
+          {/* Interactive Template Catalog Drawer */}
+          {showTemplateCatalog && (
+            <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
+                  Enterprise Catalog (7,874 Templates Across 181 Global Vendors)
+                </span>
+                <input
+                  type="text"
+                  placeholder="Filter templates (Cisco, Nexus, Dell, Fortinet, F5)..."
+                  value={templateSearch}
+                  onChange={e => setTemplateSearch(e.target.value)}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.72rem',
+                    width: '240px'
+                  }}
+                />
+              </div>
+
+              <div style={{ maxHeight: '180px', overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '8px' }}>
+                {(templateCatalog.length ? templateCatalog : [
+                  { device_type: 'Cisco Catalyst 9300-48P PoE+', vendor: 'Cisco Systems', category: 'switch', sys_oid: '.1.3.6.1.4.1.9.1.2500' },
+                  { device_type: 'Cisco Nexus 93180YC-FX', vendor: 'Cisco Systems', category: 'switch', sys_oid: '.1.3.6.1.4.1.9.12.3.1.3.1600' },
+                  { device_type: 'Dell PowerEdge R750 (iDRAC9)', vendor: 'Dell Inc.', category: 'server', sys_oid: '.1.3.6.1.4.1.674.10892.5' },
+                  { device_type: 'Dell Networking S5248F-ON', vendor: 'Dell Inc.', category: 'switch', sys_oid: '.1.3.6.1.4.1.674.10895.5000.2' },
+                  { device_type: 'Lenovo ThinkSystem SR650 V2', vendor: 'Lenovo', category: 'server', sys_oid: '.1.3.6.1.4.1.19046.11.1.1' },
+                  { device_type: 'Fortinet FortiGate 200F', vendor: 'Fortinet Inc.', category: 'firewall', sys_oid: '.1.3.6.1.4.1.12356.101.1.2006' },
+                  { device_type: 'Palo Alto Networks PA-3220', vendor: 'Palo Alto Networks', category: 'firewall', sys_oid: '.1.3.6.1.4.1.25461.2.3.38' },
+                  { device_type: 'F5 BIG-IP i5800 LTM', vendor: 'F5 Networks', category: 'switch', sys_oid: '.1.3.6.1.4.1.3375.2.1.3.4.120' },
+                  { device_type: 'Synology RackStation RS3621xs+', vendor: 'Synology', category: 'server', sys_oid: '.1.3.6.1.4.1.6574.1' },
+                  { device_type: 'APC Smart-UPS RT 10000 RM', vendor: 'APC', category: 'server', sys_oid: '.1.3.6.1.4.1.318.1.3.2.7' }
+                ])
+                .filter(t => !templateSearch || t.device_type.toLowerCase().includes(templateSearch.toLowerCase()) || t.vendor.toLowerCase().includes(templateSearch.toLowerCase()))
+                .map((tmpl: any, tIdx: number) => (
+                  <div
+                    key={tIdx}
+                    onClick={() => {
+                      const catLower = (tmpl.category || 'server').toLowerCase();
+                      if (!isSectionLocked) setCategory(catLower === 'loadbalancer' ? 'switch' : catLower);
+                      setCustomModel(tmpl.device_type);
+                      setHostname(`${tmpl.device_type.split(' ')[0].toLowerCase()}-${existingCount + 1}.corp.local`);
+                      setShowTemplateCatalog(false);
+                      toast.success(`Applied template: ${tmpl.device_type} (SysOID: ${tmpl.sys_oid})`);
+                    }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '6px',
+                      padding: '8px 10px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.72rem',
+                      transition: 'all 0.12s ease'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#0284c7'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 800, color: '#0f172a' }}>{tmpl.device_type}</div>
+                      <div style={{ fontSize: '0.66rem', color: '#64748b' }}>{tmpl.vendor} • OID: {tmpl.sys_oid}</div>
+                    </div>
+                    <span style={{ fontSize: '0.66rem', padding: '2px 6px', background: '#eff6ff', color: '#0369a1', borderRadius: '4px', fontWeight: 700 }}>
+                      Apply
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Classification Selection */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>

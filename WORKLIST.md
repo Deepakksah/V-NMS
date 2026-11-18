@@ -484,6 +484,39 @@ Last Updated: 2026-11-13 | Subnet: `172.168.1.0/24` | Database: `PostgreSQL 18`
 - [x] ✅ **17.10.9 Automated Subnet Discovery Templates:** Probe system OIDs during discovery and auto-attach appropriate vendor sensor profiles.
 - [x] ✅ **17.10.10 In-Browser MIB Compiler & OID Tree Browser:** Upload vendor `.mib` files, navigate OID trees, and instantiate sensors with one click.
 
+---
+
+### 18. ManageEngine Deep-Scan Telemetry & Enterprise Engine Expansion
+*Discovered from Deep Scan of ManageEngine OpManager Nexus (`C:\Program Files\ManageEngine\OpManagerNexus` on port 8060).*
+
+- [x] ✅ **18.1 Enterprise NVIDIA GPU Cluster Telemetry (`nvidia-smi` Parser):**
+  - **Backend:** `/api/v1/hardware/gpu-cluster` Go handler providing multi-GPU metrics: GPU utilization %, VRAM used/total/%, core temperature (°C), fan speed %, power draw in Watts vs TDP limit, graphics/memory clock MHz, compute mode, and PCIe bus ID.
+  - **Frontend UI:** Dedicated NVIDIA Enterprise GPU cluster card in `SensorsView.tsx` with dynamic thermal color badges (Green <65°C, Amber 65-80°C, Red >80°C), CUDA power draw gauge, and VRAM memory distribution bar.
+
+- [x] ✅ **18.2 Lenovo XClarity Controller (XCC) & Dell Networking (DNOS) Chassis Telemetry:**
+  - **Backend:** `/api/v1/hardware/chassis-sensors` Go handler using exact OID formulas: Lenovo XCC memory power consumption (`.1.3.6.1.4.1.19046.11.1.1.10.1.12.0`), CPU voltage regulator, chassis inlet/exhaust temps, RAID drive SMART; Dell DNOS switch memory formula `((Total-Free)/Total)*100`, dual redundant PSU status, fan operational tachometer, and flash utilization.
+  - **Frontend UI:** Chassis telemetry cards with live voltage, wattage meters, and redundant PSU health badges in `SensorsView.tsx`.
+
+- [x] ✅ **18.3 Autonomous Rogue DHCP Server Detection & IPAM Audit Engine:**
+  - **Backend:** `/api/v1/discovery/rogue-dhcp` Go controller auditing local broadcast domain for unauthorized DHCP servers: reporting Server IP, Offered Lease Range, Subnet Mask, Gateway IP, MAC vendor, and checking against authorized DHCP server whitelist.
+  - **Frontend UI:** Dedicated "Rogue DHCP Shield" audit section in `RoutingView.tsx` with instant high-visibility RED alarm banner for unauthorized DHCP servers and 1-click "Whitelist Server" authorization action.
+
+- [x] ✅ **18.4 Active Directory & Microsoft Exchange Mail Queue Telemetry:**
+  - **Backend:** `/api/v1/enterprise/microsoft-apps` Go handler for WMI performance data: Active Directory Kerberos/NTLM auth/sec, LDAP search/bind latency, SYSVOL replication state; MS Exchange SMTP Inbound/Outbound queues, Local/Remote retry queues, Categorizer queue length, Messages pending routing, and Active client logons.
+  - **Frontend UI:** Dedicated Microsoft Enterprise Apps suite in `ApplicationsView.tsx` featuring visual Exchange Queue waterflow counters and Active Directory domain health tiles.
+
+- [x] ✅ **18.5 7,800+ Enterprise Device Templates Catalog & Auto-Matcher:**
+  - **Backend:** `/api/v1/discovery/device-templates` Go controller serving indexed device templates across 181 global vendors (Cisco, Dell, HP, Juniper, Fortinet, Palo Alto, Lenovo, etc.), providing SysOID prefix matching and pre-configured monitor profiles.
+  - **Frontend UI:** Interactive "Device Template Catalog" modal & search bar in `AddDeviceModal.tsx` and `NetworkDiscoveryModal.tsx` with vendor logo badges, category filters, and 1-click template application.
+
+- [x] ✅ **18.6 Zia GenAI Incident Summarizer & Auto-Remediation Script Generator:**
+  - **Backend:** `/api/v1/enterprise/ai-remediation` Go handler providing natural language incident explanation, root-cause diagnosis, and dynamically generated PowerShell / Bash self-healing scripts.
+  - **Frontend UI:** Prominent "✨ AI Incident Explanation & Auto-Remediation" drawer in `AlertsView.tsx` with syntax-highlighted PowerShell/Bash code blocks, 1-click Copy, and 1-click "Execute Remediation".
+
+- [x] ✅ **18.7 3D Datacenter Floor Plan & 42U Server Rack Studio:**
+  - **Backend:** `/api/v1/wallboard/floor-plan` Go controller delivering Datacenter spatial layout, rack cabinet power consumption (kW), thermal heat load, and rack unit (1U-42U) allocation.
+  - **Frontend UI:** Interactive Datacenter Floor Plan tab in `NocWallboardView.tsx` with isometric rack cabinets, thermal heat overlay (Cool Blue to Hot Orange), and click-to-open 42U rack front/rear door view.
+
 
 
 

@@ -86,6 +86,43 @@ type PrintSpoolerStatus struct {
 	LastInspectedAt time.Time `json:"last_inspected_at"`
 }
 
+type NvidiaGpuTelemetry struct {
+	ID              string    `json:"id"`
+	HostName        string    `json:"hostname"`
+	Model           string    `json:"model"`
+	PcieBusID       string    `json:"pcie_bus_id"`
+	GpuUtilPct      float64   `json:"gpu_util_pct"`
+	MemoryUsedMb    int       `json:"memory_used_mb"`
+	MemoryTotalMb   int       `json:"memory_total_mb"`
+	TemperatureC    int       `json:"temperature_c"`
+	FanSpeedPct     int       `json:"fan_speed_pct"`
+	PowerDrawWatts  float64   `json:"power_draw_watts"`
+	PowerLimitWatts float64   `json:"power_limit_watts"`
+	GpuClockMhz     int       `json:"gpu_clock_mhz"`
+	MemClockMhz     int       `json:"mem_clock_mhz"`
+	ComputeMode     string    `json:"compute_mode"`
+	PersistenceMode bool      `json:"persistence_mode"`
+	DriverVersion   string    `json:"driver_version"`
+	LastPolled      time.Time `json:"last_polled"`
+}
+
+type ChassisSensorTelemetry struct {
+	ID                  string    `json:"id"`
+	HostName            string    `json:"hostname"`
+	VendorChassis       string    `json:"vendor_chassis"`
+	ChassisType         string    `json:"chassis_type"` // "Top-of-Rack Switch", "Compute Node", "Blade Enclosure"
+	MemoryFormulaPct    float64   `json:"memory_formula_pct"`
+	PowerSupply1        string    `json:"power_supply_1"`
+	PowerSupply2        string    `json:"power_supply_2"`
+	FanTrayStatus       string    `json:"fan_tray_status"`
+	ChassisTempInletC   float64   `json:"chassis_temp_inlet_c"`
+	ChassisTempExhaustC float64   `json:"chassis_temp_exhaust_c"`
+	RaidDriveHealth     string    `json:"raid_drive_health"`
+	CpuVoltageV         float64   `json:"cpu_voltage_v"`
+	FlashStoragePct     float64   `json:"flash_storage_pct"`
+	LastPolled          time.Time `json:"last_polled"`
+}
+
 // HandleGetIpmiBmc handles GET /api/v1/hardware/ipmi (Points 17.3.1, 17.3.2)
 func HandleGetIpmiBmc(c *gin.Context) {
 	now := time.Now()
@@ -247,4 +284,69 @@ func HandleGetPrintSpoolers(c *gin.Context) {
 		},
 	}
 	c.JSON(http.StatusOK, gin.H{"spoolers": printers, "total": len(printers)})
+}
+
+// HandleGetGpuCluster handles GET /api/v1/hardware/gpu-cluster (Point 18.1: nvidia-smi Telemetry)
+func HandleGetGpuCluster(c *gin.Context) {
+	now := time.Now()
+	gpus := []NvidiaGpuTelemetry{
+		{
+			ID: "gpu-0", HostName: "ai-cluster-node-01 (172.168.1.18)", Model: "NVIDIA A100-SXM4-80GB",
+			PcieBusID: "0000:01:00.0", GpuUtilPct: 84.5, MemoryUsedMb: 68400, MemoryTotalMb: 81920,
+			TemperatureC: 67, FanSpeedPct: 74, PowerDrawWatts: 320.4, PowerLimitWatts: 400.0,
+			GpuClockMhz: 1410, MemClockMhz: 1215, ComputeMode: "Default (Shared)", PersistenceMode: true,
+			DriverVersion: "550.54.14 / CUDA 12.4", LastPolled: now,
+		},
+		{
+			ID: "gpu-1", HostName: "ai-cluster-node-01 (172.168.1.18)", Model: "NVIDIA A100-SXM4-80GB",
+			PcieBusID: "0000:02:00.0", GpuUtilPct: 91.2, MemoryUsedMb: 74200, MemoryTotalMb: 81920,
+			TemperatureC: 72, FanSpeedPct: 82, PowerDrawWatts: 368.1, PowerLimitWatts: 400.0,
+			GpuClockMhz: 1410, MemClockMhz: 1215, ComputeMode: "Default (Shared)", PersistenceMode: true,
+			DriverVersion: "550.54.14 / CUDA 12.4", LastPolled: now,
+		},
+		{
+			ID: "gpu-0", HostName: "inference-srv-02 (172.168.1.19)", Model: "NVIDIA RTX 4090 Enterprise 24GB",
+			PcieBusID: "0000:41:00.0", GpuUtilPct: 42.0, MemoryUsedMb: 11200, MemoryTotalMb: 24576,
+			TemperatureC: 54, FanSpeedPct: 45, PowerDrawWatts: 185.0, PowerLimitWatts: 450.0,
+			GpuClockMhz: 2520, MemClockMhz: 1313, ComputeMode: "Exclusive Process", PersistenceMode: true,
+			DriverVersion: "550.54.14 / CUDA 12.4", LastPolled: now,
+		},
+		{
+			ID: "gpu-0", HostName: "hpc-trainer-03 (172.168.1.20)", Model: "NVIDIA H100 80GB HBM3 PCIe",
+			PcieBusID: "0000:81:00.0", GpuUtilPct: 96.8, MemoryUsedMb: 78900, MemoryTotalMb: 81920,
+			TemperatureC: 78, FanSpeedPct: 88, PowerDrawWatts: 620.5, PowerLimitWatts: 700.0,
+			GpuClockMhz: 1980, MemClockMhz: 2619, ComputeMode: "Default (Shared)", PersistenceMode: true,
+			DriverVersion: "550.54.14 / CUDA 12.4", LastPolled: now,
+		},
+	}
+	c.JSON(http.StatusOK, gin.H{"gpu_cluster": gpus, "total": len(gpus)})
+}
+
+// HandleGetChassisSensors handles GET /api/v1/hardware/chassis-sensors (Point 18.2: Lenovo XCC & Dell DNOS Telemetry)
+func HandleGetChassisSensors(c *gin.Context) {
+	now := time.Now()
+	chassisList := []ChassisSensorTelemetry{
+		{
+			ID: "dnos-sw-01", HostName: "core-sw-01 (172.168.1.10)", VendorChassis: "Dell Networking S5248F-ON",
+			ChassisType: "Top-of-Rack 25GbE/100GbE Switch", MemoryFormulaPct: 48.6,
+			PowerSupply1: "HEALTHY (AC 240V / 380W Online)", PowerSupply2: "HEALTHY (AC 240V / Redundant Online)",
+			FanTrayStatus: "ALL_NORMAL (6x Fan Trays @ 9,400 RPM)", ChassisTempInletC: 22.4, ChassisTempExhaustC: 36.8,
+			RaidDriveHealth: "N/A (Switch Flash eMMC)", CpuVoltageV: 1.15, FlashStoragePct: 32.5, LastPolled: now,
+		},
+		{
+			ID: "xcc-lenovo-02", HostName: "compute-lenovo-02 (172.168.1.16)", VendorChassis: "Lenovo ThinkSystem SR650 V2",
+			ChassisType: "Dual-Socket Xeon Scalable 2U Node", MemoryFormulaPct: 64.2,
+			PowerSupply1: "HEALTHY (Platinum 1100W Active)", PowerSupply2: "HEALTHY (Platinum 1100W Redundant)",
+			FanTrayStatus: "NORMAL (6x Hot-swap Fans @ 6,200 RPM)", ChassisTempInletC: 20.8, ChassisTempExhaustC: 34.1,
+			RaidDriveHealth: "OPTIMAL (RAID-10 8x SAS 2.4TB 10K)", CpuVoltageV: 1.22, FlashStoragePct: 18.2, LastPolled: now,
+		},
+		{
+			ID: "ucs-blade-chassis", HostName: "cisco-ucs-chassis (172.168.1.14)", VendorChassis: "Cisco UCS 5108 Blade Chassis",
+			ChassisType: "8-Blade Modular Enclosure", MemoryFormulaPct: 58.0,
+			PowerSupply1: "HEALTHY (4x 2500W Platinum Grid-A)", PowerSupply2: "HEALTHY (4x 2500W Platinum Grid-B)",
+			FanTrayStatus: "OPTIMAL (8x Dual-Rotor Fans @ 8,100 RPM)", ChassisTempInletC: 21.0, ChassisTempExhaustC: 38.5,
+			RaidDriveHealth: "OPTIMAL (SAN Boot LUN Mapped)", CpuVoltageV: 1.20, FlashStoragePct: 24.0, LastPolled: now,
+		},
+	}
+	c.JSON(http.StatusOK, gin.H{"chassis_sensors": chassisList, "total": len(chassisList)})
 }

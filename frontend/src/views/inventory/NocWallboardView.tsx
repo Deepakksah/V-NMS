@@ -29,9 +29,18 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
   const toast = useToast();
   const [carouselActive, setCarouselActive] = useState(false);
   const [carouselCountdown, setCarouselCountdown] = useState(30);
-  const [activeWallboardTab, setActiveWallboardTab] = useState<'gauges_rack' | 'sunburst' | 'comparator' | 'qrcodes'>('gauges_rack');
+  const [activeWallboardTab, setActiveWallboardTab] = useState<'gauges_rack' | 'sunburst' | 'comparator' | 'qrcodes' | 'floor_plan'>('gauges_rack');
   const [selectedMetricOverlay, setSelectedMetricOverlay] = useState<'cpu_vs_bandwidth' | 'latency_vs_loss'>('cpu_vs_bandwidth');
   const [showQrModal, setShowQrModal] = useState(false);
+  const [floorPlanData, setFloorPlanData] = useState<any>(null);
+  const [selectedRackId, setSelectedRackId] = useState<string>('RACK-A01');
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:8081/api/v1/wallboard/floor-plan')
+      .then(res => res.json())
+      .then(data => { if (data?.racks) setFloorPlanData(data); })
+      .catch(() => {});
+  }, []);
 
   // Auto-slideshow carousel countdown (Point 17.8.10)
   useEffect(() => {
@@ -182,9 +191,10 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
       </div>
 
       {/* Sub-View Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', flexWrap: 'wrap' }}>
         {[
           { id: 'gauges_rack', label: 'Speedometer Dials & 42U Rack (#71, #72, #74)' },
+          { id: 'floor_plan', label: '🏢 3D Datacenter Floor Plan & Rack Studio (#18.7)' },
           { id: 'sunburst', label: 'Concentric Sunburst Hierarchy (#73, #76)' },
           { id: 'comparator', label: 'Multi-Metric Timeline Comparator (#77)' }
         ].map(tab => (
@@ -463,6 +473,178 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
                 <Line type="monotone" dataKey="latency" name="RTT Latency (ms)" stroke="#16a34a" strokeWidth={2} dot={{ r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {/* 4. 3D Datacenter Floor Plan & 42U Server Rack Studio (Point 18.7) */}
+      {activeWallboardTab === 'floor_plan' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Datacenter Facility Header */}
+          <div style={{ background: '#0f172a', padding: '18px 24px', borderRadius: '12px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ background: '#2563eb', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 800 }}>
+                  3D DATACENTER SPATIAL MAPPING
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Ashburn DC-1 Facility • Suite 400</span>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '4px', color: '#f8fafc' }}>
+                Server Rack Thermal Heatmap &amp; Power Load Studio
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#cbd5e1', marginTop: '2px' }}>
+                Spatial isometric cabinet layout with real-time kW draw, hot-aisle containment, and 42U elevation slots
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>TOTAL FACILITY LOAD</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8' }}>
+                  {floorPlanData?.total_power_kw || 28.6} kW
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>AMBIENT COLD AISLE</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#4ade80' }}>
+                  {floorPlanData?.avg_ambient_temp_c || 21.2}°C
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Datacenter Isometric Floor Grid */}
+          <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <h4 style={{ fontSize: '0.90rem', fontWeight: 800, color: '#0f172a', margin: '0 0 14px 0', textTransform: 'uppercase' }}>
+              Datacenter Floor Layout (Click Any Rack Cabinet to Inspect 42U Elevation)
+            </h4>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
+              {(floorPlanData?.racks || [
+                { rack_id: 'RACK-A01', rack_label: 'Rack A01 (Core Network)', row: 'Row-A', total_units: 42, occupied_units: 34, total_power_kw: 4.8, max_power_kw: 8.0, thermal_exhaust_c: 32.4, health_status: 'NORMAL', pdu_redundancy: '2x 30A 208V (A/B Feeds)' },
+                { rack_id: 'RACK-A02', rack_label: 'Rack A02 (Compute Cluster A)', row: 'Row-A', total_units: 42, occupied_units: 38, total_power_kw: 6.2, max_power_kw: 10.0, thermal_exhaust_c: 36.8, health_status: 'NORMAL', pdu_redundancy: '2x 30A 208V (A/B Feeds)' },
+                { rack_id: 'RACK-B01', rack_label: 'Rack B01 (SAN Storage Fabric)', row: 'Row-B', total_units: 42, occupied_units: 28, total_power_kw: 5.4, max_power_kw: 9.0, thermal_exhaust_c: 34.0, health_status: 'NORMAL', pdu_redundancy: '2x 30A 208V (A/B Feeds)' },
+                { rack_id: 'RACK-B02', rack_label: 'Rack B02 (Virtualization ESXi)', row: 'Row-B', total_units: 42, occupied_units: 36, total_power_kw: 6.8, max_power_kw: 10.0, thermal_exhaust_c: 37.5, health_status: 'WARNING', pdu_redundancy: '2x 30A 208V (A/B Feeds)' }
+              ]).map((rack: any) => {
+                const isSelected = selectedRackId === rack.rack_id;
+                const powerPct = Math.round((rack.total_power_kw / rack.max_power_kw) * 100);
+                const tempColor = rack.thermal_exhaust_c >= 37 ? '#ef4444' : rack.thermal_exhaust_c >= 34 ? '#f59e0b' : '#3b82f6';
+                return (
+                  <div
+                    key={rack.rack_id}
+                    onClick={() => setSelectedRackId(rack.rack_id)}
+                    style={{
+                      background: isSelected ? '#f0f9ff' : '#f8fafc',
+                      border: isSelected ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: isSelected ? '0 4px 12px rgba(2, 132, 199, 0.15)' : 'none'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: '#0f172a', color: '#38bdf8' }}>
+                        {rack.row}
+                      </span>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 800, color: tempColor }}>
+                        🔥 Exhaust: {rack.thermal_exhaust_c}°C
+                      </span>
+                    </div>
+
+                    <h5 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
+                      {rack.rack_label}
+                    </h5>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '10px' }}>
+                      Allocated: <strong>{rack.occupied_units} / {rack.total_units} U</strong> ({Math.round((rack.occupied_units / rack.total_units) * 100)}% Full)
+                    </div>
+
+                    {/* Power Draw Bar */}
+                    <div style={{ marginBottom: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: '#475569', marginBottom: '2px' }}>
+                        <span>Power Draw</span>
+                        <span>{rack.total_power_kw} kW / {rack.max_power_kw} kW ({powerPct}%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${powerPct}%`, height: '100%', background: powerPct >= 80 ? '#ef4444' : '#0284c7', borderRadius: '3px' }} />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.66rem', color: '#64748b', borderTop: '1px solid #e2e8f0', paddingTop: '6px' }}>
+                      <span>{rack.pdu_redundancy}</span>
+                      <span style={{ color: isSelected ? '#0284c7' : '#94a3b8', fontWeight: 700 }}>
+                        {isSelected ? '✓ Selected' : 'Click to View U-Slots'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Selected Rack 42U Elevation Inspector */}
+          <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  42U Server Rack Elevation Inspector • {selectedRackId}
+                </h4>
+                <p style={{ fontSize: '0.74rem', color: '#64748b', margin: '2px 0 0 0' }}>
+                  Front door equipment mounting positions, slot heights, power draw and status
+                </p>
+              </div>
+              <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 800 }}>
+                ● FRONT DOOR ONLINE
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: '#0f172a', padding: '16px', borderRadius: '10px' }}>
+              {[
+                { u: '41U - 42U', dev: 'core-gw-01 (Check Point Cluster SG5600)', type: '2U Gateway', status: 'ONLINE', watts: 420, color: '#22c55e' },
+                { u: '38U', dev: 'core-sw-01 (Dell Networking S5248F-ON)', type: '1U 100G Switch', status: 'ONLINE', watts: 380, color: '#22c55e' },
+                { u: '36U', dev: 'dist-sw-02 (Cisco Catalyst 9300-48P)', type: '1U PoE+ Switch', status: 'ONLINE', watts: 350, color: '#22c55e' },
+                { u: '32U - 34U', dev: 'WIN-TBI5QJB6P82 (Dell PowerEdge R750)', type: '2U Xeon Server', status: 'ONLINE', watts: 580, color: '#22c55e' },
+                { u: '28U - 30U', dev: 'ai-cluster-node-01 (4x NVIDIA A100 GPU)', type: '4U AI Accelerator', status: 'ONLINE', watts: 1400, color: '#22c55e' },
+                { u: '24U - 26U', dev: 'dell-storage-tier1 (PowerVault ME5024)', type: '2U SAN Storage', status: 'ONLINE', watts: 540, color: '#22c55e' },
+                { u: '1U - 23U', dev: 'Available U-Slots for Expansion', type: 'Unoccupied Slots', status: 'EMPTY', watts: 0, color: '#475569' }
+              ].map((slot, sIdx) => (
+                <div
+                  key={sIdx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    background: slot.status === 'EMPTY' ? '#1e293b' : '#334155',
+                    border: '1px solid #475569',
+                    color: '#ffffff',
+                    fontSize: '0.74rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#38bdf8', minWidth: '70px' }}>
+                      {slot.u}
+                    </span>
+                    <span style={{ fontWeight: 700, color: slot.status === 'EMPTY' ? '#94a3b8' : '#ffffff' }}>
+                      {slot.dev}
+                    </span>
+                    <span style={{ fontSize: '0.66rem', color: '#94a3b8' }}>
+                      ({slot.type})
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {slot.watts > 0 && (
+                      <span style={{ color: '#facc15', fontFamily: 'var(--font-mono)', fontSize: '0.70rem' }}>
+                        ⚡ {slot.watts}W
+                      </span>
+                    )}
+                    <span style={{ fontSize: '0.66rem', padding: '2px 8px', borderRadius: '4px', background: `${slot.color}20`, color: slot.color, fontWeight: 800 }}>
+                      ● {slot.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

@@ -24,25 +24,27 @@ interface ApplicationsViewProps {
 }
 
 export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/api/v1' }) => {
-  const [activeTab, setActiveTab] = useState<'databases' | 'storage' | 'app_synthetics' | 'web_journeys' | 'specialized'>('databases');
+  const [activeTab, setActiveTab] = useState<'databases' | 'storage' | 'app_synthetics' | 'web_journeys' | 'specialized' | 'microsoft_apps'>('databases');
   const [databases, setDatabases] = useState<any[]>([]);
   const [storageFabrics, setStorageFabrics] = useState<any[]>([]);
   const [appSynthetics, setAppSynthetics] = useState<any>(null);
   const [webWaterfalls, setWebWaterfalls] = useState<any[]>([]);
   const [webJourneys, setWebJourneys] = useState<any[]>([]);
   const [specialized, setSpecialized] = useState<any>(null);
+  const [msAppData, setMsAppData] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [resDb, resFab, resSyn, resWeb, resSpec] = await Promise.allSettled([
+        const [resDb, resFab, resSyn, resWeb, resSpec, resMs] = await Promise.allSettled([
           axios.get(`${apiBase}/apps/databases`, { timeout: 4000 }),
           axios.get(`${apiBase}/apps/storage-fabric`, { timeout: 4000 }),
           axios.get(`${apiBase}/apps/synthetics`, { timeout: 4000 }),
           axios.get(`${apiBase}/synthetics/web`, { timeout: 4000 }),
-          axios.get(`${apiBase}/synthetics/specialized`, { timeout: 4000 })
+          axios.get(`${apiBase}/synthetics/specialized`, { timeout: 4000 }),
+          axios.get(`${apiBase}/apps/microsoft-enterprise`, { timeout: 4000 })
         ]);
 
         if (resDb.status === 'fulfilled' && resDb.value.data?.databases) {
@@ -61,6 +63,9 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/
         }
         if (resSpec.status === 'fulfilled' && resSpec.value.data?.specialized) {
           setSpecialized(resSpec.value.data.specialized);
+        }
+        if (resMs.status === 'fulfilled' && resMs.value.data) {
+          setMsAppData(resMs.value.data);
         }
       } catch {
         // Fallback default
@@ -103,6 +108,7 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/
           { id: 'databases', label: 'Databases & SQL Sensors (#41, #42)', icon: Database, count: databases.length },
           { id: 'storage', label: 'SAN/NAS Storage Fabric (#43-#45)', icon: HardDrive, count: storageFabrics.length },
           { id: 'app_synthetics', label: 'App Synthetics, Queues & IoT (#46-#50)', icon: Zap, count: '5' },
+          { id: 'microsoft_apps', label: 'Active Directory & Exchange (#18.4)', icon: ShieldCheck, count: 'WMI' },
           { id: 'web_journeys', label: 'Web Journeys & TTFB Waterfall (#51, #52)', icon: Globe, count: webWaterfalls.length },
           { id: 'specialized', label: 'Specialized Protocols & SLAs (#53-#60)', icon: Activity, count: '7' }
         ].map(tab => {
@@ -625,6 +631,147 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/
             <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700 }}>
               ● {specialized.external_probe_status}
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Active Directory & Microsoft Exchange Telemetry (Point 18.4) */}
+      {activeTab === 'microsoft_apps' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Header */}
+          <div style={{ background: '#0f172a', padding: '16px 20px', borderRadius: '12px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ background: '#0284c7', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 800 }}>
+                  MICROSOFT ENTERPRISE TELEMETRY
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>WMI PerfData Classes • Exchange &amp; Active Directory</span>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '4px', color: '#f8fafc' }}>
+                Domain Services &amp; Enterprise Mail Routing Pipeline
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#cbd5e1', marginTop: '2px' }}>
+                Kerberos/NTLM auth rates, DFSR SYSVOL replication, and SMTP transport queue bottlenecks
+              </p>
+            </div>
+            <ExportButtons data={msAppData ? [msAppData.active_directory, msAppData.exchange_mail] : []} filenamePrefix="vnms_ms_enterprise_apps" title="Microsoft Enterprise Apps" />
+          </div>
+
+          {/* Active Directory Domain Health */}
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <ShieldCheck size={22} color="#0284c7" />
+                <div>
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Active Directory Domain Services (AD DS)
+                  </h4>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                    Domain: <strong>{msAppData?.active_directory?.domain_name || 'CORP.VNMS-ENTERPRISE.LOCAL'}</strong> • PDC: <strong>{msAppData?.active_directory?.pdc_emulator_host || 'WIN-TBI5QJB6P82'}</strong>
+                  </div>
+                </div>
+              </div>
+              <span style={{ background: '#dcfce7', color: '#15803d', padding: '3px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800 }}>
+                ● {msAppData?.active_directory?.health_rating || 'EXCELLENT'}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>KERBEROS AUTHS / SEC</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  {msAppData?.active_directory?.kerberos_auths_per_sec || 148.6}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#16a34a', marginTop: '2px' }}>Normal Authentication Flow</div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>NTLM AUTHS / SEC</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  {msAppData?.active_directory?.ntlm_auths_per_sec || 14.2}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#0284c7', marginTop: '2px' }}>Legacy Pass-Through</div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>LDAP BIND LATENCY</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  {msAppData?.active_directory?.ldap_bind_latency_ms || 1.85} ms
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#16a34a', marginTop: '2px' }}>Sub-2ms Directory Query</div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>SYSVOL &amp; FSMO STATUS</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#16a34a', marginTop: '4px' }}>
+                  {msAppData?.active_directory?.fsmo_status || 'ALL_5_ROLES_ONLINE'}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>DFSR Normal Sync</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Microsoft Exchange Mail Transport Queues */}
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Mail size={22} color="#8b5cf6" />
+                <div>
+                  <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Microsoft Exchange 2019 / Mail Relay Pipeline
+                  </h4>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                    Server: <strong>{msAppData?.exchange_mail?.hostname || 'mail01.corp.vnms-enterprise.local'}</strong> • Active Client Logons: <strong>{msAppData?.exchange_mail?.active_client_logons || 385}</strong>
+                  </div>
+                </div>
+              </div>
+              <span style={{ background: '#ede9fe', color: '#6d28d9', padding: '3px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800 }}>
+                ● {msAppData?.exchange_mail?.queue_health || 'OPTIMAL'}
+              </span>
+            </div>
+
+            {/* Queue Cards Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>SMTP INBOUND</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  {msAppData?.exchange_mail?.smtp_inbound_queue ?? 3} msgs
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#16a34a', marginTop: '2px' }}>Receiving Queue</div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>SMTP OUTBOUND</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  {msAppData?.exchange_mail?.smtp_outbound_queue ?? 11} msgs
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#0284c7', marginTop: '2px' }}>Transit Egress</div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>RETRY QUEUES (L/R)</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  {msAppData?.exchange_mail?.local_retry_queue ?? 0} / {msAppData?.exchange_mail?.remote_retry_queue ?? 1}
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#16a34a', marginTop: '2px' }}>Zero Stalled Hops</div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>CATEGORIZER QUEUE</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>
+                  {msAppData?.exchange_mail?.categorizer_queue ?? 0} msgs
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#16a34a', marginTop: '2px' }}>Instant Classification</div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748b' }}>SUBMIT / DELIVER RATE</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                  {msAppData?.exchange_mail?.messages_submitted_min ?? 72}/m • {msAppData?.exchange_mail?.messages_delivered_min ?? 69}/m
+                </div>
+                <div style={{ fontSize: '0.68rem', color: '#0284c7', marginTop: '2px' }}>High Throughput Flow</div>
+              </div>
+            </div>
           </div>
         </div>
       )}

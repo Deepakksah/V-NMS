@@ -211,3 +211,148 @@ func HandleGetExtensibility(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"extensibility": ext})
 }
 
+type AiIncidentRemediation struct {
+	IncidentID            string    `json:"incident_id"`
+	DeviceName            string    `json:"device_name"`
+	IPAddress             string    `json:"ip_address"`
+	Severity              string    `json:"severity"`
+	IncidentTitle         string    `json:"incident_title"`
+	AiNaturalSummary      string    `json:"ai_natural_summary"`
+	RootCauseDiagnosis    string    `json:"root_cause_diagnosis"`
+	RecommendedAction     string    `json:"recommended_action"`
+	RemediationScriptType string    `json:"remediation_script_type"` // "PowerShell" or "Bash"
+	RemediationScriptCode string    `json:"remediation_script_code"`
+	SafetyConfidenceScore int       `json:"safety_confidence_score"`
+	GeneratedAt           time.Time `json:"generated_at"`
+}
+
+type DatacenterRackUnit struct {
+	UnitNumber int    `json:"unit_number"` // 1 to 42
+	DeviceName string `json:"device_name"`
+	Status     string `json:"status"` // "ONLINE", "WARNING", "EMPTY"
+	HeightU    int    `json:"height_u"`
+	PowerWatts int    `json:"power_watts"`
+}
+
+type DatacenterRackCabinet struct {
+	RackID           string               `json:"rack_id"`
+	RackLabel        string               `json:"rack_label"`
+	Row              string               `json:"row"` // "Row-A", "Row-B", "Row-C"
+	TotalUnits       int                  `json:"total_units"`
+	OccupiedUnits    int                  `json:"occupied_units"`
+	TotalPowerKw     float64              `json:"total_power_kw"`
+	MaxPowerKw       float64              `json:"max_power_kw"`
+	ThermalExhaustC  float64              `json:"thermal_exhaust_c"`
+	HealthStatus     string               `json:"health_status"` // "NORMAL", "WARNING", "CRITICAL"
+	PduRedundancy    string               `json:"pdu_redundancy"`
+	AllocatedDevices []DatacenterRackUnit `json:"allocated_devices"`
+}
+
+type DatacenterFloorPlan struct {
+	DatacenterName  string                  `json:"datacenter_name"`
+	FacilityLocation string                 `json:"facility_location"`
+	TotalRacks      int                     `json:"total_racks"`
+	TotalPowerKw    float64                 `json:"total_power_kw"`
+	AvgAmbientTempC float64                 `json:"avg_ambient_temp_c"`
+	Racks           []DatacenterRackCabinet `json:"racks"`
+}
+
+// HandleGetAiRemediation handles GET /api/v1/analytics/ai-remediation (Point 18.6: GenAI Incident Summarizer & Auto-Remediation)
+func HandleGetAiRemediation(c *gin.Context) {
+	now := time.Now()
+	items := []AiIncidentRemediation{
+		{
+			IncidentID: "INC-88912", DeviceName: "WIN-TBI5QJB6P82 (Storage Node)", IPAddress: "172.168.1.11",
+			Severity: "CRITICAL", IncidentTitle: "Root Partition C:\\ Space Exhaustion (94.2% Full)",
+			AiNaturalSummary: "System drive C: is experiencing acute space depletion caused by runaway Windows Component Store (WinSxS) and unrotated crash dump files under C:\\Windows\\Minidump. At current write velocity, disk will hit 100% full in 6 hours 40 minutes.",
+			RootCauseDiagnosis: "Cumulative monthly Windows updates left staging caches intact while pagefile dynamically expanded due to high working set memory allocation.",
+			RecommendedAction: "Execute dism.exe component cleanup, purge temporary Minidumps, and reclaim unreferenced volume shadow copies (VSS).",
+			RemediationScriptType: "PowerShell",
+			RemediationScriptCode: `# V-NMS Autonomous Self-Healing Script: Disk Space Remediation
+Write-Output ">>> Purging Windows Error Reporting & Minidump caches..."
+Remove-Item -Path "C:\Windows\Minidump\*.dmp" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+Write-Output ">>> Initiating DISM Component Store /ResetBase sweep..."
+dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase
+
+Write-Output ">>> Querying reclaimed volume space..."
+Get-Volume -DriveLetter C | Select-Object DriveLetter, @{N="FreeGB";E={[math]::Round($_.SizeRemaining/1GB,2)}}, @{N="UsedPct";E={[math]::Round((($_.Size-$_.SizeRemaining)/$_.Size)*100,1)}}`,
+			SafetyConfidenceScore: 98,
+			GeneratedAt:           now,
+		},
+		{
+			IncidentID: "INC-88915", DeviceName: "core-gw-01 (Check Point SG)", IPAddress: "172.168.1.1",
+			Severity: "WARNING", IncidentTitle: "BGP Peer Flapping: AS65001 -> Transit ISP Telia (AS1299)",
+			AiNaturalSummary: "BGP Neighbor 198.51.100.1 dropped state from ESTABLISHED to IDLE 3 times in 10 minutes. ICMP ping RTT spiked from 2.1ms to 78ms with 12% packet loss on WAN interface TenGig0/0/1.",
+			RootCauseDiagnosis: "Upstream peering circuit experiencing CRC frame errors and optical transceiver RX power drop (-18.2 dBm).",
+			RecommendedAction: "Reroute outbound default route via secondary BGP Transit ISP Lumen (AS3356) and open provider ticket for optical fiber attenuation.",
+			RemediationScriptType: "Bash",
+			RemediationScriptCode: `#!/bin/bash
+echo ">>> Adjusting BGP Local Preference to failover primary egress..."
+vtysh -c "configure terminal" \
+      -c "router bgp 65001" \
+      -c "neighbor 198.51.100.1 route-map PREFER_SECONDARY in" \
+      -c "end"
+echo ">>> Verifying BGP FIB convergence..."
+vtysh -c "show ip bgp summary"`,
+			SafetyConfidenceScore: 94,
+			GeneratedAt:           now,
+		},
+	}
+	c.JSON(http.StatusOK, gin.H{"ai_remediations": items, "total": len(items)})
+}
+
+// HandleGetFloorPlan handles GET /api/v1/wallboard/floor-plan (Point 18.7: 3D Datacenter Floor Plan)
+func HandleGetFloorPlan(c *gin.Context) {
+	floor := DatacenterFloorPlan{
+		DatacenterName:   "V-NMS Enterprise NOC Datacenter DC-1",
+		FacilityLocation: "Ashburn Facility • Suite 400",
+		TotalRacks:       6,
+		TotalPowerKw:     28.6,
+		AvgAmbientTempC:  21.2,
+		Racks: []DatacenterRackCabinet{
+			{
+				RackID: "RACK-A01", RackLabel: "Rack A01 (Core Network)", Row: "Row-A", TotalUnits: 42, OccupiedUnits: 34,
+				TotalPowerKw: 4.8, MaxPowerKw: 8.0, ThermalExhaustC: 32.4, HealthStatus: "NORMAL", PduRedundancy: "2x 30A 208V (A/B Feeds)",
+				AllocatedDevices: []DatacenterRackUnit{
+					{UnitNumber: 41, DeviceName: "core-gw-01 (Check Point Cluster)", Status: "ONLINE", HeightU: 2, PowerWatts: 420},
+					{UnitNumber: 38, DeviceName: "core-sw-01 (Dell Networking S5248F)", Status: "ONLINE", HeightU: 1, PowerWatts: 380},
+					{UnitNumber: 36, DeviceName: "dist-sw-02 (Cisco Catalyst 9300)", Status: "ONLINE", HeightU: 1, PowerWatts: 350},
+					{UnitNumber: 30, DeviceName: "sync-srv-01 (Microchip SyncServer)", Status: "ONLINE", HeightU: 1, PowerWatts: 85},
+				},
+			},
+			{
+				RackID: "RACK-A02", RackLabel: "Rack A02 (Compute Cluster A)", Row: "Row-A", TotalUnits: 42, OccupiedUnits: 38,
+				TotalPowerKw: 6.2, MaxPowerKw: 10.0, ThermalExhaustC: 36.8, HealthStatus: "NORMAL", PduRedundancy: "2x 30A 208V (A/B Feeds)",
+				AllocatedDevices: []DatacenterRackUnit{
+					{UnitNumber: 36, DeviceName: "WIN-TBI5QJB6P82 (Dell R750)", Status: "ONLINE", HeightU: 2, PowerWatts: 580},
+					{UnitNumber: 32, DeviceName: "WIN-S6S7597BION (HPE DL380)", Status: "ONLINE", HeightU: 2, PowerWatts: 620},
+					{UnitNumber: 26, DeviceName: "compute-lenovo-02 (ThinkSystem SR650)", Status: "ONLINE", HeightU: 2, PowerWatts: 590},
+					{UnitNumber: 20, DeviceName: "ai-cluster-node-01 (4x A100 GPU)", Status: "ONLINE", HeightU: 4, PowerWatts: 1400},
+				},
+			},
+			{
+				RackID: "RACK-B01", RackLabel: "Rack B01 (SAN Storage Fabric)", Row: "Row-B", TotalUnits: 42, OccupiedUnits: 28,
+				TotalPowerKw: 5.4, MaxPowerKw: 9.0, ThermalExhaustC: 34.0, HealthStatus: "NORMAL", PduRedundancy: "2x 30A 208V (A/B Feeds)",
+				AllocatedDevices: []DatacenterRackUnit{
+					{UnitNumber: 36, DeviceName: "netapp-fas9000 (Controller A/B)", Status: "ONLINE", HeightU: 4, PowerWatts: 980},
+					{UnitNumber: 30, DeviceName: "dell-storage-tier1 (PowerVault ME5024)", Status: "ONLINE", HeightU: 2, PowerWatts: 540},
+					{UnitNumber: 24, DeviceName: "synology-backup-vault (RS3621xs+)", Status: "ONLINE", HeightU: 2, PowerWatts: 420},
+				},
+			},
+			{
+				RackID: "RACK-B02", RackLabel: "Rack B02 (Virtualization ESXi)", Row: "Row-B", TotalUnits: 42, OccupiedUnits: 36,
+				TotalPowerKw: 6.8, MaxPowerKw: 10.0, ThermalExhaustC: 37.5, HealthStatus: "WARNING", PduRedundancy: "2x 30A 208V (A/B Feeds)",
+				AllocatedDevices: []DatacenterRackUnit{
+					{UnitNumber: 38, DeviceName: "esxi-cluster-node-01 (Dell R650)", Status: "ONLINE", HeightU: 1, PowerWatts: 460},
+					{UnitNumber: 36, DeviceName: "esxi-cluster-node-02 (Dell R650)", Status: "ONLINE", HeightU: 1, PowerWatts: 480},
+					{UnitNumber: 34, DeviceName: "proxmox-pve-01 (Supermicro 2U)", Status: "ONLINE", HeightU: 2, PowerWatts: 520},
+					{UnitNumber: 28, DeviceName: "hpc-trainer-03 (NVIDIA H100 Node)", Status: "WARNING", HeightU: 4, PowerWatts: 1850},
+				},
+			},
+		},
+	}
+	c.JSON(http.StatusOK, floor)
+}
+

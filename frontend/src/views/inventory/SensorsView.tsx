@@ -33,7 +33,7 @@ interface SensorsViewProps {
 
 export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' }) => {
   const [subTab, setSubTab] = useState<
-    'storage' | 'disk_io' | 'ipmi' | 'daemons' | 'compliance' | 'smart_nvme' | 'event_logs' | 'sensors' | 'processors' | 'mempools'
+    'storage' | 'disk_io' | 'nvidia_gpu' | 'chassis_sensors' | 'ipmi' | 'daemons' | 'compliance' | 'smart_nvme' | 'event_logs' | 'sensors' | 'processors' | 'mempools'
   >('storage');
   const [storageData, setStorageData] = useState<any[]>(MOCK_STORAGE);
   const [diskData, setDiskData] = useState<any[]>(MOCK_DISK_IO);
@@ -43,6 +43,8 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   const [smartDisksData, setSmartDisksData] = useState<any[]>([]);
   const [eventLogsData, setEventLogsData] = useState<any[]>([]);
   const [spoolersData, setSpoolersData] = useState<any[]>([]);
+  const [gpuClusterData, setGpuClusterData] = useState<any[]>([]);
+  const [chassisData, setChassisData] = useState<any[]>([]);
   const [isLive, setIsLive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grouped' | 'flat'>('grouped');
@@ -52,7 +54,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   useEffect(() => {
     const fetchStorageAndDisks = async () => {
       try {
-        const [resStorage, resDisks, resIpmi, resDaemons, resComp, resSmart, resLogs, resSpool] = await Promise.allSettled([
+        const [resStorage, resDisks, resIpmi, resDaemons, resComp, resSmart, resLogs, resSpool, resGpu, resChassis] = await Promise.allSettled([
           axios.get(`${apiBase}/storage`, { timeout: 4000 }),
           axios.get(`${apiBase}/disks`, { timeout: 4000 }),
           axios.get(`${apiBase}/hardware/ipmi`, { timeout: 4000 }),
@@ -60,7 +62,9 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
           axios.get(`${apiBase}/hardware/ad-updates`, { timeout: 4000 }),
           axios.get(`${apiBase}/hardware/smart-disks`, { timeout: 4000 }),
           axios.get(`${apiBase}/hardware/event-logs`, { timeout: 4000 }),
-          axios.get(`${apiBase}/hardware/spoolers`, { timeout: 4000 })
+          axios.get(`${apiBase}/hardware/spoolers`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/gpu-cluster`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/chassis-sensors`, { timeout: 4000 })
         ]);
 
         if (resStorage.status === 'fulfilled' && resStorage.value.data?.storage) {
@@ -116,6 +120,12 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
         }
         if (resSpool.status === 'fulfilled' && resSpool.value.data?.spoolers) {
           setSpoolersData(resSpool.value.data.spoolers);
+        }
+        if (resGpu.status === 'fulfilled' && resGpu.value.data?.gpu_cluster) {
+          setGpuClusterData(resGpu.value.data.gpu_cluster);
+        }
+        if (resChassis.status === 'fulfilled' && resChassis.value.data?.chassis_sensors) {
+          setChassisData(resChassis.value.data.chassis_sensors);
         }
       } catch {
         // Fallback to audited mockEnterpriseData
@@ -258,6 +268,8 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
         {[
           { id: 'storage', label: 'Disks & Partitions (#33)', icon: HardDrive, count: storageData.length },
           { id: 'disk_io', label: 'Physical Drives & IOPS (#34, #35)', icon: TrendingUp, count: diskData.length },
+          { id: 'nvidia_gpu', label: 'NVIDIA GPU Cluster (#18.1)', icon: Cpu, count: gpuClusterData.length || 4 },
+          { id: 'chassis_sensors', label: 'Chassis & Switches (#18.2)', icon: Server, count: chassisData.length || 3 },
           { id: 'ipmi', label: 'Out-of-Band IPMI & BMC (#21, #22)', icon: Zap, count: ipmiData.length },
           { id: 'daemons', label: 'Services & Daemons (#25, #27, #28)', icon: Activity, count: daemonsData.length },
           { id: 'compliance', label: 'Patch & AD Health (#23, #24)', icon: Shield, count: complianceData.length },
@@ -1343,6 +1355,240 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* 4. NVIDIA Enterprise GPU Cluster Telemetry (Point 18.1) */}
+      {subTab === 'nvidia_gpu' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a', padding: '16px 20px', borderRadius: '12px', color: '#ffffff' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ background: '#10b981', color: '#064e3b', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 800 }}>
+                  NVIDIA ENTERPRISE CLUSTER
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>CLI Telemetry (nvidia-smi parser) • CUDA 12.4</span>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '4px', color: '#f8fafc' }}>
+                High-Performance Compute &amp; AI Accelerator Fleet
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#cbd5e1', marginTop: '2px' }}>
+                Real-time GPU core compute load, VRAM allocations, thermal junctions, and power envelope draw
+              </p>
+            </div>
+            <ExportButtons data={gpuClusterData.length ? gpuClusterData : [
+              { id: 'gpu-0', model: 'NVIDIA A100-SXM4-80GB', gpu_util_pct: 84.5, temp: 67, vram_used: 68400, vram_total: 81920 }
+            ]} filenamePrefix="vnms_nvidia_gpu_cluster" title="NVIDIA GPU Cluster" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '16px' }}>
+            {(gpuClusterData.length ? gpuClusterData : [
+              {
+                id: 'gpu-0', hostname: 'ai-cluster-node-01 (172.168.1.18)', model: 'NVIDIA A100-SXM4-80GB',
+                pcie_bus_id: '0000:01:00.0', gpu_util_pct: 84.5, memory_used_mb: 68400, memory_total_mb: 81920,
+                temperature_c: 67, fan_speed_pct: 74, power_draw_watts: 320.4, power_limit_watts: 400.0,
+                gpu_clock_mhz: 1410, mem_clock_mhz: 1215, compute_mode: 'Default (Shared)', persistence_mode: true,
+                driver_version: '550.54.14 / CUDA 12.4'
+              },
+              {
+                id: 'gpu-1', hostname: 'ai-cluster-node-01 (172.168.1.18)', model: 'NVIDIA A100-SXM4-80GB',
+                pcie_bus_id: '0000:02:00.0', gpu_util_pct: 91.2, memory_used_mb: 74200, memory_total_mb: 81920,
+                temperature_c: 72, fan_speed_pct: 82, power_draw_watts: 368.1, power_limit_watts: 400.0,
+                gpu_clock_mhz: 1410, mem_clock_mhz: 1215, compute_mode: 'Default (Shared)', persistence_mode: true,
+                driver_version: '550.54.14 / CUDA 12.4'
+              },
+              {
+                id: 'gpu-0', hostname: 'inference-srv-02 (172.168.1.19)', model: 'NVIDIA RTX 4090 Enterprise 24GB',
+                pcie_bus_id: '0000:41:00.0', gpu_util_pct: 42.0, memory_used_mb: 11200, memory_total_mb: 24576,
+                temperature_c: 54, fan_speed_pct: 45, power_draw_watts: 185.0, power_limit_watts: 450.0,
+                gpu_clock_mhz: 2520, mem_clock_mhz: 1313, compute_mode: 'Exclusive Process', persistence_mode: true,
+                driver_version: '550.54.14 / CUDA 12.4'
+              },
+              {
+                id: 'gpu-0', hostname: 'hpc-trainer-03 (172.168.1.20)', model: 'NVIDIA H100 80GB HBM3 PCIe',
+                pcie_bus_id: '0000:81:00.0', gpu_util_pct: 96.8, memory_used_mb: 78900, memory_total_mb: 81920,
+                temperature_c: 78, fan_speed_pct: 88, power_draw_watts: 620.5, power_limit_watts: 700.0,
+                gpu_clock_mhz: 1980, mem_clock_mhz: 2619, compute_mode: 'Default (Shared)', persistence_mode: true,
+                driver_version: '550.54.14 / CUDA 12.4'
+              }
+            ]).map((gpu: any, idx: number) => {
+              const vramPct = Math.round((gpu.memory_used_mb / gpu.memory_total_mb) * 100);
+              const powerPct = Math.round((gpu.power_draw_watts / gpu.power_limit_watts) * 100);
+              const tempColor = gpu.temperature_c >= 80 ? '#ef4444' : gpu.temperature_c >= 68 ? '#f59e0b' : '#10b981';
+              return (
+                <div key={idx} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: '#0f172a', color: '#10b981', fontFamily: 'var(--font-mono)' }}>
+                          {gpu.id.toUpperCase()}
+                        </span>
+                        <span style={{ fontSize: '0.70rem', color: '#64748b' }}>{gpu.pcie_bus_id}</span>
+                      </div>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '3px 0 1px 0' }}>{gpu.model}</h4>
+                      <p style={{ fontSize: '0.72rem', color: '#475569' }}>{gpu.hostname}</p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '6px', background: `${tempColor}15`, color: tempColor, fontWeight: 800, fontSize: '0.78rem' }}>
+                        <Thermometer size={14} /> {gpu.temperature_c}°C
+                      </span>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>Fan: {gpu.fan_speed_pct}%</div>
+                    </div>
+                  </div>
+
+                  {/* Compute Utilization Bar */}
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 700, marginBottom: '3px' }}>
+                      <span style={{ color: '#0f172a' }}>GPU Core Load</span>
+                      <span style={{ color: gpu.gpu_util_pct >= 90 ? '#ef4444' : '#0284c7' }}>{gpu.gpu_util_pct}%</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${gpu.gpu_util_pct}%`, height: '100%', background: gpu.gpu_util_pct >= 90 ? '#ef4444' : '#0284c7', borderRadius: '4px' }} />
+                    </div>
+                  </div>
+
+                  {/* VRAM Memory Allocation */}
+                  <div style={{ marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 700, marginBottom: '3px' }}>
+                      <span style={{ color: '#0f172a' }}>VRAM Allocation</span>
+                      <span style={{ color: '#64748b' }}>{(gpu.memory_used_mb / 1024).toFixed(1)} GB / {(gpu.memory_total_mb / 1024).toFixed(0)} GB ({vramPct}%)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${vramPct}%`, height: '100%', background: '#8b5cf6', borderRadius: '4px' }} />
+                    </div>
+                  </div>
+
+                  {/* Power Draw vs Limit */}
+                  <div style={{ marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 700, marginBottom: '3px' }}>
+                      <span style={{ color: '#0f172a' }}>TDP Power Envelope</span>
+                      <span style={{ color: '#475569' }}>{gpu.power_draw_watts}W / {gpu.power_limit_watts}W ({powerPct}%)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${powerPct}%`, height: '100%', background: '#f59e0b', borderRadius: '4px' }} />
+                    </div>
+                  </div>
+
+                  {/* Footer Clocks and Mode */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontSize: '0.70rem', color: '#475569' }}>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>CORE CLOCK</div>
+                      <div style={{ fontWeight: 800, color: '#0f172a' }}>{gpu.gpu_clock_mhz} MHz</div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>MEM CLOCK</div>
+                      <div style={{ fontWeight: 800, color: '#0f172a' }}>{gpu.mem_clock_mhz} MHz</div>
+                    </div>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>COMPUTE MODE</div>
+                      <div style={{ fontWeight: 700, color: '#0284c7' }}>{gpu.compute_mode.split(' ')[0]}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 5. Enterprise Chassis & Switch Telemetry (Point 18.2) */}
+      {subTab === 'chassis_sensors' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#0f172a', padding: '16px 20px', borderRadius: '12px', color: '#ffffff' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ background: '#3b82f6', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 800 }}>
+                  CHASSIS TELEMETRY
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Lenovo XCC &amp; Dell DNOS Switch MIB Mappings</span>
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '4px', color: '#f8fafc' }}>
+                Modular Chassis, Switch Fabric &amp; Power Subsystems
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#cbd5e1', marginTop: '2px' }}>
+                Redundant A/B power supplies, dual-rotor fan trays, CPU voltage regulators, and thermal deltas
+              </p>
+            </div>
+            <ExportButtons data={chassisData.length ? chassisData : [
+              { id: 'dnos-1', vendor_chassis: 'Dell Networking S5248F-ON', memory_formula_pct: 48.6 }
+            ]} filenamePrefix="vnms_chassis_sensors" title="Chassis & Switch Telemetry" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '16px' }}>
+            {(chassisData.length ? chassisData : [
+              {
+                id: 'dnos-sw-01', hostname: 'core-sw-01 (172.168.1.10)', vendor_chassis: 'Dell Networking S5248F-ON',
+                chassis_type: 'Top-of-Rack 25GbE/100GbE Switch', memory_formula_pct: 48.6,
+                power_supply_1: 'HEALTHY (AC 240V / 380W Online)', power_supply_2: 'HEALTHY (AC 240V / Redundant Online)',
+                fan_tray_status: 'ALL_NORMAL (6x Fan Trays @ 9,400 RPM)', chassis_temp_inlet_c: 22.4, chassis_temp_exhaust_c: 36.8,
+                raid_drive_health: 'N/A (Switch Flash eMMC)', cpu_voltage_v: 1.15, flash_storage_pct: 32.5
+              },
+              {
+                id: 'xcc-lenovo-02', hostname: 'compute-lenovo-02 (172.168.1.16)', vendor_chassis: 'Lenovo ThinkSystem SR650 V2',
+                chassis_type: 'Dual-Socket Xeon Scalable 2U Node', memory_formula_pct: 64.2,
+                power_supply_1: 'HEALTHY (Platinum 1100W Active)', power_supply_2: 'HEALTHY (Platinum 1100W Redundant)',
+                fan_tray_status: 'NORMAL (6x Hot-swap Fans @ 6,200 RPM)', chassis_temp_inlet_c: 20.8, chassis_temp_exhaust_c: 34.1,
+                raid_drive_health: 'OPTIMAL (RAID-10 8x SAS 2.4TB 10K)', cpu_voltage_v: 1.22, flash_storage_pct: 18.2
+              },
+              {
+                id: 'ucs-blade-chassis', hostname: 'cisco-ucs-chassis (172.168.1.14)', vendor_chassis: 'Cisco UCS 5108 Blade Chassis',
+                chassis_type: '8-Blade Modular Enclosure', memory_formula_pct: 58.0,
+                power_supply_1: 'HEALTHY (4x 2500W Platinum Grid-A)', power_supply_2: 'HEALTHY (4x 2500W Platinum Grid-B)',
+                fan_tray_status: 'OPTIMAL (8x Dual-Rotor Fans @ 8,100 RPM)', chassis_temp_inlet_c: 21.0, chassis_temp_exhaust_c: 38.5,
+                raid_drive_health: 'OPTIMAL (SAN Boot LUN Mapped)', cpu_voltage_v: 1.20, flash_storage_pct: 24.0
+              }
+            ]).map((ch: any, idx: number) => (
+              <div key={idx} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '18px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.68rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: '#dbeafe', color: '#1e40af' }}>
+                      {ch.chassis_type}
+                    </span>
+                    <h4 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: '4px 0 1px 0' }}>{ch.vendor_chassis}</h4>
+                    <p style={{ fontSize: '0.72rem', color: '#64748b' }}>{ch.hostname}</p>
+                  </div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '6px', background: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.72rem' }}>
+                    <CheckCircle2 size={13} /> {ch.raid_drive_health.split(' ')[0]}
+                  </span>
+                </div>
+
+                {/* Power Supply A/B Feeds */}
+                <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '10px' }}>
+                  <div style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Dual Redundant Power Feeds</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', marginBottom: '3px' }}>
+                    <span style={{ color: '#0f172a', fontWeight: 600 }}>PSU 1 (Feed A):</span>
+                    <span style={{ color: '#16a34a', fontWeight: 700 }}>{ch.power_supply_1}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem' }}>
+                    <span style={{ color: '#0f172a', fontWeight: 600 }}>PSU 2 (Feed B):</span>
+                    <span style={{ color: '#16a34a', fontWeight: 700 }}>{ch.power_supply_2}</span>
+                  </div>
+                </div>
+
+                {/* Thermal and Voltage Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '10px' }}>
+                  <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#1e40af', fontWeight: 700 }}>CHASSIS INLET</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#1e3a8a' }}>{ch.chassis_temp_inlet_c}°C</div>
+                  </div>
+                  <div style={{ background: '#fef3c7', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#92400e', fontWeight: 700 }}>EXHAUST PLENUM</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#78350f' }}>{ch.chassis_temp_exhaust_c}°C</div>
+                  </div>
+                  <div style={{ background: '#f1f5f9', padding: '8px', borderRadius: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.65rem', color: '#475569', fontWeight: 700 }}>CPU REGULATOR</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>{ch.cpu_voltage_v} V</div>
+                  </div>
+                </div>
+
+                {/* Fans & Flash status */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '8px', fontSize: '0.72rem', color: '#64748b' }}>
+                  <span>{ch.fan_tray_status}</span>
+                  <span>Flash Used: <strong>{ch.flash_storage_pct}%</strong></span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

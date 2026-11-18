@@ -102,11 +102,14 @@ func SetupRouter() *gin.Engine {
 		api.GET("/hardware/smart-disks", HandleGetSmartDisks)
 		api.GET("/hardware/event-logs", HandleGetEventLogs)
 		api.GET("/hardware/spoolers", HandleGetPrintSpoolers)
+		api.GET("/hardware/gpu-cluster", HandleGetGpuCluster)
+		api.GET("/hardware/chassis-sensors", HandleGetChassisSensors)
 
 		// 12. Enterprise Applications, Databases & Storage Fabric
 		api.GET("/apps/databases", HandleGetDatabaseTelemetry)
 		api.GET("/apps/storage-fabric", HandleGetStorageFabric)
 		api.GET("/apps/synthetics", HandleGetAppSynthetics)
+		api.GET("/apps/microsoft-enterprise", HandleGetMicrosoftEnterpriseApps)
 
 		// 13. Synthetic Transactions, Web Journeys & SLAs
 		api.GET("/synthetics/web", HandleGetSyntheticsWeb)
@@ -121,11 +124,15 @@ func SetupRouter() *gin.Engine {
 		api.GET("/analytics/capacity", HandleGetCapacityForecast)
 		api.GET("/analytics/sla-penalties", HandleGetSlaCompliance)
 		api.GET("/analytics/root-cause", HandleGetAiRootCause)
+		api.GET("/analytics/ai-remediation", HandleGetAiRemediation)
 
-		// 16. Probe Infrastructure, Maintenance Windows & Extensibility
+		// 16. Probe Infrastructure, Maintenance Windows, Extensibility & Wallboards
 		api.GET("/system/probe-cluster", HandleGetProbeCluster)
 		api.GET("/system/maintenance", HandleGetMaintenanceWindows)
 		api.GET("/system/extensibility", HandleGetExtensibility)
+		api.GET("/discovery/rogue-dhcp", HandleGetRogueDhcp)
+		api.GET("/discovery/device-templates", HandleGetDeviceTemplatesCatalog)
+		api.GET("/wallboard/floor-plan", HandleGetFloorPlan)
 	}
 
 	// 17. Static Web SPA routes for embedded frontend
