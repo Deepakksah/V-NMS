@@ -238,7 +238,7 @@ func RunAutoMigrations() error {
 	-- Drop email unique constraint if present so administrator accounts can share notification mailboxes
 	ALTER TABLE users DROP CONSTRAINT IF EXISTS users_email_key;
 
-	-- Self-healing: Ensure all Windows Enterprise Servers (WIN-* and win-node-*) are typed as servers
+	-- Self-healing: Ensure all Windows Enterprise Servers (WIN-*) are typed as servers
 	UPDATE devices 
 	SET device_type = 'server', 
 	    hardware = CASE 
@@ -251,7 +251,17 @@ func RunAutoMigrations() error {
 	  AND hostname NOT ILIKE 'win-client-%'
 	  AND hostname NOT ILIKE 'desktop-%'
 	  AND hostname NOT ILIKE 'laptop-%'
+	  AND ip_address != '172.168.1.18'
 	  AND device_type != 'server';
+
+	-- Self-healing: Ensure node 18 is recognized as Enterprise Linux Compute Node (Cockpit & OpenSSH)
+	UPDATE devices
+	SET hostname = 'linux-node-18',
+	    device_type = 'server',
+	    vendor = 'Dell',
+	    hardware = 'Dell Compute Node',
+	    os = 'Enterprise Linux (Cockpit)'
+	WHERE ip_address = '172.168.1.18';
 
 	-- Self-healing: Ensure D-Link managed switch is properly typed as switch
 	UPDATE devices
