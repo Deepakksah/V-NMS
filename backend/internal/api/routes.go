@@ -86,7 +86,14 @@ func SetupRouter() *gin.Engine {
 
 		// 9. Virtualization, Docker Containers, K8s & Cloud Architecture
 		api.GET("/virtualization/containers", HandleGetContainersAndK8s)
+		api.POST("/virtualization/containers", HandleCreateContainerWorkload)
+		api.DELETE("/virtualization/containers/:id", HandleDeleteContainerWorkload)
 		api.GET("/virtualization/cloud", HandleGetCloudTelemetry)
+		api.POST("/virtualization/cloud", HandleCreateCloudService)
+		api.DELETE("/virtualization/cloud/:id", HandleDeleteCloudService)
+		api.POST("/virtualization/cloud/seed-demo", HandleSeedCloudDemoData)
+		api.POST("/virtualization/cloud/clear", HandleClearCloudServices)
+		api.DELETE("/virtualization/cloud/clear", HandleClearCloudServices)
 		api.GET("/virtualization/security", HandleGetCertificatesAndDNSBL)
 		api.GET("/virtualization/hypervisors", HandleGetHypervisors)
 

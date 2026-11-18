@@ -235,6 +235,43 @@ func RunAutoMigrations() error {
 	CREATE INDEX IF NOT EXISTS idx_password_resets_lookup 
 	ON password_resets (user_id, otp_code, used);
 
+	-- 10. Cloud Services Table (AWS, Azure, GCP, M365)
+	CREATE TABLE IF NOT EXISTS cloud_services (
+		id SERIAL PRIMARY KEY,
+		provider VARCHAR(50) NOT NULL,
+		service_name VARCHAR(200) NOT NULL,
+		resource_id VARCHAR(255) NOT NULL,
+		region VARCHAR(100) DEFAULT 'global',
+		status VARCHAR(50) DEFAULT 'Healthy',
+		metric_key VARCHAR(100) DEFAULT 'Status',
+		metric_value VARCHAR(100) DEFAULT 'Online',
+		budget_spent VARCHAR(100) DEFAULT '$0 / mo',
+		sla_percent FLOAT DEFAULT 100.0,
+		is_demo BOOLEAN DEFAULT false,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+
+	-- 11. Virtual Workloads Table (Docker Containers, Kubernetes Pods, LXC)
+	CREATE TABLE IF NOT EXISTS virtual_workloads (
+		id SERIAL PRIMARY KEY,
+		name VARCHAR(200) NOT NULL,
+		engine VARCHAR(50) NOT NULL,
+		namespace VARCHAR(100) DEFAULT 'default',
+		image VARCHAR(255),
+		status VARCHAR(50) DEFAULT 'Running',
+		cpu_percent FLOAT DEFAULT 0.0,
+		memory_used_mb FLOAT DEFAULT 0.0,
+		memory_limit_mb FLOAT DEFAULT 512.0,
+		net_rx_mb FLOAT DEFAULT 0.0,
+		net_tx_mb FLOAT DEFAULT 0.0,
+		restarts INT DEFAULT 0,
+		uptime VARCHAR(50) DEFAULT 'Active',
+		is_demo BOOLEAN DEFAULT false,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);
+
 	-- Drop email unique constraint if present so administrator accounts can share notification mailboxes
 	ALTER TABLE users DROP CONSTRAINT IF EXISTS users_email_key;
 
@@ -289,7 +326,7 @@ func RunAutoMigrations() error {
 		return fmt.Errorf("auto-migration error: %w", err)
 	}
 
-	log.Println("[DB Init] All 9 enterprise database tables & indexes verified/created successfully.")
+	log.Println("[DB Init] All 11 enterprise database tables & indexes verified/created successfully.")
 
 	return nil
 }

@@ -2,7 +2,9 @@ package api
 
 import (
 	"net/http"
+	"strconv"
 	"time"
+	"v-nms/internal/database"
 
 	"github.com/gin-gonic/gin"
 )
@@ -67,85 +69,106 @@ type HypervisorHost struct {
 
 // HandleGetContainersAndK8s handles GET /api/v1/virtualization/containers
 func HandleGetContainersAndK8s(c *gin.Context) {
-	now := time.Now()
-	containers := []ContainerWorkload{
-		{
-			ID: "c18f3a9", Name: "vnms-backend-core", Engine: "Docker", Namespace: "v-nms-prod",
-			Image: "veracity/vnms-backend:v2.4", Status: "Healthy", CpuPercent: 1.2, MemoryUsedMb: 64,
-			MemoryLimitMb: 512, NetRxMb: 42.8, NetTxMb: 58.2, Restarts: 0, Uptime: "14 Days", CreatedAt: now.Add(-14 * 24 * time.Hour),
-		},
-		{
-			ID: "c29d4b1", Name: "vnms-postgres-db", Engine: "Docker", Namespace: "v-nms-prod",
-			Image: "postgres:18-alpine", Status: "Healthy", CpuPercent: 2.4, MemoryUsedMb: 184,
-			MemoryLimitMb: 2048, NetRxMb: 112.4, NetTxMb: 94.6, Restarts: 0, Uptime: "14 Days", CreatedAt: now.Add(-14 * 24 * time.Hour),
-		},
-		{
-			ID: "c72e5c8", Name: "redis-session-cache", Engine: "Docker", Namespace: "v-nms-prod",
-			Image: "redis:7.2-alpine", Status: "Healthy", CpuPercent: 0.4, MemoryUsedMb: 32,
-			MemoryLimitMb: 256, NetRxMb: 18.5, NetTxMb: 14.1, Restarts: 0, Uptime: "14 Days", CreatedAt: now.Add(-14 * 24 * time.Hour),
-		},
-		{
-			ID: "k8s-pod-91a", Name: "api-gateway-deployment-74f8", Engine: "Kubernetes", Namespace: "production",
-			Image: "envoyproxy/envoy:v1.28", Status: "Running", CpuPercent: 3.8, MemoryUsedMb: 128,
-			MemoryLimitMb: 512, NetRxMb: 384.2, NetTxMb: 412.0, Restarts: 0, Uptime: "6 Days", CreatedAt: now.Add(-6 * 24 * time.Hour),
-		},
-		{
-			ID: "k8s-pod-43b", Name: "payment-checkout-worker-52d1", Engine: "Kubernetes", Namespace: "production",
-			Image: "fintech/checkout:2.1", Status: "Running", CpuPercent: 4.5, MemoryUsedMb: 256,
-			MemoryLimitMb: 1024, NetRxMb: 89.1, NetTxMb: 76.4, Restarts: 1, Uptime: "3 Days", CreatedAt: now.Add(-3 * 24 * time.Hour),
-		},
-		{
-			ID: "k8s-pod-12c", Name: "analytics-etl-batch-908c", Engine: "Kubernetes", Namespace: "analytics",
-			Image: "apache/spark-py:v3.5", Status: "Running", CpuPercent: 14.2, MemoryUsedMb: 840,
-			MemoryLimitMb: 2048, NetRxMb: 642.0, NetTxMb: 580.4, Restarts: 0, Uptime: "18 Hours", CreatedAt: now.Add(-18 * time.Hour),
-		},
+	includeDemo := c.Query("demo") == "true"
+	workloads, err := database.GetAllVirtualWorkloads(includeDemo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+	c.JSON(http.StatusOK, gin.H{"workloads": workloads, "total": len(workloads)})
+}
 
-	c.JSON(http.StatusOK, gin.H{"workloads": containers, "total": len(containers)})
+// HandleCreateContainerWorkload handles POST /api/v1/virtualization/containers
+func HandleCreateContainerWorkload(c *gin.Context) {
+	var req database.VirtualWorkloadRecord
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := database.CreateVirtualWorkload(&req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"workload": req, "message": "Workload registered successfully"})
+}
+
+// HandleDeleteContainerWorkload handles DELETE /api/v1/virtualization/containers/:id
+func HandleDeleteContainerWorkload(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid workload ID"})
+		return
+	}
+	if err := database.DeleteVirtualWorkload(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "deleted", "id": id})
 }
 
 // HandleGetCloudTelemetry handles GET /api/v1/virtualization/cloud
 func HandleGetCloudTelemetry(c *gin.Context) {
-	now := time.Now()
-	clouds := []CloudService{
-		{
-			ID: "aws-ec2-prod-01", Provider: "AWS", ServiceName: "EC2 Compute: prod-app-cluster",
-			ResourceID: "i-094fa83b92c418f", Region: "us-east-1 (N. Virginia)", Status: "Healthy",
-			MetricKey: "CPUUtilization", MetricValue: "28.4%", BudgetSpent: "$480 / $800 mo", SlaPercent: 99.99, LastPolled: now,
-		},
-		{
-			ID: "aws-rds-postgres", Provider: "AWS", ServiceName: "RDS Multi-AZ PostgreSQL 16",
-			ResourceID: "db-enterprise-core-ha", Region: "us-east-1 (N. Virginia)", Status: "Healthy",
-			MetricKey: "FreeStorageSpace", MetricValue: "418 GB Free (82%)", BudgetSpent: "$620 / $800 mo", SlaPercent: 99.999, LastPolled: now,
-		},
-		{
-			ID: "aws-s3-backups", Provider: "AWS", ServiceName: "S3 Enterprise Archive Bucket",
-			ResourceID: "arn:aws:s3:::vnms-nightly-snapshots", Region: "us-east-1", Status: "Healthy",
-			MetricKey: "BucketSizeBytes", MetricValue: "4.82 TB (Encrypted AES-256)", SlaPercent: 100.0, LastPolled: now,
-		},
-		{
-			ID: "azure-vm-adfs", Provider: "Azure", ServiceName: "Azure VM: Entra ID Sync & ADFS",
-			ResourceID: "vm-azure-identity-01", Region: "East US", Status: "Healthy",
-			MetricKey: "Percentage CPU", MetricValue: "18.2%", BudgetSpent: "$290 / $500 mo", SlaPercent: 99.95, LastPolled: now,
-		},
-		{
-			ID: "azure-sql-fin", Provider: "Azure", ServiceName: "Azure SQL Hyperscale DB",
-			ResourceID: "sql-fin-prod-eastus", Region: "East US", Status: "Healthy",
-			MetricKey: "DTU Consumption %", MetricValue: "34.0%", BudgetSpent: "$540 / $750 mo", SlaPercent: 99.99, LastPolled: now,
-		},
-		{
-			ID: "m365-exchange-corp", Provider: "Microsoft 365", ServiceName: "Exchange Online & Mail Routing",
-			ResourceID: "tenant-enterprise-m365", Region: "Global / Multi-Geo", Status: "Healthy",
-			MetricKey: "Active Mailboxes / Quota", MetricValue: "420 / 500 Licenses", BudgetSpent: "$9,240 / mo", SlaPercent: 99.995, LastPolled: now,
-		},
-		{
-			ID: "m365-teams-sharepoint", Provider: "Microsoft 365", ServiceName: "Teams & SharePoint Enterprise",
-			ResourceID: "sp-tenant-cloud-storage", Region: "Global", Status: "Healthy",
-			MetricKey: "Cloud Storage Used", MetricValue: "4.8 TB / 25 TB", BudgetSpent: "Included E5", SlaPercent: 100.0, LastPolled: now,
-		},
+	includeDemo := c.Query("demo") == "true"
+	clouds, err := database.GetAllCloudServices(includeDemo)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+	c.JSON(http.StatusOK, gin.H{
+		"cloud_services": clouds,
+		"total":          len(clouds),
+		"demo_mode":      includeDemo,
+	})
+}
 
-	c.JSON(http.StatusOK, gin.H{"cloud_services": clouds, "total": len(clouds)})
+// HandleCreateCloudService handles POST /api/v1/virtualization/cloud
+func HandleCreateCloudService(c *gin.Context) {
+	var req database.CloudServiceRecord
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if req.Provider == "" || req.ServiceName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Provider and ServiceName are required"})
+		return
+	}
+	if err := database.CreateCloudService(&req); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, gin.H{"cloud_service": req, "message": "Cloud service registered successfully"})
+}
+
+// HandleDeleteCloudService handles DELETE /api/v1/virtualization/cloud/:id
+func HandleDeleteCloudService(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid cloud service ID"})
+		return
+	}
+	if err := database.DeleteCloudService(id); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "deleted", "id": id})
+}
+
+// HandleSeedCloudDemoData handles POST /api/v1/virtualization/cloud/seed-demo
+func HandleSeedCloudDemoData(c *gin.Context) {
+	if err := database.SeedCloudDemoData(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "demo_seeded", "message": "Demo cloud sandbox records initialized"})
+}
+
+// HandleClearCloudServices handles POST/DELETE /api/v1/virtualization/cloud/clear
+func HandleClearCloudServices(c *gin.Context) {
+	if err := database.ClearAllCloudServices(); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "cleared", "message": "All cloud services deleted"})
 }
 
 // HandleGetCertificatesAndDNSBL handles GET /api/v1/virtualization/security

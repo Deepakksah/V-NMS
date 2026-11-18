@@ -187,3 +187,4 @@ func GetCatalogStats() (totalTemplates int, totalMonitors int, totalVendors int,
 	initCatalog()
 	return len(globalCatalog.templates), len(globalCatalog.monitors), len(globalCatalog.vendors), len(globalCatalog.categories)
 }
+
