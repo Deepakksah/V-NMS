@@ -124,8 +124,17 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
     const firewalls = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall'));
     const switches = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'switch' && !firewalls.includes(d)));
-    const servers = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'server' && !firewalls.includes(d) && !switches.includes(d)));
-    const workstations = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'workstation'));
+    const servers = sortByIP(devices.filter(d => {
+      if (firewalls.includes(d) || switches.includes(d)) return false;
+      const dt = (d.device_type || '').toLowerCase();
+      if (dt === 'server') return true;
+      const h = (d.hostname || '').toLowerCase();
+      if ((h.startsWith('win-') || h.startsWith('win-node-') || h.startsWith('linux-') || h.startsWith('srv') || h.includes('server')) && !h.startsWith('win-client-') && !h.startsWith('desktop-') && !h.startsWith('laptop-')) {
+        return true;
+      }
+      return false;
+    }));
+    const workstations = sortByIP(devices.filter(d => !firewalls.includes(d) && !switches.includes(d) && !servers.includes(d) && (d.device_type || '').toLowerCase() !== 'ntp'));
     const ntpNodes = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp'));
 
     const mapDeviceToNode = (d: Device): TreeNode => {

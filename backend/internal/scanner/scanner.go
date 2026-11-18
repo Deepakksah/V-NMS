@@ -538,12 +538,12 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 				} else if hasSMB || hasRDP {
 					// 4. Windows Servers & Workstations
 					upperHost := strings.ToUpper(hostname)
-					isDesktopName := strings.HasPrefix(upperHost, "DESKTOP-") || strings.HasPrefix(upperHost, "LAPTOP-") || strings.HasPrefix(upperHost, "PC-")
-					isServerSign := strings.HasPrefix(upperHost, "SRV") || strings.Contains(upperHost, "SERVER") || strings.Contains(upperHost, "SQL") || strings.Contains(upperHost, "VPS") || strings.Contains(upperHost, "SOLUS") || strings.Contains(upperHost, "DC") || strings.Contains(upperHost, "HOST")
+					isDesktopName := strings.HasPrefix(upperHost, "DESKTOP-") || strings.HasPrefix(upperHost, "LAPTOP-") || strings.HasPrefix(upperHost, "PC-") || upperHost == "BELPC" || strings.HasPrefix(upperHost, "WIN-CLIENT-") || upperHost == "ADMIN"
+					isServerSign := strings.HasPrefix(upperHost, "WIN-") || strings.HasPrefix(upperHost, "WIN-NODE-") || strings.HasPrefix(upperHost, "LINUX-") || strings.HasPrefix(upperHost, "SRV") || strings.Contains(upperHost, "SERVER") || strings.Contains(upperHost, "SQL") || strings.Contains(upperHost, "VPS") || strings.Contains(upperHost, "SOLUS") || strings.Contains(upperHost, "DC") || strings.Contains(upperHost, "HOST") || strings.HasPrefix(upperHost, "NODE-")
 
-					if !isDesktopName && (isServerSign || hasPostgres || hasMongo || hasRedis) {
+					if !isDesktopName && (isServerSign || hasPostgres || hasMongo || hasRedis || hasSMB || hasRDP) {
 						deviceType = "server"
-						if vendor == "Generic Network Device" {
+						if vendor == "Generic Network Device" || vendor == "Windows" {
 							vendor = "Microsoft"
 						}
 						hardware = fmt.Sprintf("%s Production Server", vendor)

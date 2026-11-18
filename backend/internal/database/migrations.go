@@ -237,6 +237,21 @@ func RunAutoMigrations() error {
 
 	-- Drop email unique constraint if present so administrator accounts can share notification mailboxes
 	ALTER TABLE users DROP CONSTRAINT IF EXISTS users_email_key;
+
+	-- Self-healing: Ensure all Windows Enterprise Servers (WIN-* and win-node-*) are typed as servers
+	UPDATE devices 
+	SET device_type = 'server', 
+	    hardware = CASE 
+	        WHEN vendor ILIKE '%supermicro%' THEN 'Supermicro Production Server' 
+	        WHEN vendor ILIKE '%microsoft%' THEN 'Microsoft Production Server'
+	        ELSE 'Dell Production Server' 
+	    END,
+	    os = 'Windows Server'
+	WHERE (hostname ILIKE 'win-%' OR hostname ILIKE 'win-node-%')
+	  AND hostname NOT ILIKE 'win-client-%'
+	  AND hostname NOT ILIKE 'desktop-%'
+	  AND hostname NOT ILIKE 'laptop-%'
+	  AND device_type != 'server';
 	`
 
 	_, err := Pool.Exec(ctx, schemaSQL)

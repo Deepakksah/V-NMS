@@ -186,6 +186,11 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
       ) {
         switches.push(d);
       } else if (
+        type === 'server' ||
+        ((name.startsWith('win-') || name.startsWith('win-node-') || name.startsWith('linux-') || name.startsWith('srv') || name.includes('server')) && !name.startsWith('win-client-') && !name.startsWith('desktop-') && !name.startsWith('laptop-'))
+      ) {
+        servers.push(d);
+      } else if (
         type.includes('workstation') ||
         type.includes('desktop') ||
         type.includes('laptop') ||

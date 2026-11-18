@@ -74,18 +74,25 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
 
   const getDeviceType = (d: Device): 'SERVER' | 'WORKSTATION' | 'SWITCH' | 'FIREWALL' | 'NTP' => {
     const rawType = (d.device_type || '').toLowerCase();
-    if (rawType === 'workstation') return 'WORKSTATION';
     if (rawType === 'switch') return 'SWITCH';
     if (rawType === 'firewall' || rawType === 'router') return 'FIREWALL';
     if (rawType === 'ntp') return 'NTP';
     if (rawType === 'server') return 'SERVER';
+    if (rawType === 'workstation') {
+      const h = d.hostname.toLowerCase();
+      // Ensure Windows Servers (WIN-* and win-node-*) are classified as SERVER
+      if ((h.startsWith('win-') || h.startsWith('win-node-')) && !h.startsWith('win-client-')) {
+        return 'SERVER';
+      }
+      return 'WORKSTATION';
+    }
 
     const h = d.hostname.toLowerCase();
-    if (h.startsWith('desktop-') || h.startsWith('laptop-') || h.startsWith('pc-') || h.startsWith('belpc') || h.startsWith('win-client-') || h.startsWith('web-node-') || h.startsWith('printer-') || h.startsWith('cam-') || h.startsWith('host-') || h === 'admin') return 'WORKSTATION';
+    if (h.startsWith('desktop-') || h.startsWith('laptop-') || h.startsWith('pc-') || h.startsWith('belpc') || h.startsWith('win-client-') || h.startsWith('printer-') || h.startsWith('cam-') || h.startsWith('host-') || h === 'admin') return 'WORKSTATION';
     if (h.includes('sw') || h.includes('catalyst') || h.includes('unifi')) return 'SWITCH';
     if (h.includes('gw') || h.includes('core-gw') || h.includes('firewall') || (d.ip_address && d.ip_address.endsWith('.1'))) return 'FIREWALL';
     if (h.includes('ntp') || h.includes('time') || (d.ip_address && d.ip_address.endsWith('.10'))) return 'NTP';
-    if (h.startsWith('srv') || h.includes('server') || h.includes('sql') || h.includes('vps') || h.includes('solus') || h.includes('dc-')) return 'SERVER';
+    if (h.startsWith('win-') || h.startsWith('win-node-') || h.startsWith('srv') || h.includes('server') || h.includes('sql') || h.includes('vps') || h.includes('solus') || h.includes('dc-')) return 'SERVER';
     return 'WORKSTATION';
   };
 
