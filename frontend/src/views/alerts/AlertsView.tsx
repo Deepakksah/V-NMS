@@ -590,7 +590,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
 
   // Simulate test trigger
   const handleSimulateAlert = async (type: 'down' | 'storage' | 'latency' | 'cpu' | 'memory' | 'recovery') => {
-    const sampleDev = devices[1] || { id: 1, hostname: 'WIN-OKBJVAPST46', ip_address: '172.168.1.14' };
+    const sampleDev = devices[1] || devices[0] || { id: 1, hostname: 'host-gateway', ip_address: '10.0.0.1' };
     let reqBody = {
       device_id: sampleDev.id,
       type: type,
@@ -712,7 +712,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
 
   // Helper for live preview rendering
   const renderPreview = (text: string) => {
-    const d = devices[1] || devices[0] || { hostname: 'WIN-OKBJVAPST46', ip_address: '172.168.1.14', vendor: 'Dell', hardware: 'PowerEdge R750', device_type: 'server' };
+    const d = devices[1] || devices[0] || { hostname: 'srv-node-01', ip_address: '10.0.0.1', vendor: 'Dell', hardware: 'PowerEdge R750', device_type: 'server' };
     return text
       .replace(/{{hostname}}/g, d.hostname)
       .replace(/{{ip}}/g, d.ip_address)
@@ -968,7 +968,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                               {dev?.device_type && <DeviceTypeBadge type={dev.device_type} size="xs" />}
                             </div>
                             <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
-                              {dev?.ip_address || '172.168.1.x'}
+                              {dev?.ip_address || 'Unassigned IP'}
                             </div>
                           </div>
                         </div>
@@ -1077,7 +1077,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
               </span>
               <span style={{ color: '#cbd5e1' }}>|</span>
               <span style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                Target Scope: <strong>33 Live Subnet Devices (172.168.1.0/24)</strong>
+                Target Scope: <strong>{devices.length} Live Monitored Devices ({devices.length > 0 && devices[0].ip_address ? `${devices[0].ip_address.split('.').slice(0, 3).join('.')}.0/24` : 'Local Subnet'})</strong>
               </span>
             </div>
 
@@ -2481,7 +2481,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
             <ul style={{ fontSize: '0.74rem', color: '#475569', lineHeight: 1.6, paddingLeft: '18px', margin: 0 }}>
               <li><strong>Microsoft 365 / Exchange:</strong> Host: <code>smtp.office365.com</code>, Port: <code>587</code>, Security: <code>STARTTLS</code>.</li>
               <li><strong>Google Workspace:</strong> Host: <code>smtp.gmail.com</code>, Port: <code>587</code> (Use App Password).</li>
-              <li><strong>Internal Linux Postfix Relay:</strong> Host: <code>172.168.1.1</code> or IP, Port: <code>25</code>, Security: <code>None</code>.</li>
+              <li><strong>Internal Linux Postfix Relay:</strong> Host: <code>10.0.0.1</code> or IP, Port: <code>25</code>, Security: <code>None</code>.</li>
               <li>Click <strong>Send Test Verification Email</strong> to verify immediate live handshake.</li>
             </ul>
           </div>

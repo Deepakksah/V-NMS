@@ -94,11 +94,12 @@ export const DeviceChartsModal: React.FC<DeviceChartsModalProps> = ({
     }
 
     // Server
-    const isLogFull = devSeed > 60; // Flag some servers for realistic Storage Full alert
+    const actualDiskUsage = (device as any).disk_percent || Math.min(88, Math.round(25 + ((device.id * 11) % 50)));
+    const isLogFull = actualDiskUsage >= 90;
     return [
-      { name: 'C:\\ (OS Boot)', label: 'Windows Server 2022 System', totalGb: 500, usedGb: 195, fs: 'NTFS', alert: false },
-      { name: 'D:\\Data (Databases)', label: 'Enterprise Data Volume', totalGb: 2048, usedGb: 1480, fs: 'NTFS', alert: false },
-      { name: 'E:\\Logs (Audit Archive)', label: 'Application & System Audit Logs', totalGb: 500, usedGb: isLogFull ? 468 : 280, fs: 'NTFS', alert: isLogFull }
+      { name: 'C:\\ (OS Boot)', label: 'System Boot Drive', totalGb: 500, usedGb: Math.round(500 * (actualDiskUsage / 100)), fs: 'NTFS', alert: isLogFull },
+      { name: 'D:\\Data (Databases)', label: 'Enterprise Data Volume', totalGb: 2048, usedGb: Math.round(2048 * (actualDiskUsage * 0.75 / 100)), fs: 'NTFS', alert: false },
+      { name: 'E:\\Logs (Audit Archive)', label: 'Application & System Audit Logs', totalGb: 500, usedGb: isLogFull ? 468 : 180, fs: 'NTFS', alert: isLogFull }
     ];
   }, [device]);
 

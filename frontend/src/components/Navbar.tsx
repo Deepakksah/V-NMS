@@ -297,10 +297,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               border: `1px solid ${isScanning ? '#0284c7' : 'rgba(16, 185, 129, 0.35)'}`,
               borderRadius: '8px'
             }}
-            title="Scan local subnet 172.168.1.0/24 for all live devices"
+            title="Scan local network subnet for all live devices"
           >
             <Activity size={14} className={isScanning ? 'animate-spin' : ''} />
-            <span>{isScanning ? 'Scanning 172.168.1.0/24...' : 'Scan Subnet'}</span>
+            <span>{isScanning ? 'Scanning Subnet...' : 'Scan Subnet'}</span>
           </button>
         )}
 

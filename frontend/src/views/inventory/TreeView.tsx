@@ -147,9 +147,9 @@ export const TreeView: React.FC<TreeViewProps> = ({
         uptime: d.uptime_seconds ? `${Math.round(d.uptime_seconds / 3600)} Hours` : 'Online',
         metrics: {
           latency: d.last_ping_ms || 0.5,
-          cpu: Math.min(88, Math.round(18 + ((d.id * 7) % 55))),
-          mem: Math.min(92, Math.round(32 + ((d.id * 9) % 50))),
-          traffic: `${((d.last_ping_ms || 1.2) * 12.4 + 2).toFixed(1)} Mbps`
+          cpu: d.cpu_percent ?? Math.min(85, Math.round(18 + ((d.id * 7) % 50))),
+          mem: d.memory_percent ?? Math.min(90, Math.round(28 + ((d.id * 9) % 45))),
+          traffic: `${((d.last_ping_ms || 1.2) * 8.5 + 4).toFixed(1)} Mbps`
         },
         children: [
           { id: `dev-${d.id}-eth0`, name: `eth0 [Gigabit Ethernet 1 Gbps Full-Duplex]`, type: 'port', status: d.status ? 'up' : 'down', meta: `Latency: ${d.last_ping_ms || 0.5} ms • MTU 1500` },
@@ -576,15 +576,17 @@ export const TreeView: React.FC<TreeViewProps> = ({
     return getDeviceTelemetryHistory(activeDevice, treeTimeframe);
   }, [activeDevice, treeTimeframe]);
 
-  // Deterministic storage info calculation
+  // Deterministic storage info calculation derived from runtime device properties
   const storageInfo = useMemo(() => {
     if (!activeDevice) return { diskUsage: 45, partition: 'C:\\', capacity: '512 GB', isFull: false };
-    const devId = activeDevice.id;
-    // WIN-OKBJVAPST46 (id 2) or high id demonstrates storage threshold breach
-    const isFull = devId === 2 || activeDevice.hostname.includes('OKBJ');
-    const diskUsage = isFull ? 92 : Math.min(88, 38 + ((devId * 7) % 45));
-    const partition = (activeDevice.os || '').toLowerCase().includes('windows') ? 'C:\\ (System NVMe)' : '/ (ext4 NVMe Root)';
-    const capacity = isFull ? '480 GB (441.6 GB Used)' : '1024 GB (Enterprise SSD)';
+    const devType = (activeDevice.device_type || 'server').toLowerCase();
+    const isWin = (activeDevice.os || '').toLowerCase().includes('windows');
+    const totalGb = devType === 'server' ? 1024 : 512;
+    const diskUsage = (activeDevice as any).disk_percent || Math.min(88, Math.round(28 + ((activeDevice.id * 11) % 48)));
+    const isFull = diskUsage >= 90;
+    const usedGb = Math.round(totalGb * (diskUsage / 100));
+    const partition = isWin ? 'C:\\ (System NVMe)' : '/ (ext4 NVMe Root)';
+    const capacity = `${totalGb} GB (${usedGb} GB Used • ${isWin ? 'NTFS' : 'EXT4'})`;
     return { diskUsage, partition, capacity, isFull };
   }, [activeDevice]);
 

@@ -67,7 +67,7 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
       // Auto-suggest hostname & IP based on category and existingCount
       const prefix = category === 'server' ? 'srv' : category === 'switch' ? 'sw' : category === 'firewall' ? 'fw' : category === 'ntp' ? 'ntp' : 'pc';
       setHostname(`${prefix}-node-${existingCount + 1}.corp.local`);
-      setIpAddress(`172.168.1.${Math.min(254, 100 + (existingCount % 150))}`);
+      setIpAddress(`192.168.1.${Math.min(254, 100 + (existingCount % 150))}`);
     }
   }, [category, currentCategoryDef, existingCount]);
 
@@ -423,7 +423,7 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
                 required
                 value={ipAddress}
                 onChange={e => setIpAddress(e.target.value)}
-                placeholder="172.168.1.100"
+                placeholder="e.g. 192.168.1.100"
                 style={{
                   width: '100%',
                   padding: '9px 12px',

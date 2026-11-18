@@ -83,8 +83,8 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
     const h = d.hostname.toLowerCase();
     if (h.startsWith('desktop-') || h.startsWith('laptop-') || h.startsWith('pc-') || h.startsWith('belpc') || h.startsWith('win-client-') || h.startsWith('web-node-') || h.startsWith('printer-') || h.startsWith('cam-') || h.startsWith('host-') || h === 'admin') return 'WORKSTATION';
     if (h.includes('sw') || h.includes('catalyst') || h.includes('unifi')) return 'SWITCH';
-    if (h.includes('gw') || h.includes('core-gw') || h.includes('firewall') || d.ip_address === '172.168.1.1') return 'FIREWALL';
-    if (h.includes('ntp') || h.includes('time') || d.ip_address === '172.168.1.10') return 'NTP';
+    if (h.includes('gw') || h.includes('core-gw') || h.includes('firewall') || (d.ip_address && d.ip_address.endsWith('.1'))) return 'FIREWALL';
+    if (h.includes('ntp') || h.includes('time') || (d.ip_address && d.ip_address.endsWith('.10'))) return 'NTP';
     if (h.startsWith('srv') || h.includes('server') || h.includes('sql') || h.includes('vps') || h.includes('solus') || h.includes('dc-')) return 'SERVER';
     return 'WORKSTATION';
   };
@@ -147,7 +147,7 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
       case 'workstation':
         return {
           title: 'Client Workstations & Office Machines',
-          subtitle: 'HP EliteDesk 800 G8, Dell OptiPlex 7090, and Windows 11 Pro client workstations active on 172.168.1.0/24',
+          subtitle: 'Client endpoints, desktop computers, and workstations active in your monitored enterprise network',
           addLabel: 'Add Workstation',
           typeDefault: 'workstation'
         };
