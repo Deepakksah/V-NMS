@@ -7,11 +7,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Layers,
-  Zap,
   Maximize2,
   X,
-  Check,
-  Plus
+  Check
 } from 'lucide-react';
 import type { Device } from '../types';
 
@@ -68,8 +66,6 @@ interface InfrastructureSnapshotProps {
   devices: Device[];
   alerts?: any[];
   onSelectCategory?: (categoryName: string) => void;
-  onOpenAddDevice?: (defaultCategory?: string) => void;
-  onOpenDiscovery?: () => void;
   isDark?: boolean;
   maxHeight?: string;
   defaultPageSize?: number;
@@ -79,8 +75,6 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
   devices = [],
   alerts = [],
   onSelectCategory,
-  onOpenAddDevice,
-  onOpenDiscovery,
   isDark = true,
   maxHeight = 'none',
   defaultPageSize = 25
@@ -237,16 +231,8 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
                       background: idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent',
                       transition: 'background 0.1s ease'
                     }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.backgroundColor = rowHover;
-                      const btn = e.currentTarget.querySelector('.row-quick-add') as HTMLElement;
-                      if (btn) btn.style.opacity = '1';
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.backgroundColor = idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent';
-                      const btn = e.currentTarget.querySelector('.row-quick-add') as HTMLElement;
-                      if (btn) btn.style.opacity = '0';
-                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = rowHover}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent'}
                   >
                     {/* Status Circle Icon matching screenshot */}
                     <td style={{ padding: '3px 6px', textAlign: 'center', verticalAlign: 'middle', width: '26px' }}>
@@ -269,56 +255,20 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
                     </td>
 
                     {/* Name */}
-                    <td style={{
-                      padding: '3px 8px',
-                      fontWeight: hasDevices ? 600 : 400,
-                      color: hasDevices ? (isDark ? '#38bdf8' : '#0284c7') : textMain,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-                        <span
-                          onClick={() => onSelectCategory && onSelectCategory(item.name)}
-                          style={{
-                            cursor: 'pointer',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}
-                          title={`Click to filter ${item.name} devices`}
-                        >
-                          {item.name}
-                        </span>
-
-                        {onOpenAddDevice && (
-                          <button
-                            className="row-quick-add"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenAddDevice(item.id);
-                            }}
-                            style={{
-                              opacity: 0,
-                              transition: 'opacity 0.15s ease',
-                              background: isDark ? '#1e293b' : '#eff6ff',
-                              border: `1px solid ${isDark ? '#334155' : '#bae6fd'}`,
-                              borderRadius: '3px',
-                              padding: '1px 3px',
-                              fontSize: '0.58rem',
-                              color: isDark ? '#38bdf8' : '#0284c7',
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '2px',
-                              fontWeight: 700
-                            }}
-                            title={`Manually add new ${item.name} node`}
-                          >
-                            <Plus size={8} />
-                            <span>Add</span>
-                          </button>
-                        )}
-                      </div>
+                    <td
+                      onClick={() => onSelectCategory && onSelectCategory(item.name)}
+                      style={{
+                        padding: '3px 8px',
+                        fontWeight: hasDevices ? 600 : 400,
+                        color: hasDevices ? (isDark ? '#38bdf8' : '#0284c7') : textMain,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        cursor: 'pointer'
+                      }}
+                      title={`Click to filter ${item.name} devices`}
+                    >
+                      {item.name}
                     </td>
 
                     {/* Alarms */}
@@ -535,63 +485,17 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
           </div>
 
           {/* Quick Toolbar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {onOpenAddDevice && (
-              <button
-                onClick={() => onOpenAddDevice('all')}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(2, 132, 199, 0.4)',
-                  background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
-                  color: isDark ? '#38bdf8' : '#0284c7',
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-                title="Manually Add Node"
-              >
-                <Plus size={10} />
-                <span>+ Add</span>
-              </button>
-            )}
-
-            {onOpenDiscovery && (
-              <button
-                onClick={onOpenDiscovery}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '3px',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(16, 185, 129, 0.4)',
-                  background: isDark ? 'rgba(16, 185, 129, 0.2)' : '#d1fae5',
-                  color: isDark ? '#34d399' : '#059669',
-                  fontSize: '0.62rem',
-                  fontWeight: 700,
-                  cursor: 'pointer'
-                }}
-                title="Auto Scan Subnet for Network Devices"
-              >
-                <Zap size={10} />
-                <span>Auto Scan</span>
-              </button>
-            )}
-
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             {/* Search Input */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '3px',
+                gap: '4px',
                 background: isDark ? '#1e293b' : '#f8fafc',
                 border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
                 borderRadius: '4px',
-                padding: '2px 4px'
+                padding: '2px 5px'
               }}
             >
               <Search size={10} color={textMuted} />
@@ -607,9 +511,9 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  fontSize: '0.62rem',
+                  fontSize: '0.64rem',
                   color: textMain,
-                  width: '52px'
+                  width: '60px'
                 }}
               />
             </div>

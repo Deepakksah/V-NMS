@@ -344,7 +344,6 @@ export default function App() {
               alerts={alerts}
               onNavigateToTab={setActiveTab}
               onOpenDiscovery={() => setShowDiscoveryModal(true)}
-              onOpenAddDevice={handleOpenAddModal}
             />
           )}
 

@@ -43,7 +43,6 @@ interface DashboardViewProps {
   alerts?: any[];
   onNavigateToTab: (tab: string) => void;
   onOpenDiscovery?: () => void;
-  onOpenAddDevice?: (category?: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -56,8 +55,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   pollingId,
   alerts = [],
   onNavigateToTab: _onNavigateToTab,
-  onOpenDiscovery,
-  onOpenAddDevice
+  onOpenDiscovery
 }) => {
   // Theme Mode: Motadata High-Tech Dark NOC vs Daylight Enterprise
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
@@ -476,8 +474,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 else _onNavigateToTab('devices');
               }
             }}
-            onOpenAddDevice={onOpenAddDevice}
-            onOpenDiscovery={onOpenDiscovery}
           />
         </div>
       </div>
@@ -1462,8 +1458,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 else _onNavigateToTab('devices');
               }
             }}
-            onOpenAddDevice={onOpenAddDevice}
-            onOpenDiscovery={onOpenDiscovery}
           />
         </div>
       </div>
