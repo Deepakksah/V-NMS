@@ -89,9 +89,14 @@ func SetupRouter() *gin.Engine {
 		api.GET("/virtualization/cloud", HandleGetCloudTelemetry)
 		api.GET("/virtualization/security", HandleGetCertificatesAndDNSBL)
 		api.GET("/virtualization/hypervisors", HandleGetHypervisors)
+
+		// 10. Deep Flow, NetFlow, VoIP MOS & SNMP Traps Domain (PRTG Section 17.2)
+		api.GET("/network/flows", HandleGetNetFlows)
+		api.GET("/network/voip", HandleGetVoipQuality)
+		api.GET("/network/traps", HandleGetSnmpTrapsAndBgp)
 	}
 
-	// 10. Static Web SPA routes for embedded frontend
+	// 11. Static Web SPA routes for embedded frontend
 	web.RegisterWebRoutes(r)
 
 	return r

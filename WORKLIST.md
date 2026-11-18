@@ -377,15 +377,15 @@ Last Updated: 2026-11-13 | Subnet: `172.168.1.0/24` | Database: `PostgreSQL 18`
 - [ ] ⏳ **17.1.10 Active-Passive Failover Clustering:** Dual V-NMS core server replication with automatic VIP failover.
 
 #### 17.2 Network Infrastructure & Deep Flow Telemetry (Points 11–20)
-- [ ] ⏳ **17.2.1 NetFlow, IPFIX & sFlow UDP Collector:** Capture and parse flow packets on UDP port 2055/6343 into structured DB records.
-- [ ] ⏳ **17.2.2 Top Talkers & Conversations Leaderboard:** Interactive bandwidth consumer ranking by IP, MAC, and Port.
-- [ ] ⏳ **17.2.3 Custom Protocol Application Tagging:** Port-to-application dictionary (e.g. SAP, Oracle SQL, Zoom, Teams, VoIP) for traffic breakdowns.
-- [ ] ⏳ **17.2.4 VoIP Packet Jitter & MOS Quality Scoring:** Calculate standard deviation delay and ITU-T G.107 MOS score (1.0 - 5.0) for voice calls.
-- [ ] ⏳ **17.2.5 SIP Telephony Server Ping:** Send RFC 3261 `SIP OPTIONS` packets to VoIP PBX (Cisco CUCM, Asterisk) and measure 200 OK response latency.
-- [ ] ⏳ **17.2.6 Dynamic Route Path & BGP Flap Traceroute:** Regular traceroute hop baselining that alerts on path deviation or intermediate hop latency.
-- [ ] ⏳ **17.2.7 Cisco IP SLA & CBQoS Hardware Polling:** Directly poll `CISCO-RTTMON-MIB` and `CISCO-CLASS-BASED-QOS-MIB` for router-assisted probes.
-- [ ] ⏳ **17.2.8 SNMP Trap Receiver & Rule Trigger Engine:** Listen on UDP port 162, match enterprise MIB trap definitions, and trigger incident actions.
-- [ ] ⏳ **17.2.9 BGP Peer Session State & Reset Counters:** Poll `BGP4-MIB` for peer state transitions (Established, Active, Idle) and alert on resets.
+- [x] ✅ **17.2.1 NetFlow, IPFIX & sFlow UDP Collector:** Capture and parse flow packets on UDP port 2055/6343 into structured DB records.
+- [x] ✅ **17.2.2 Top Talkers & Conversations Leaderboard:** Interactive bandwidth consumer ranking by IP, MAC, and Port.
+- [x] ✅ **17.2.3 Custom Protocol Application Tagging:** Port-to-application dictionary (e.g. SAP, Oracle SQL, Zoom, Teams, VoIP) for traffic breakdowns.
+- [x] ✅ **17.2.4 VoIP Packet Jitter & MOS Quality Scoring:** Calculate standard deviation delay and ITU-T G.107 MOS score (1.0 - 5.0) for voice calls.
+- [x] ✅ **17.2.5 SIP Telephony Server Ping:** Send RFC 3261 `SIP OPTIONS` packets to VoIP PBX (Cisco CUCM, Asterisk) and measure 200 OK response latency.
+- [x] ✅ **17.2.6 Dynamic Route Path & BGP Flap Traceroute:** Regular traceroute hop baselining that alerts on path deviation or intermediate hop latency.
+- [x] ✅ **17.2.7 Cisco IP SLA & CBQoS Hardware Polling:** Directly poll `CISCO-RTTMON-MIB` and `CISCO-CLASS-BASED-QOS-MIB` for router-assisted probes.
+- [x] ✅ **17.2.8 SNMP Trap Receiver & Rule Trigger Engine:** Listen on UDP port 162, match enterprise MIB trap definitions, and trigger incident actions.
+- [x] ✅ **17.2.9 BGP Peer Session State & Reset Counters:** Poll `BGP4-MIB` for peer state transitions (Established, Active, Idle) and alert on resets.
 - [x] ✅ **17.2.10 Offline IEEE MAC OUI Database:** Complete offline hardware vendor lookup dictionary (33,266 IEEE vendor OUIs embedded) for instant device manufacturer identification.
 
 #### 17.3 Server Hardware, IPMI & Operating System Telemetry (Points 21–30)
