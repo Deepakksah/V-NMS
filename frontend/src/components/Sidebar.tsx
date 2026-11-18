@@ -19,6 +19,7 @@ import {
   Laptop,
   Shield,
   Clock,
+  Printer,
   TrendingUp,
   Users,
   UserCheck,
@@ -86,6 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const switchesCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'switch').length : 0;
   const firewallsCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall').length : 0;
   const workstationsCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'workstation').length : 0;
+  const printersCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'printer' || (d.hostname || '').toLowerCase().startsWith('printer-') || (d.hostname || '').toLowerCase().startsWith('prn-')).length : 0;
   const ntpCount = devices ? devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp').length : 0;
   const totalCount = devices ? devices.length : 0;
 
@@ -182,6 +184,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           iconColor: '#0284c7', 
           iconBg: '#e0f2fe', 
           count: String(workstationsCount) 
+        },
+        { 
+          id: 'printers', 
+          label: 'Printers & Imaging', 
+          icon: Printer, 
+          iconColor: '#ea580c', 
+          iconBg: '#ffedd5', 
+          count: String(printersCount) 
         },
         { 
           id: 'ntp', 

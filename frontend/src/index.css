@@ -193,7 +193,7 @@ body {
 /* 2-Column Split Dashboard Layout: Left Telemetry Grid + Right Infrastructure Snapshot */
 .dashboard-split-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 410px;
+  grid-template-columns: minmax(0, 1fr) 430px;
   gap: 16px;
   align-items: start;
 }

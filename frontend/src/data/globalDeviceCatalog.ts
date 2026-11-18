@@ -863,6 +863,306 @@ export const GLOBAL_DEVICE_CATALOG: Record<string, DeviceCategoryDefinition> = {
         ]
       }
     ]
+  },
+  printer: {
+    id: 'printer',
+    label: 'Network Printer & Imaging',
+    badgeLabel: 'PRINTER',
+    iconName: 'Printer',
+    description: 'Enterprise office multi-function laser printers, line printers, and industrial label engines',
+    vendors: [
+      {
+        id: 'HP',
+        name: 'HP (Hewlett-Packard Printing)',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'HP FutureSmart Firmware 5.6',
+        models: [
+          'HP LaserJet Enterprise MFP M528dn (Monochrome 45ppm)',
+          'HP Color LaserJet Enterprise M555x (High-Speed Color)',
+          'HP LaserJet Managed MFP E82650dn (Departmental 50ppm)',
+          'HP PageWide Enterprise Color 556xh (75ppm Flow)',
+          'HP DesignJet T650 Large-Format Plotter 36-inch'
+        ]
+      },
+      {
+        id: 'Canon',
+        name: 'Canon Solutions America',
+        country: 'Japan',
+        flag: '🇯🇵',
+        defaultOS: 'Canon MEAP Platform v3.8',
+        models: [
+          'Canon imageRUNNER ADVANCE DX C3835i Multi-Function',
+          'Canon imageRUNNER ADVANCE DX 4835i Monochrome',
+          'Canon imageCLASS LBP226dw Network Laser',
+          'Canon imagePRESS C165 Production Engine'
+        ]
+      },
+      {
+        id: 'Epson',
+        name: 'Epson Seiko Corp',
+        country: 'Japan',
+        flag: '🇯🇵',
+        defaultOS: 'Epson ESC/P-R Embedded 4.1',
+        models: [
+          'Epson WorkForce Enterprise WF-C21000 (100ppm Inkjet)',
+          'Epson EcoTank Pro ET-5880 All-in-One Supertank',
+          'Epson SureColor T5170 Wireless Large Format'
+        ]
+      },
+      {
+        id: 'Brother',
+        name: 'Brother Industries',
+        country: 'Japan',
+        flag: '🇯🇵',
+        defaultOS: 'Brother B-Net Embedded OS',
+        models: [
+          'Brother HL-L6400DW High-Volume Business Laser',
+          'Brother MFC-L8900CDW Business Color All-in-One',
+          'Brother MFC-L9570CDW Enterprise Color Laser'
+        ]
+      },
+      {
+        id: 'Xerox',
+        name: 'Xerox Holdings Corp',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Xerox ConnectKey Technology 2024',
+        models: [
+          'Xerox VersaLink C405 Multifunction Color Laser',
+          'Xerox AltaLink C8170 High-Volume Color MFP',
+          'Xerox VersaLink B400 Monochrome Network Printer'
+        ]
+      },
+      {
+        id: 'Ricoh',
+        name: 'Ricoh Global',
+        country: 'Japan',
+        flag: '🇯🇵',
+        defaultOS: 'Ricoh SmartSDK Embedded 3.0',
+        models: [
+          'Ricoh IM C3500 Color Laser Multi-Function',
+          'Ricoh SP 5300DN Monochrome High-Duty Laser',
+          'Ricoh Pro C5300s Production Printing System'
+        ]
+      },
+      {
+        id: 'Zebra',
+        name: 'Zebra Technologies',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Zebra Link-OS v6.8',
+        models: [
+          'Zebra ZT411 Industrial Thermal Label Printer',
+          'Zebra ZD421 Advanced Desktop Barcode Printer',
+          'Zebra ZT610 Heavy-Duty 600dpi Barcode Engine'
+        ]
+      },
+      {
+        id: 'Lexmark',
+        name: 'Lexmark International',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Lexmark Embedded Solutions Framework (eSF)',
+        models: [
+          'Lexmark MS823dn Enterprise Monochrome Laser',
+          'Lexmark CX735adse Color All-in-One MFP'
+        ]
+      },
+      {
+        id: 'Kyocera',
+        name: 'Kyocera Document Solutions',
+        country: 'Japan',
+        flag: '🇯🇵',
+        defaultOS: 'Kyocera HyPAS Embedded 2.4',
+        models: [
+          'Kyocera TASKalfa 4054ci High-Speed Color MFP',
+          'Kyocera ECOSYS P3155dn Monochrome High-Yield Laser'
+        ]
+      }
+    ]
+  },
+  router: {
+    id: 'router',
+    label: 'Core & Edge Router',
+    badgeLabel: 'ROUTER',
+    iconName: 'Network',
+    description: 'Enterprise WAN, BGP, OSPF, and Edge Aggregation Routers',
+    vendors: [
+      {
+        id: 'Cisco',
+        name: 'Cisco Systems',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Cisco IOS-XE 17.9.4a',
+        models: [
+          'Cisco Catalyst 8300 Series Edge uCPE',
+          'Cisco ASR 1001-X Aggregation Services Router',
+          'Cisco ISR 4451-X Integrated Services Router',
+          'Cisco NCS 5500 Network Convergence System'
+        ]
+      },
+      {
+        id: 'Juniper',
+        name: 'Juniper Networks',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Juniper Junos OS 23.2R1',
+        models: [
+          'Juniper MX204 100GbE Universal Routing Platform',
+          'Juniper MX480 3D Universal Edge Router',
+          'Juniper ACX5448 Universal Metro Router'
+        ]
+      },
+      {
+        id: 'MikroTik',
+        name: 'MikroTik RouterOS',
+        country: 'Latvia',
+        flag: '🇱🇻',
+        defaultOS: 'MikroTik RouterOS v7.14',
+        models: [
+          'MikroTik CCR2216-1G-12XS-2XQ 100G Cloud Core Router',
+          'MikroTik CCR2004-16G-2S+ Dual Power Enterprise',
+          'MikroTik RB5009UG+S+IN Gigabit Edge Gateway'
+        ]
+      }
+    ]
+  },
+  wireless: {
+    id: 'wireless',
+    label: 'Wireless AP & Controllers',
+    badgeLabel: 'WIRELESS',
+    iconName: 'Radio',
+    description: 'Wi-Fi 6E/7 Enterprise Access Points and Wireless LAN Controllers',
+    vendors: [
+      {
+        id: 'Cisco_Meraki',
+        name: 'Cisco Meraki & Catalyst Wireless',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Meraki Cloud OS 29.5',
+        models: [
+          'Cisco Catalyst 9800-40 Wireless Controller',
+          'Cisco Catalyst 9130AXE Wi-Fi 6 Access Point',
+          'Cisco Meraki MR57 Wi-Fi 6E Cloud Managed AP',
+          'Cisco Meraki MR46 High-Density Cloud AP'
+        ]
+      },
+      {
+        id: 'Aruba',
+        name: 'Aruba (HPE Networking)',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'ArubaOS 10.4 Unified Architecture',
+        models: [
+          'Aruba AP-655 Wi-Fi 6E Campus Access Point',
+          'Aruba 7220 Mobility Controller (10G)',
+          'Aruba Instant On AP25 Wi-Fi 6 Certified'
+        ]
+      },
+      {
+        id: 'Ubiquiti',
+        name: 'Ubiquiti UniFi',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'UniFi OS 3.2.12',
+        models: [
+          'Ubiquiti UniFi U7 Pro Wi-Fi 7 Tri-Band AP',
+          'Ubiquiti UniFi U6 Enterprise Wi-Fi 6E',
+          'Ubiquiti Cloud Gateway Ultra (UCG-Ultra)'
+        ]
+      }
+    ]
+  },
+  storage: {
+    id: 'storage',
+    label: 'Enterprise Storage & SAN/NAS',
+    badgeLabel: 'STORAGE',
+    iconName: 'HardDrive',
+    description: 'Fibre Channel SAN, NVMe-oF arrays, and unified NAS appliances',
+    vendors: [
+      {
+        id: 'NetApp',
+        name: 'NetApp FAS/AFF',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'NetApp ONTAP 9.13.1P4',
+        models: [
+          'NetApp AFF A400 All-Flash NVMe Array',
+          'NetApp FAS8700 Hybrid Enterprise Storage',
+          'NetApp AFF C250 High-Density QLC All-Flash'
+        ]
+      },
+      {
+        id: 'Synology',
+        name: 'Synology Inc',
+        country: 'Taiwan',
+        flag: '🇹🇼',
+        defaultOS: 'Synology DiskStation Manager (DSM) 7.2',
+        models: [
+          'Synology RackStation RS3621xs+ (12-Bay Xeon 10GbE)',
+          'Synology FlashStation FS6400 Dual Xeon 24-Bay All-Flash',
+          'Synology SA3400D Dual Controller High-Availability'
+        ]
+      },
+      {
+        id: 'Dell_EMC',
+        name: 'Dell PowerStore / PowerMax',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'PowerStoreOS 3.6',
+        models: [
+          'Dell PowerStore 5000T All-Flash Appliance',
+          'Dell PowerMax 8000 Mission-Critical Storage',
+          'Dell Unity XT 480 Hybrid Flash Array'
+        ]
+      }
+    ]
+  },
+  ups: {
+    id: 'ups',
+    label: 'UPS & Power Distribution',
+    badgeLabel: 'UPS',
+    iconName: 'Zap',
+    description: 'Uninterruptible Power Supplies, ATS, and rack PDU management units',
+    vendors: [
+      {
+        id: 'APC_Schneider',
+        name: 'APC by Schneider Electric',
+        country: 'France',
+        flag: '🇫🇷',
+        defaultOS: 'APC Network Management Card 3 (v2.5.0)',
+        models: [
+          'APC Smart-UPS On-Line SRT 10kVA RM 208V/230V',
+          'APC Symmetra LX 16kVA Scalable Redundant Power',
+          'APC NetShelter Metered Rack PDU AP8865 (3-Phase)'
+        ]
+      },
+      {
+        id: 'Eaton',
+        name: 'Eaton Power Quality',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Eaton Network-M2 Gigabit Card Firmware 3.1',
+        models: [
+          'Eaton 9PX 11000i RT6U 11kVA Double-Conversion',
+          'Eaton 93PM 50kVA Modular 3-Phase UPS System',
+          'Eaton ePDU G3 Managed Rack Distribution Unit'
+        ]
+      },
+      {
+        id: 'Vertiv_Liebert',
+        name: 'Vertiv (Liebert)',
+        country: 'USA',
+        flag: '🇺🇸',
+        defaultOS: 'Vertiv Liebert RDU-A Embedded',
+        models: [
+          'Vertiv Liebert GXT5 10kVA Online Double Conversion',
+          'Vertiv Liebert EXM2 100kVA Monolithic UPS',
+          'Vertiv Geist Monitored Switched Rack PDU'
+        ]
+      }
+    ]
   }
 };
 

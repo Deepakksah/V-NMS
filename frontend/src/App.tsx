@@ -302,6 +302,7 @@ export default function App() {
         onLogout={handleLogout}
         onOpenChangePassword={() => setShowChangePasswordModal(true)}
         onTriggerScan={() => setShowDiscoveryModal(true)}
+        onOpenAddDevice={() => handleOpenAddModal('all')}
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleSidebar={toggleSidebarCollapse}
         theme={theme}
@@ -343,6 +344,7 @@ export default function App() {
               alerts={alerts}
               onNavigateToTab={setActiveTab}
               onOpenDiscovery={() => setShowDiscoveryModal(true)}
+              onOpenAddDevice={handleOpenAddModal}
             />
           )}
 
@@ -382,6 +384,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
               onClearAllDevices={handleClearAllDevices}
               categoryFilter="server"
             />
@@ -397,6 +400,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
               onClearAllDevices={handleClearAllDevices}
               categoryFilter="switch"
             />
@@ -412,6 +416,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
               onClearAllDevices={handleClearAllDevices}
               categoryFilter="firewall"
             />
@@ -427,8 +432,25 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
               onClearAllDevices={handleClearAllDevices}
               categoryFilter="workstation"
+            />
+          )}
+
+          {activeTab === 'printers' && (
+            <DevicesView
+              devices={devices}
+              selectedDevice={selectedDevice}
+              setSelectedDevice={setSelectedDevice}
+              onPing={handlePing}
+              onPoll={handlePoll}
+              pingingId={pingingId}
+              pollingId={pollingId}
+              onOpenAddDevice={handleOpenAddModal}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
+              onClearAllDevices={handleClearAllDevices}
+              categoryFilter="printer"
             />
           )}
 
@@ -442,6 +464,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
               onClearAllDevices={handleClearAllDevices}
               categoryFilter="ntp"
             />
@@ -457,6 +480,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onOpenDiscovery={() => setShowDiscoveryModal(true)}
               onClearAllDevices={handleClearAllDevices}
               categoryFilter="all"
             />

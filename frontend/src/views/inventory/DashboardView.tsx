@@ -43,6 +43,7 @@ interface DashboardViewProps {
   alerts?: any[];
   onNavigateToTab: (tab: string) => void;
   onOpenDiscovery?: () => void;
+  onOpenAddDevice?: (category?: string) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -55,7 +56,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   pollingId,
   alerts = [],
   onNavigateToTab: _onNavigateToTab,
-  onOpenDiscovery
+  onOpenDiscovery,
+  onOpenAddDevice
 }) => {
   // Theme Mode: Motadata High-Tech Dark NOC vs Daylight Enterprise
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
@@ -462,9 +464,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             devices={devices}
             alerts={alerts}
             isDark={isDark}
-            onSelectCategory={() => {
-              if (_onNavigateToTab) _onNavigateToTab('devices');
+            defaultPageSize={25}
+            onSelectCategory={(catName) => {
+              if (_onNavigateToTab) {
+                const lower = catName.toLowerCase();
+                if (lower === 'printer') _onNavigateToTab('printers');
+                else if (lower === 'server') _onNavigateToTab('servers');
+                else if (lower === 'switch') _onNavigateToTab('switches');
+                else if (lower === 'firewall') _onNavigateToTab('firewalls');
+                else if (lower === 'desktop') _onNavigateToTab('workstations');
+                else _onNavigateToTab('devices');
+              }
             }}
+            onOpenAddDevice={onOpenAddDevice}
+            onOpenDiscovery={onOpenDiscovery}
           />
         </div>
       </div>
@@ -1438,9 +1451,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             alerts={alerts}
             isDark={isDark}
             defaultPageSize={25}
-            onSelectCategory={() => {
-              if (_onNavigateToTab) _onNavigateToTab('devices');
+            onSelectCategory={(catName) => {
+              if (_onNavigateToTab) {
+                const lower = catName.toLowerCase();
+                if (lower === 'printer') _onNavigateToTab('printers');
+                else if (lower === 'server') _onNavigateToTab('servers');
+                else if (lower === 'switch') _onNavigateToTab('switches');
+                else if (lower === 'firewall') _onNavigateToTab('firewalls');
+                else if (lower === 'desktop') _onNavigateToTab('workstations');
+                else _onNavigateToTab('devices');
+              }
             }}
+            onOpenAddDevice={onOpenAddDevice}
+            onOpenDiscovery={onOpenDiscovery}
           />
         </div>
       </div>

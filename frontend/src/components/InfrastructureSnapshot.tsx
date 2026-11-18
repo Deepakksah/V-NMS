@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-  CheckCircle2,
   AlertTriangle,
   Search,
   ChevronLeft,
@@ -8,27 +7,13 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Layers,
-  Server,
-  Network,
-  Shield,
-  Radio,
-  HardDrive,
-  Activity,
   Zap,
   Maximize2,
-  X
+  X,
+  Check,
+  Plus
 } from 'lucide-react';
 import type { Device } from '../types';
-
-const getCategoryIcon = (id: string) => {
-  if (id.includes('firewall') || id.includes('security') || id.includes('ngfw')) return <Shield size={12} color="#f43f5e" />;
-  if (id.includes('router') || id.includes('switch') || id.includes('sdn') || id.includes('sdwan')) return <Network size={12} color="#0284c7" />;
-  if (id.includes('wireless') || id.includes('wlc') || id.includes('wap') || id.includes('radio') || id.includes('vision') || id.includes('sensor')) return <Radio size={12} color="#8b5cf6" />;
-  if (id.includes('storage') || id.includes('raid') || id.includes('tape')) return <HardDrive size={12} color="#059669" />;
-  if (id.includes('ups') || id.includes('pdu') || id.includes('cooling') || id.includes('printer') || id.includes('iot')) return <Zap size={12} color="#d97706" />;
-  if (id.includes('wan') || id.includes('voip') || id.includes('balancer')) return <Activity size={12} color="#06b6d4" />;
-  return <Server size={12} color="#3b82f6" />;
-};
 
 export interface CategorySnapshot {
   id: string;
@@ -83,6 +68,8 @@ interface InfrastructureSnapshotProps {
   devices: Device[];
   alerts?: any[];
   onSelectCategory?: (categoryName: string) => void;
+  onOpenAddDevice?: (defaultCategory?: string) => void;
+  onOpenDiscovery?: () => void;
   isDark?: boolean;
   maxHeight?: string;
   defaultPageSize?: number;
@@ -92,6 +79,8 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
   devices = [],
   alerts = [],
   onSelectCategory,
+  onOpenAddDevice,
+  onOpenDiscovery,
   isDark = true,
   maxHeight = 'none',
   defaultPageSize = 25
@@ -130,7 +119,7 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
       if (type.includes('ups') || vendor.includes('apc') || vendor.includes('cyberpower') || hardware.includes('smart-ups')) return 'ups';
       if (type.includes('pdu') || hardware.includes('pdu')) return 'pdu';
       if (type.includes('cooling') || desc.includes('liebert') || desc.includes('stulz')) return 'cooling_unit';
-      if (type.includes('printer') || desc.includes('laserjet') || desc.includes('printer')) return 'printer';
+      if (type.includes('printer') || desc.includes('laserjet') || desc.includes('printer') || host.startsWith('printer-') || host.startsWith('prn-')) return 'printer';
       if (type.includes('ucs') || desc.includes('ucs') || hardware.includes('ucs')) return 'ucs';
       if (type.includes('raid') || desc.includes('megaraid') || desc.includes('perc')) return 'raid';
       if (type.includes('fc_switch') || desc.includes('fibre channel') || desc.includes('brocade')) return 'fc_switch';
@@ -220,11 +209,11 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.70rem', tableLayout: 'fixed' }}>
           <thead>
             <tr style={{ background: tableHeaderBg, borderBottom: `1px solid ${cardBorder}`, position: 'sticky', top: 0, zIndex: 1 }}>
-              <th style={{ padding: '6px 8px', width: '28px', textAlign: 'center' }}></th>
-              <th style={{ padding: '6px 8px', fontWeight: 700, color: textMuted }}>Name</th>
-              <th style={{ padding: '6px 6px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '50px' }}>Alarms</th>
-              <th style={{ padding: '6px 6px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '50px' }}>Devices</th>
-              <th style={{ padding: '6px 6px', fontWeight: 700, color: textMuted, textAlign: 'center', width: '70px' }}>Problematic</th>
+              <th style={{ padding: '6px 6px', width: '26px', textAlign: 'center' }}></th>
+              <th style={{ padding: '6px 8px', fontWeight: 600, color: textMuted }}>Name</th>
+              <th style={{ padding: '6px 6px', fontWeight: 600, color: textMuted, textAlign: 'center', width: '48px' }}>Alarms</th>
+              <th style={{ padding: '6px 6px', fontWeight: 600, color: textMuted, textAlign: 'center', width: '48px' }}>Devices</th>
+              <th style={{ padding: '6px 6px', fontWeight: 600, color: textMuted, textAlign: 'center', width: '120px' }}>Problematic Devices</th>
             </tr>
           </thead>
           <tbody>
@@ -242,99 +231,119 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
                 return (
                   <tr
                     key={item.id}
-                    onClick={() => onSelectCategory && hasDevices && onSelectCategory(item.name)}
                     style={{
                       borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
-                      cursor: hasDevices && onSelectCategory ? 'pointer' : 'default',
-                      height: '26px',
+                      height: '25px',
                       background: idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent',
                       transition: 'background 0.1s ease'
                     }}
-                    onMouseEnter={e => e.currentTarget.style.backgroundColor = rowHover}
-                    onMouseLeave={e => e.currentTarget.style.backgroundColor = idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent'}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.backgroundColor = rowHover;
+                      const btn = e.currentTarget.querySelector('.row-quick-add') as HTMLElement;
+                      if (btn) btn.style.opacity = '1';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.backgroundColor = idx % 2 === 1 ? (isDark ? '#090d16' : '#fafafa') : 'transparent';
+                      const btn = e.currentTarget.querySelector('.row-quick-add') as HTMLElement;
+                      if (btn) btn.style.opacity = '0';
+                    }}
                   >
-                    {/* Status Icon */}
-                    <td style={{ padding: '3px 8px', textAlign: 'center', verticalAlign: 'middle', width: '28px' }}>
-                      {isProblematic ? (
-                        <AlertTriangle size={12} color="#ef4444" />
-                      ) : (
-                        <CheckCircle2 size={12} color="#22c55e" />
-                      )}
+                    {/* Status Circle Icon matching screenshot */}
+                    <td style={{ padding: '3px 6px', textAlign: 'center', verticalAlign: 'middle', width: '26px' }}>
+                      <div style={{
+                        width: '13px',
+                        height: '13px',
+                        borderRadius: '50%',
+                        backgroundColor: isProblematic ? '#ef4444' : '#22c55e',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: isProblematic ? '0 0 4px rgba(239, 68, 68, 0.4)' : '0 0 4px rgba(34, 197, 94, 0.4)'
+                      }}>
+                        {isProblematic ? (
+                          <AlertTriangle size={8} color="#ffffff" strokeWidth={3} />
+                        ) : (
+                          <Check size={8} color="#ffffff" strokeWidth={3} />
+                        )}
+                      </div>
                     </td>
 
                     {/* Name */}
                     <td style={{
                       padding: '3px 8px',
-                      fontWeight: hasDevices ? 700 : 500,
+                      fontWeight: hasDevices ? 600 : 400,
                       color: hasDevices ? (isDark ? '#38bdf8' : '#0284c7') : textMain,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {getCategoryIcon(item.id)}
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
+                        <span
+                          onClick={() => onSelectCategory && onSelectCategory(item.name)}
+                          style={{
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                          title={`Click to filter ${item.name} devices`}
+                        >
+                          {item.name}
+                        </span>
+
+                        {onOpenAddDevice && (
+                          <button
+                            className="row-quick-add"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenAddDevice(item.id);
+                            }}
+                            style={{
+                              opacity: 0,
+                              transition: 'opacity 0.15s ease',
+                              background: isDark ? '#1e293b' : '#eff6ff',
+                              border: `1px solid ${isDark ? '#334155' : '#bae6fd'}`,
+                              borderRadius: '3px',
+                              padding: '1px 3px',
+                              fontSize: '0.58rem',
+                              color: isDark ? '#38bdf8' : '#0284c7',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              fontWeight: 700
+                            }}
+                            title={`Manually add new ${item.name} node`}
+                          >
+                            <Plus size={8} />
+                            <span>Add</span>
+                          </button>
+                        )}
                       </div>
                     </td>
 
                     {/* Alarms */}
-                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '50px' }}>
-                      {item.alarms > 0 ? (
-                        <span
-                          style={{
-                            padding: '1px 5px',
-                            borderRadius: '9999px',
-                            background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
-                            color: isDark ? '#f87171' : '#b91c1c',
-                            fontSize: '0.64rem',
-                            fontWeight: 800
-                          }}
-                        >
-                          {item.alarms}
-                        </span>
-                      ) : (
-                        <span style={{ color: textMuted, fontSize: '0.66rem' }}>0</span>
-                      )}
+                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '48px', color: item.alarms > 0 ? (isDark ? '#f87171' : '#b91c1c') : textMuted, fontWeight: item.alarms > 0 ? 700 : 400 }}>
+                      {item.alarms}
                     </td>
 
                     {/* Devices */}
-                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '50px' }}>
-                      {hasDevices ? (
-                        <span
-                          style={{
-                            padding: '1px 5px',
-                            borderRadius: '9999px',
-                            background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
-                            color: isDark ? '#38bdf8' : '#0369a1',
-                            fontSize: '0.64rem',
-                            fontWeight: 800
-                          }}
-                        >
-                          {item.devices}
-                        </span>
-                      ) : (
-                        <span style={{ color: textMuted, fontSize: '0.66rem' }}>0</span>
-                      )}
+                    <td
+                      onClick={() => onSelectCategory && hasDevices && onSelectCategory(item.name)}
+                      style={{
+                        padding: '3px 6px',
+                        textAlign: 'center',
+                        width: '48px',
+                        color: hasDevices ? (isDark ? '#38bdf8' : '#0284c7') : textMuted,
+                        fontWeight: hasDevices ? 700 : 400,
+                        cursor: hasDevices ? 'pointer' : 'default'
+                      }}
+                    >
+                      {item.devices}
                     </td>
 
-                    {/* Problematic */}
-                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '70px' }}>
-                      {isProblematic ? (
-                        <span
-                          style={{
-                            padding: '1px 5px',
-                            borderRadius: '9999px',
-                            background: isDark ? 'rgba(239, 68, 68, 0.2)' : '#fee2e2',
-                            color: isDark ? '#f87171' : '#b91c1c',
-                            fontSize: '0.64rem',
-                            fontWeight: 800
-                          }}
-                        >
-                          {item.problematic}
-                        </span>
-                      ) : (
-                        <span style={{ color: textMuted, fontSize: '0.66rem' }}>0</span>
-                      )}
+                    {/* Problematic Devices */}
+                    <td style={{ padding: '3px 6px', textAlign: 'center', width: '120px', color: isProblematic ? (isDark ? '#f87171' : '#b91c1c') : textMuted, fontWeight: isProblematic ? 700 : 400 }}>
+                      {item.problematic}
                     </td>
                   </tr>
                 );
@@ -344,7 +353,7 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
         </table>
       </div>
 
-      {/* Pagination Footer */}
+      {/* Pagination Footer matching screenshot */}
       <div
         style={{
           display: 'flex',
@@ -352,7 +361,7 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
           alignItems: 'center',
           fontSize: '0.68rem',
           color: textMuted,
-          paddingTop: '2px',
+          paddingTop: '4px',
           gap: '6px'
         }}
       >
@@ -365,12 +374,12 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
-              color: currentPage === 1 ? (isDark ? '#334155' : '#cbd5e1') : textMain,
+              color: currentPage === 1 ? (isDark ? '#475569' : '#cbd5e1') : textMain,
               cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center'
             }}
-            title="First"
+            title="First Page"
           >
             <ChevronsLeft size={11} />
           </button>
@@ -382,18 +391,42 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
-              color: currentPage === 1 ? (isDark ? '#334155' : '#cbd5e1') : textMain,
+              color: currentPage === 1 ? (isDark ? '#475569' : '#cbd5e1') : textMain,
               cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center'
             }}
-            title="Prev"
+            title="Previous Page"
           >
             <ChevronLeft size={11} />
           </button>
-          <span style={{ margin: '0 2px', fontWeight: 600 }}>
-            {currentPage}/{totalPages}
+
+          <span style={{ margin: '0 2px', display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '0.68rem' }}>
+            <span>Page</span>
+            <input
+              type="text"
+              value={currentPage}
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                  setPage(val);
+                }
+              }}
+              style={{
+                width: '22px',
+                textAlign: 'center',
+                padding: '1px 2px',
+                fontSize: '0.66rem',
+                borderRadius: '3px',
+                border: `1px solid ${cardBorder}`,
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: textMain,
+                outline: 'none'
+              }}
+            />
+            <span>of {totalPages}</span>
           </span>
+
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
@@ -402,12 +435,12 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
-              color: currentPage === totalPages ? (isDark ? '#334155' : '#cbd5e1') : textMain,
+              color: currentPage === totalPages ? (isDark ? '#475569' : '#cbd5e1') : textMain,
               cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center'
             }}
-            title="Next"
+            title="Next Page"
           >
             <ChevronRight size={11} />
           </button>
@@ -419,12 +452,12 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               borderRadius: '3px',
               border: `1px solid ${cardBorder}`,
               background: 'transparent',
-              color: currentPage === totalPages ? (isDark ? '#334155' : '#cbd5e1') : textMain,
+              color: currentPage === totalPages ? (isDark ? '#475569' : '#cbd5e1') : textMain,
               cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center'
             }}
-            title="Last"
+            title="Last Page"
           >
             <ChevronsRight size={11} />
           </button>
@@ -449,15 +482,15 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               }}
             >
               <option value={25}>25</option>
-              <option value={36}>36 (All)</option>
+              <option value={36}>36</option>
               <option value={15}>15</option>
               <option value={10}>10</option>
             </select>
           )}
         </div>
 
-        <div style={{ fontWeight: 600, fontSize: '0.64rem' }}>
-          {totalItems > 0 ? `${startIndex + 1}-${endIndex} of ${totalItems}` : '0 of 0'}
+        <div style={{ fontWeight: 500, fontSize: '0.68rem' }}>
+          {totalItems > 0 ? `View ${startIndex + 1} - ${endIndex} of ${totalItems}` : 'View 0 of 0'}
         </div>
       </div>
     </>
@@ -484,14 +517,14 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Layers size={14} color="#0284c7" />
-            <h4 style={{ fontSize: '0.78rem', fontWeight: 800, color: textMain, margin: 0, whiteSpace: 'nowrap' }}>
+            <h4 style={{ fontSize: '0.80rem', fontWeight: 800, color: textMain, margin: 0, whiteSpace: 'nowrap' }}>
               Infrastructure Snapshot
             </h4>
             <span
               style={{
                 fontSize: '0.58rem',
                 fontWeight: 700,
-                padding: '1px 4px',
+                padding: '1px 5px',
                 borderRadius: '3px',
                 background: isDark ? 'rgba(56, 189, 248, 0.15)' : '#e0f2fe',
                 color: isDark ? '#38bdf8' : '#0369a1'
@@ -502,17 +535,63 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
           </div>
 
           {/* Quick Toolbar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {onOpenAddDevice && (
+              <button
+                onClick={() => onOpenAddDevice('all')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(2, 132, 199, 0.4)',
+                  background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
+                  color: isDark ? '#38bdf8' : '#0284c7',
+                  fontSize: '0.62rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+                title="Manually Add Node"
+              >
+                <Plus size={10} />
+                <span>+ Add</span>
+              </button>
+            )}
+
+            {onOpenDiscovery && (
+              <button
+                onClick={onOpenDiscovery}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  background: isDark ? 'rgba(16, 185, 129, 0.2)' : '#d1fae5',
+                  color: isDark ? '#34d399' : '#059669',
+                  fontSize: '0.62rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+                title="Auto Scan Subnet for Network Devices"
+              >
+                <Zap size={10} />
+                <span>Auto Scan</span>
+              </button>
+            )}
+
             {/* Search Input */}
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '3px',
                 background: isDark ? '#1e293b' : '#f8fafc',
                 border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
                 borderRadius: '4px',
-                padding: '2px 5px'
+                padding: '2px 4px'
               }}
             >
               <Search size={10} color={textMuted} />
@@ -528,9 +607,9 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
                   background: 'transparent',
                   border: 'none',
                   outline: 'none',
-                  fontSize: '0.64rem',
+                  fontSize: '0.62rem',
                   color: textMain,
-                  width: '65px'
+                  width: '52px'
                 }}
               />
             </div>
@@ -544,7 +623,7 @@ export const InfrastructureSnapshot: React.FC<InfrastructureSnapshotProps> = ({
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                padding: '2px 6px',
+                padding: '2px 5px',
                 borderRadius: '4px',
                 border: `1px solid ${filterActiveOnly ? '#0284c7' : (isDark ? '#334155' : '#cbd5e1')}`,
                 background: filterActiveOnly ? (isDark ? 'rgba(2, 132, 199, 0.25)' : '#eff6ff') : 'transparent',

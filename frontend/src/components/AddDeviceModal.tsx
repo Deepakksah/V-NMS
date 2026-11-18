@@ -7,6 +7,10 @@ import {
   Shield,
   Monitor,
   Clock,
+  Printer,
+  Radio,
+  HardDrive,
+  Zap,
   Plus
 } from 'lucide-react';
 import type { Device } from '../types';
@@ -79,7 +83,16 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
       setOs(firstVendor.defaultOS);
 
       // Auto-suggest hostname & IP based on category and existingCount
-      const prefix = category === 'server' ? 'srv' : category === 'switch' ? 'sw' : category === 'firewall' ? 'fw' : category === 'ntp' ? 'ntp' : 'pc';
+      const prefix = category === 'server' ? 'srv'
+        : category === 'switch' ? 'sw'
+        : category === 'router' ? 'rtr'
+        : category === 'firewall' ? 'fw'
+        : category === 'printer' ? 'prn'
+        : category === 'wireless' ? 'ap'
+        : category === 'storage' ? 'nas'
+        : category === 'ups' ? 'ups'
+        : category === 'ntp' ? 'ntp'
+        : 'pc';
       setHostname(`${prefix}-node-${existingCount + 1}.corp.local`);
       setIpAddress(`192.168.1.${Math.min(254, 100 + (existingCount % 150))}`);
     }
@@ -152,9 +165,14 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
     switch (catId) {
       case 'server': return <Server size={18} color="#0284c7" />;
       case 'switch': return <Network size={18} color="#16a34a" />;
+      case 'router': return <Network size={18} color="#0ea5e9" />;
       case 'firewall': return <Shield size={18} color="#dc2626" />;
       case 'workstation': return <Monitor size={18} color="#7c3aed" />;
-      case 'ntp': return <Clock size={18} color="#d97706" />;
+      case 'printer': return <Printer size={18} color="#ea580c" />;
+      case 'wireless': return <Radio size={18} color="#8b5cf6" />;
+      case 'storage': return <HardDrive size={18} color="#059669" />;
+      case 'ups': return <Zap size={18} color="#f59e0b" />;
+      case 'ntp': return <Clock size={18} color="#ca8a04" />;
       default: return <Server size={18} color="#0284c7" />;
     }
   };

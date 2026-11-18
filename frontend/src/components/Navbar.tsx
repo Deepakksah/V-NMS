@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  Activity,
   Search,
   RefreshCw,
   Server,
@@ -18,7 +17,9 @@ import {
   Sun,
   Moon,
   Volume2,
-  VolumeX
+  VolumeX,
+  Plus,
+  Zap
 } from 'lucide-react';
 import type { AuthUser } from '../types';
 import { soundAlerts } from '../utils/audioAlerts';
@@ -37,6 +38,7 @@ interface NavbarProps {
   onLogout?: () => void;
   onOpenChangePassword?: () => void;
   onTriggerScan?: () => void;
+  onOpenAddDevice?: () => void;
   isScanning?: boolean;
   isSidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
@@ -58,6 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onOpenChangePassword,
   onTriggerScan,
+  onOpenAddDevice,
   isScanning,
   isSidebarCollapsed,
   onToggleSidebar,
@@ -334,6 +337,30 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span>Refresh</span>
         </button>
 
+        {onOpenAddDevice && (
+          <button
+            onClick={onOpenAddDevice}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 12px',
+              color: '#38bdf8',
+              cursor: 'pointer',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              background: 'rgba(2, 132, 199, 0.15)',
+              border: '1px solid rgba(2, 132, 199, 0.45)',
+              borderRadius: '6px',
+              transition: 'all 0.15s ease'
+            }}
+            title="Register a new hardware device node manually"
+          >
+            <Plus size={13} color="#38bdf8" />
+            <span>+ Add Device</span>
+          </button>
+        )}
+
         {onTriggerScan && (
           <button
             onClick={onTriggerScan}
@@ -353,8 +380,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             title="Scan local network subnet for all live devices"
           >
-            <Activity size={13} className={isScanning ? 'animate-spin' : ''} />
-            <span>{isScanning ? 'Scanning...' : 'Scan Subnet'}</span>
+            <Zap size={13} className={isScanning ? 'animate-spin' : ''} />
+            <span>{isScanning ? 'Scanning...' : 'Auto Scan'}</span>
           </button>
         )}
 

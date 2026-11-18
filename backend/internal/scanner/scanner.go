@@ -267,6 +267,24 @@ func isNetworkVendor(vendor string) bool {
 		strings.Contains(v, "d-link")
 }
 
+func isPrinterVendor(vendor string) bool {
+	v := strings.ToLower(vendor)
+	return strings.Contains(v, "hewlett") ||
+		strings.Contains(v, "hp") ||
+		strings.Contains(v, "canon") ||
+		strings.Contains(v, "epson") ||
+		strings.Contains(v, "brother") ||
+		strings.Contains(v, "xerox") ||
+		strings.Contains(v, "ricoh") ||
+		strings.Contains(v, "lexmark") ||
+		strings.Contains(v, "kyocera") ||
+		strings.Contains(v, "zebra") ||
+		strings.Contains(v, "konica") ||
+		strings.Contains(v, "oki") ||
+		strings.Contains(v, "toshiba tec") ||
+		strings.Contains(v, "fuji xerox")
+}
+
 // ReadArpTable parses system ARP cache for active MACs
 func ReadArpTable() map[string]string {
 	arpMap := make(map[string]string)
@@ -576,8 +594,20 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 					if hostname == "" {
 						hostname = fmt.Sprintf("linux-node-%s", lastOctet)
 					}
+				} else if hasPrinter || isPrinterVendor(vendor) || strings.Contains(strings.ToUpper(hostname), "PRINT") || strings.Contains(strings.ToUpper(hostname), "PRN") || strings.Contains(strings.ToUpper(hostname), "LASERJET") {
+					// 4. Network Printers & Multi-Function Imaging Devices
+					deviceType = "printer"
+					if vendor == "Generic Network Device" || vendor == "" {
+						vendor = "Printer"
+					}
+					hardware = fmt.Sprintf("%s Network Printer", vendor)
+					osName = "Embedded Print Server OS"
+					role = "Network Printer / Imaging"
+					if hostname == "" {
+						hostname = fmt.Sprintf("printer-%s", lastOctet)
+					}
 				} else if hasSMB || hasRDP {
-					// 4. Windows Servers & Workstations
+					// 5. Windows Servers & Workstations
 					upperHost := strings.ToUpper(hostname)
 					isDesktopName := strings.HasPrefix(upperHost, "DESKTOP-") || strings.HasPrefix(upperHost, "LAPTOP-") || strings.HasPrefix(upperHost, "PC-") || upperHost == "BELPC" || strings.HasPrefix(upperHost, "WIN-CLIENT-") || upperHost == "ADMIN"
 					isServerSign := strings.HasPrefix(upperHost, "WIN-") || strings.HasPrefix(upperHost, "WIN-NODE-") || strings.HasPrefix(upperHost, "LINUX-") || strings.HasPrefix(upperHost, "SRV") || strings.Contains(upperHost, "SERVER") || strings.Contains(upperHost, "SQL") || strings.Contains(upperHost, "VPS") || strings.Contains(upperHost, "SOLUS") || strings.Contains(upperHost, "DC") || strings.Contains(upperHost, "HOST") || strings.HasPrefix(upperHost, "NODE-")
@@ -601,18 +631,6 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 					}
 					if hostname == "" {
 						hostname = fmt.Sprintf("win-node-%s", lastOctet)
-					}
-				} else if hasPrinter || (strings.Contains(strings.ToUpper(vendor), "HP") || strings.Contains(strings.ToUpper(vendor), "CANON") || strings.Contains(strings.ToUpper(vendor), "EPSON") || strings.Contains(strings.ToUpper(vendor), "XEROX") || strings.Contains(strings.ToUpper(vendor), "BROTHER") || strings.Contains(strings.ToUpper(vendor), "RICOH") || strings.Contains(strings.ToUpper(vendor), "LEXMARK") || strings.Contains(strings.ToUpper(vendor), "KYOCERA") || strings.Contains(strings.ToUpper(vendor), "ZEBRA") || strings.Contains(strings.ToUpper(vendor), "KONICA")) && (hasWeb || hasSNMP) || strings.Contains(strings.ToUpper(hostname), "PRINT") || strings.Contains(strings.ToUpper(hostname), "PRN") || strings.Contains(strings.ToUpper(hostname), "LASERJET") {
-					// 5. Network Printers & Multi-Function Imaging Devices
-					deviceType = "printer"
-					if vendor == "Generic Network Device" {
-						vendor = "Printer"
-					}
-					hardware = fmt.Sprintf("%s Network Printer", vendor)
-					osName = "Embedded Print Server OS"
-					role = "Network Printer / Imaging"
-					if hostname == "" {
-						hostname = fmt.Sprintf("printer-%s", lastOctet)
 					}
 				} else if hasWeb {
 					// 6. Web Devices / Endpoints / Cameras / Appliances

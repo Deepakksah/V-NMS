@@ -11,6 +11,8 @@ import {
   Network,
   Shield,
   Clock,
+  Printer,
+  Zap,
   Trash2
 } from 'lucide-react';
 import type { Device } from '../../types';
@@ -25,7 +27,7 @@ import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
 import { ExportButtons } from '../../components/ExportButtons';
 import { PageHeader } from '../../components/PageHeader';
 
-export type CategoryFilterType = 'all' | 'server' | 'switch' | 'firewall' | 'workstation' | 'ntp';
+export type CategoryFilterType = 'all' | 'server' | 'switch' | 'firewall' | 'workstation' | 'printer' | 'ntp';
 
 interface DevicesViewProps {
   devices: Device[];
@@ -36,6 +38,7 @@ interface DevicesViewProps {
   pingingId: number | null;
   pollingId: number | null;
   onOpenAddDevice: (defaultCategory?: string) => void;
+  onOpenDiscovery?: () => void;
   onClearAllDevices?: () => void;
   categoryFilter?: CategoryFilterType;
 }
@@ -49,16 +52,18 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
   pingingId,
   pollingId,
   onOpenAddDevice,
+  onOpenDiscovery,
   onClearAllDevices,
   categoryFilter = 'all'
 }) => {
   const [subTab, setSubTab] = useState<'inventory' | 'groups' | 'outages' | 'locations' | 'ent_physical'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'ALL' | 'SERVER' | 'WORKSTATION' | 'SWITCH' | 'FIREWALL' | 'NTP'>(() => {
+  const [typeFilter, setTypeFilter] = useState<'ALL' | 'SERVER' | 'WORKSTATION' | 'SWITCH' | 'FIREWALL' | 'PRINTER' | 'NTP'>(() => {
     if (categoryFilter === 'server') return 'SERVER';
     if (categoryFilter === 'switch') return 'SWITCH';
     if (categoryFilter === 'firewall') return 'FIREWALL';
     if (categoryFilter === 'workstation') return 'WORKSTATION';
+    if (categoryFilter === 'printer') return 'PRINTER';
     if (categoryFilter === 'ntp') return 'NTP';
     return 'ALL';
   });
@@ -70,18 +75,23 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
     else if (categoryFilter === 'switch') setTypeFilter('SWITCH');
     else if (categoryFilter === 'firewall') setTypeFilter('FIREWALL');
     else if (categoryFilter === 'workstation') setTypeFilter('WORKSTATION');
+    else if (categoryFilter === 'printer') setTypeFilter('PRINTER');
     else if (categoryFilter === 'ntp') setTypeFilter('NTP');
     else if (categoryFilter === 'all') setTypeFilter('ALL');
   }, [categoryFilter]);
 
-  const getDeviceType = (d: Device): 'SERVER' | 'WORKSTATION' | 'SWITCH' | 'FIREWALL' | 'NTP' => {
+  const getDeviceType = (d: Device): 'SERVER' | 'WORKSTATION' | 'SWITCH' | 'FIREWALL' | 'PRINTER' | 'NTP' => {
     const rawType = (d.device_type || '').toLowerCase();
+    const h = (d.hostname || '').toLowerCase();
+    const hard = (d.hardware || '').toLowerCase();
+    const desc = (d.sys_descr || '').toLowerCase();
+
+    if (rawType === 'printer' || h.startsWith('printer-') || h.startsWith('prn-') || hard.includes('printer') || desc.includes('printer') || desc.includes('laserjet')) return 'PRINTER';
     if (rawType === 'switch') return 'SWITCH';
     if (rawType === 'firewall' || rawType === 'router') return 'FIREWALL';
     if (rawType === 'ntp') return 'NTP';
     if (rawType === 'server') return 'SERVER';
     if (rawType === 'workstation') {
-      const h = d.hostname.toLowerCase();
       // Ensure Windows Servers (WIN-* and win-node-*) are classified as SERVER
       if ((h.startsWith('win-') || h.startsWith('win-node-')) && !h.startsWith('win-client-')) {
         return 'SERVER';
@@ -89,8 +99,7 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
       return 'WORKSTATION';
     }
 
-    const h = d.hostname.toLowerCase();
-    if (h.startsWith('desktop-') || h.startsWith('laptop-') || h.startsWith('pc-') || h.startsWith('belpc') || h.startsWith('win-client-') || h.startsWith('printer-') || h.startsWith('cam-') || h.startsWith('host-') || h === 'admin') return 'WORKSTATION';
+    if (h.startsWith('desktop-') || h.startsWith('laptop-') || h.startsWith('pc-') || h.startsWith('belpc') || h.startsWith('win-client-') || h.startsWith('cam-') || h.startsWith('host-') || h === 'admin') return 'WORKSTATION';
     if (h.includes('sw') || h.includes('catalyst') || h.includes('unifi')) return 'SWITCH';
     if (h.includes('gw') || h.includes('core-gw') || h.includes('firewall') || (d.ip_address && d.ip_address.endsWith('.1'))) return 'FIREWALL';
     if (h.includes('ntp') || h.includes('time') || (d.ip_address && d.ip_address.endsWith('.10'))) return 'NTP';
@@ -113,6 +122,7 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
       if (categoryFilter === 'switch' && devType !== 'SWITCH') return false;
       if (categoryFilter === 'firewall' && devType !== 'FIREWALL') return false;
       if (categoryFilter === 'workstation' && devType !== 'WORKSTATION') return false;
+      if (categoryFilter === 'printer' && devType !== 'PRINTER') return false;
       if (categoryFilter === 'ntp' && devType !== 'NTP') return false;
 
       const matchType = typeFilter === 'ALL' || devType === typeFilter;
@@ -159,6 +169,13 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
           subtitle: 'Client endpoints, desktop computers, and workstations active in your monitored enterprise network',
           addLabel: 'Add Workstation',
           typeDefault: 'workstation'
+        };
+      case 'printer':
+        return {
+          title: 'Network Printers & Imaging Infrastructure',
+          subtitle: 'Enterprise HP LaserJet, Canon imageRUNNER, Brother, Epson, Xerox, and Ricoh high-volume network printers',
+          addLabel: 'Add Printer',
+          typeDefault: 'printer'
         };
       case 'ntp':
         return {
@@ -213,9 +230,32 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
               </button>
             )}
 
+            {onOpenDiscovery && (
+              <button
+                onClick={onOpenDiscovery}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 13px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                  color: '#34d399',
+                  fontWeight: 700,
+                  fontSize: '0.76rem',
+                  cursor: 'pointer'
+                }}
+                title="Automatically scan network subnet for active devices"
+              >
+                <Zap size={14} />
+                <span>Auto Scan Subnet</span>
+              </button>
+            )}
+
             <button onClick={() => onOpenAddDevice(headerInfo.typeDefault)} className="glow-btn">
               <Plus size={15} />
-              <span>{headerInfo.addLabel}</span>
+              <span>{headerInfo.addLabel} (Manual)</span>
             </button>
           </>
         }
@@ -300,6 +340,7 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                   { id: 'SWITCH', label: 'Switches', icon: Network },
                   { id: 'FIREWALL', label: 'Firewalls', icon: Shield },
                   { id: 'WORKSTATION', label: 'Workstations', icon: Layers },
+                  { id: 'PRINTER', label: 'Printers', icon: Printer },
                   { id: 'NTP', label: 'NTP Time', icon: Clock }
                 ].map(chip => {
                   const ChipIcon = chip.icon;
