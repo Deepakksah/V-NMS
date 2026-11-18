@@ -415,7 +415,7 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, 40) // 40 concurrent probes
 
-	portsToScan := []int{22, 53, 80, 123, 161, 443, 445, 3389, 5432, 6379, 8000, 8080, 8081, 9090, 27017}
+	portsToScan := []int{22, 53, 80, 123, 161, 443, 445, 515, 631, 3389, 5432, 6379, 8000, 8080, 8081, 9090, 9100, 27017}
 
 	for _, ip := range targets {
 		wg.Add(1)
@@ -479,6 +479,7 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 				hasDNS := false
 				hasNTP := false
 				hasSNMP := false
+				hasPrinter := false
 
 				for _, p := range openPorts {
 					switch p {
@@ -504,6 +505,8 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 						hasNTP = true
 					case 161:
 						hasSNMP = true
+					case 515, 631, 9100:
+						hasPrinter = true
 					}
 				}
 
@@ -599,21 +602,25 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 					if hostname == "" {
 						hostname = fmt.Sprintf("win-node-%s", lastOctet)
 					}
+				} else if hasPrinter || (strings.Contains(strings.ToUpper(vendor), "HP") || strings.Contains(strings.ToUpper(vendor), "CANON") || strings.Contains(strings.ToUpper(vendor), "EPSON") || strings.Contains(strings.ToUpper(vendor), "XEROX") || strings.Contains(strings.ToUpper(vendor), "BROTHER") || strings.Contains(strings.ToUpper(vendor), "RICOH") || strings.Contains(strings.ToUpper(vendor), "LEXMARK") || strings.Contains(strings.ToUpper(vendor), "KYOCERA") || strings.Contains(strings.ToUpper(vendor), "ZEBRA") || strings.Contains(strings.ToUpper(vendor), "KONICA")) && (hasWeb || hasSNMP) || strings.Contains(strings.ToUpper(hostname), "PRINT") || strings.Contains(strings.ToUpper(hostname), "PRN") || strings.Contains(strings.ToUpper(hostname), "LASERJET") {
+					// 5. Network Printers & Multi-Function Imaging Devices
+					deviceType = "printer"
+					if vendor == "Generic Network Device" {
+						vendor = "Printer"
+					}
+					hardware = fmt.Sprintf("%s Network Printer", vendor)
+					osName = "Embedded Print Server OS"
+					role = "Network Printer / Imaging"
+					if hostname == "" {
+						hostname = fmt.Sprintf("printer-%s", lastOctet)
+					}
 				} else if hasWeb {
-					// 5. Web Devices / Endpoints / Printers / Cameras / Appliances
+					// 6. Web Devices / Endpoints / Cameras / Appliances
 					upperVen := strings.ToUpper(vendor)
-					isPrinter := strings.Contains(upperVen, "HP") || strings.Contains(upperVen, "CANON") || strings.Contains(upperVen, "EPSON") || strings.Contains(upperVen, "XEROX") || strings.Contains(upperVen, "BROTHER") || strings.Contains(upperVen, "RICOH")
 					isCamera := strings.Contains(upperVen, "HIKVISION") || strings.Contains(upperVen, "DAHUA") || strings.Contains(upperVen, "AXIS") || strings.Contains(upperVen, "CP PLUS")
 
-					deviceType = "workstation"
-					if isPrinter {
-						hardware = fmt.Sprintf("%s Network Printer", vendor)
-						osName = "Embedded Print Server OS"
-						role = "Network Printer / Imaging"
-						if hostname == "" {
-							hostname = fmt.Sprintf("printer-%s", lastOctet)
-						}
-					} else if isCamera {
+					if isCamera {
+						deviceType = "workstation"
 						hardware = fmt.Sprintf("%s IP Camera", vendor)
 						osName = "Embedded Surveillance OS"
 						role = "IP Security Camera"
@@ -621,6 +628,7 @@ func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
 							hostname = fmt.Sprintf("cam-%s", lastOctet)
 						}
 					} else {
+						deviceType = "workstation"
 						hardware = fmt.Sprintf("%s Web Appliance", vendor)
 						osName = "Embedded Device OS"
 						role = "Web-Managed Device"
