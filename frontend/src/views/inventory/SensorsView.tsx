@@ -33,7 +33,8 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   const [isLive, setIsLive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grouped' | 'flat'>('grouped');
-  const [collapsedServers, setCollapsedServers] = useState<{ [key: string]: boolean }>({});
+  // Default all servers to minimized (collapsed) per user requirement
+  const [expandedServers, setExpandedServers] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchStorageAndDisks = async () => {
@@ -174,17 +175,20 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   }, [storageData, searchQuery]);
 
   const toggleServerExpand = (key: string) => {
-    setCollapsedServers(prev => ({
+    setExpandedServers(prev => ({
       ...prev,
       [key]: !prev[key]
     }));
   };
 
-  const expandAll = () => setCollapsedServers({});
+  const expandAll = () => {
+    const allExp: { [key: string]: boolean } = {};
+    groupedStorage.forEach(g => { allExp[g.key] = true; });
+    setExpandedServers(allExp);
+  };
+
   const collapseAll = () => {
-    const allCollapsed: { [key: string]: boolean } = {};
-    groupedStorage.forEach(g => { allCollapsed[g.key] = true; });
-    setCollapsedServers(allCollapsed);
+    setExpandedServers({});
   };
 
   const formatBytes = (bytes: number) => {
@@ -350,6 +354,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                   >
                     Collapse All
                   </button>
+                  <span style={{ fontSize: '0.66rem', color: '#64748b' }}>• Default Minimized</span>
                 </>
               )}
 
@@ -414,20 +419,35 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                     </tr>
                   ) : (
                     filteredGroups.map(group => {
-                      const isCollapsed = collapsedServers[group.key];
+                      const isExpanded = Boolean(expandedServers[group.key]);
                       return (
                         <React.Fragment key={group.key}>
-                          {/* Server Banner Header Row (Server Name Shown Once) */}
-                          <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
+                          {/* Server Banner Header Row (Server Name Shown Once, Default Minimized) */}
+                          <tr
+                            onClick={() => toggleServerExpand(group.key)}
+                            style={{
+                              background: isExpanded ? '#f1f5f9' : '#f8fafc',
+                              borderTop: '2px solid #e2e8f0',
+                              borderBottom: isExpanded ? '1px solid #cbd5e1' : '1px solid #e2e8f0',
+                              cursor: 'pointer',
+                              transition: 'background-color 0.12s ease'
+                            }}
+                            title={isExpanded ? 'Click to minimize server volumes' : 'Click to expand server volumes'}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = isExpanded ? '#e2e8f0' : '#f1f5f9'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = isExpanded ? '#f1f5f9' : '#f8fafc'}
+                          >
                             <td colSpan={6} style={{ padding: '6px 10px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                   <button
-                                    onClick={() => toggleServerExpand(group.key)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleServerExpand(group.key);
+                                    }}
                                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '1px', display: 'flex', alignItems: 'center', color: '#64748b' }}
-                                    title={isCollapsed ? 'Expand Server Volumes' : 'Collapse Server Volumes'}
+                                    title={isExpanded ? 'Minimize / Collapse Server Volumes' : 'Expand Server Volumes'}
                                   >
-                                    {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+                                    {isExpanded ? <ChevronDown size={14} color="#0284c7" /> : <ChevronRight size={14} color="#64748b" />}
                                   </button>
                                   <Server size={14} color="#0284c7" />
                                   <span style={{ fontWeight: 800, fontSize: '0.78rem', color: '#0f172a' }}>
@@ -470,8 +490,8 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                             </td>
                           </tr>
 
-                          {/* Related Volumes / Partitions belonging to this Server */}
-                          {!isCollapsed && group.volumes.map(st => {
+                          {/* Related Volumes / Partitions belonging to this Server (Shown ONLY if Expanded) */}
+                          {isExpanded && group.volumes.map(st => {
                             const percent = Math.round(st.percentUsed);
                             const isWarning = percent >= 80;
                             const isCritical = percent >= 90;

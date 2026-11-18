@@ -82,3 +82,4 @@ export function exportToJSON(data: any, filenamePrefix: string): void {
   const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
   downloadBlob(blob, `${filenamePrefix}_${getTimestamp()}.json`);
 }
+

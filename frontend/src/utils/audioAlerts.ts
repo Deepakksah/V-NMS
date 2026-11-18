@@ -139,3 +139,4 @@ class SoundAlertManager {
 }
 
 export const soundAlerts = new SoundAlertManager();
+
