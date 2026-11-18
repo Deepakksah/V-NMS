@@ -91,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '12px 28px',
+      padding: '8px 20px',
       borderBottom: '1px solid #1e293b',
       background: '#0b1120',
       boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.45)',
@@ -135,23 +135,23 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         <div
           onClick={() => setActiveTab('dashboard')}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
           title="Veracity V-NMS Enterprise Dashboard"
         >
-          {/* Official Brand Logo Capsule for Dark Mode */}
+          {/* Official Brand Logo Capsule */}
           <div style={{
             background: '#ffffff',
-            padding: '3px 8px',
-            borderRadius: '6px',
+            padding: '3px 7px',
+            borderRadius: '5px',
             display: 'inline-flex',
             alignItems: 'center',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+            boxShadow: '0 2px 5px rgba(0,0,0,0.3)'
           }}>
             <img
               src="/Veracity_logo.png"
               alt="Veracity"
               style={{
-                height: '24px',
+                height: '22px',
                 width: 'auto',
                 objectFit: 'contain',
                 display: 'block'
@@ -159,15 +159,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             />
           </div>
 
-          <div style={{ width: '1px', height: '24px', background: '#334155' }} />
+          <div style={{ width: '1px', height: '22px', background: '#334155' }} />
 
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f8fafc' }}>V-NMS</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#f8fafc' }}>V-NMS</span>
               <span style={{
-                fontSize: '0.64rem',
+                fontSize: '0.62rem',
                 fontWeight: 700,
-                padding: '2px 7px',
+                padding: '1px 6px',
                 borderRadius: '4px',
                 background: '#082f49',
                 color: '#38bdf8',
@@ -177,21 +177,37 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ENTERPRISE NOC
               </span>
             </div>
-            <p style={{ fontSize: '0.70rem', color: '#94a3b8', margin: 0, fontWeight: 500 }}>Network Operations Center</p>
+            <p style={{ fontSize: '0.68rem', color: '#94a3b8', margin: 0, fontWeight: 500 }}>Network Operations Center</p>
           </div>
         </div>
 
-        <div style={{ width: '1px', height: '24px', background: '#1e293b' }} />
+        <div style={{ width: '1px', height: '22px', background: '#1e293b' }} />
 
         {/* System Core Ticker */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.78rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px rgba(16, 185, 129, 0.7)' }} />
-            <span style={{ color: '#cbd5e1', fontWeight: 600 }}>System Online</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.74rem' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            background: 'rgba(16, 185, 129, 0.08)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            padding: '3px 8px',
+            borderRadius: '5px'
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px rgba(16, 185, 129, 0.7)' }} />
+            <span style={{ color: '#6ee7b7', fontWeight: 600 }}>System Online</span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Server size={14} color="#38bdf8" />
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            background: 'rgba(56, 189, 248, 0.08)',
+            border: '1px solid rgba(56, 189, 248, 0.2)',
+            padding: '3px 8px',
+            borderRadius: '5px'
+          }}>
+            <Server size={12} color="#38bdf8" />
             <span style={{ color: '#94a3b8' }}>Devices:</span>
             <span style={{ color: '#f8fafc', fontWeight: 700 }}>{upDevices}/{totalDevices} UP</span>
           </div>
@@ -202,37 +218,36 @@ export const Navbar: React.FC<NavbarProps> = ({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
-                padding: '2px 8px',
-                background: '#7f1d1d',
-                border: '1px solid #991b1b',
-                borderRadius: '6px',
+                gap: '5px',
+                padding: '3px 8px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.35)',
+                borderRadius: '5px',
                 cursor: 'pointer',
                 color: '#fca5a5',
                 fontWeight: 700,
-                fontSize: '0.72rem',
-                boxShadow: '0 0 8px rgba(220, 38, 38, 0.4)'
+                fontSize: '0.72rem'
               }}
             >
-              <AlertTriangle size={13} color="#fca5a5" />
+              <AlertTriangle size={12} color="#fca5a5" />
               <span>{criticalAlertsCount} Alerts</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Center: Global Search (Dark Mode Themed) */}
+      {/* Center: Global Search */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
-        padding: '7px 14px',
-        borderRadius: '8px',
+        gap: '8px',
+        padding: '5px 12px',
+        borderRadius: '7px',
         background: '#1e293b',
         border: '1px solid #334155',
-        width: '360px'
+        width: '290px'
       }}>
-        <Search size={15} color="#94a3b8" />
+        <Search size={14} color="#94a3b8" />
         <input
           type="text"
           placeholder="Search hosts, IP, MAC, hardware, OS..."
@@ -243,14 +258,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             border: 'none',
             outline: 'none',
             color: '#f8fafc',
-            fontSize: '0.84rem',
+            fontSize: '0.80rem',
             width: '100%'
           }}
         />
         {globalSearch && (
           <button
             onClick={() => setGlobalSearch('')}
-            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}
+            style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '0.75rem' }}
           >
             ✕
           </button>
@@ -258,25 +273,25 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Right: Actions & User Info */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <button
           onClick={onRefresh}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '8px',
-            padding: '7px 13px',
+            gap: '6px',
+            padding: '6px 11px',
             color: '#e2e8f0',
             cursor: 'pointer',
-            fontSize: '0.82rem',
+            fontSize: '0.78rem',
             fontWeight: 600,
             background: '#1e293b',
             border: '1px solid #334155',
-            borderRadius: '8px'
+            borderRadius: '6px'
           }}
           title="Refresh All Telemetry"
         >
-          <RefreshCw size={14} color="#38bdf8" className={isRefreshing ? 'animate-spin' : ''} />
+          <RefreshCw size={13} color="#38bdf8" className={isRefreshing ? 'animate-spin' : ''} />
           <span>Refresh</span>
         </button>
 
@@ -287,20 +302,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '7px 13px',
+              gap: '6px',
+              padding: '6px 12px',
               color: isScanning ? '#38bdf8' : '#34d399',
               cursor: isScanning ? 'wait' : 'pointer',
-              fontSize: '0.82rem',
+              fontSize: '0.78rem',
               fontWeight: 700,
-              background: isScanning ? 'rgba(2, 132, 199, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+              background: isScanning ? 'rgba(2, 132, 199, 0.15)' : 'rgba(16, 185, 129, 0.12)',
               border: `1px solid ${isScanning ? '#0284c7' : 'rgba(16, 185, 129, 0.35)'}`,
-              borderRadius: '8px'
+              borderRadius: '6px'
             }}
             title="Scan local network subnet for all live devices"
           >
-            <Activity size={14} className={isScanning ? 'animate-spin' : ''} />
-            <span>{isScanning ? 'Scanning Subnet...' : 'Scan Subnet'}</span>
+            <Activity size={13} className={isScanning ? 'animate-spin' : ''} />
+            <span>{isScanning ? 'Scanning...' : 'Scan Subnet'}</span>
           </button>
         )}
 
@@ -310,17 +325,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '7px 13px',
-            borderRadius: '8px',
-            background: activeTab === 'tree_view' ? '#0284c7' : '#1e293b',
-            border: `1px solid ${activeTab === 'tree_view' ? '#38bdf8' : '#334155'}`,
-            color: activeTab === 'tree_view' ? '#ffffff' : '#38bdf8',
+            padding: '6px 11px',
+            borderRadius: '6px',
+            background: activeTab === 'tree_view' ? '#0369a1' : '#1e293b',
+            border: `1px solid ${activeTab === 'tree_view' ? '#0284c7' : '#334155'}`,
+            color: activeTab === 'tree_view' ? '#ffffff' : '#cbd5e1',
             cursor: 'pointer',
-            fontSize: '0.82rem',
-            fontWeight: 700
+            fontSize: '0.78rem',
+            fontWeight: 600
           }}
         >
-          <FolderTree size={14} />
+          <FolderTree size={13} />
           <span>Tree View</span>
         </button>
 
@@ -330,54 +345,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '7px 13px',
-            borderRadius: '8px',
-            background: activeTab === 'reports' ? '#7e22ce' : '#1e1b4b',
-            border: `1px solid ${activeTab === 'reports' ? '#a855f7' : '#4c1d95'}`,
-            color: activeTab === 'reports' ? '#ffffff' : '#d8b4fe',
+            padding: '6px 11px',
+            borderRadius: '6px',
+            background: activeTab === 'reports' ? '#6b21a8' : '#1e293b',
+            border: `1px solid ${activeTab === 'reports' ? '#7e22ce' : '#334155'}`,
+            color: activeTab === 'reports' ? '#ffffff' : '#cbd5e1',
             cursor: 'pointer',
-            fontSize: '0.82rem',
-            fontWeight: 700
+            fontSize: '0.78rem',
+            fontWeight: 600
           }}
           title="Open Performance Reports & Uptime SLA Heatmap"
         >
-          <TrendingUp size={14} />
+          <TrendingUp size={13} />
           <span>Reports &amp; SLA</span>
         </button>
-
-        {/* Dark / Light Normal Mode Toggle Button */}
-        {onToggleTheme && (
-          <button
-            onClick={onToggleTheme}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              background: '#1e293b',
-              border: `1px solid ${theme === 'dark' ? '#f59e0b' : '#334155'}`,
-              color: '#f8fafc',
-              cursor: 'pointer',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              transition: 'all 0.15s ease'
-            }}
-            title={theme === 'dark' ? 'Switch to Normal (Light) Mode' : 'Switch to Dark Mode'}
-          >
-            {theme === 'dark' ? (
-              <>
-                <Sun size={15} color="#f59e0b" />
-                <span style={{ color: '#f59e0b' }}>Normal Mode</span>
-              </>
-            ) : (
-              <>
-                <Moon size={15} color="#818cf8" />
-                <span style={{ color: '#cbd5e1' }}>Dark Mode</span>
-              </>
-            )}
-          </button>
-        )}
 
         {/* User Profile & Session Dropdown (Dark Themed) */}
         <div ref={dropdownRef} style={{ position: 'relative', borderLeft: '1px solid #1e293b', paddingLeft: '10px' }}>
@@ -526,6 +507,33 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <KeyRound size={14} color="#38bdf8" />
                   <span>Change Password (OTP)</span>
                 </button>
+
+                {onToggleTheme && (
+                  <button
+                    onClick={() => {
+                      onToggleTheme();
+                    }}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '8px 10px',
+                      background: 'none',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.8rem',
+                      color: '#cbd5e1',
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#1e293b'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    {theme === 'dark' ? <Sun size={14} color="#f59e0b" /> : <Moon size={14} color="#818cf8" />}
+                    <span>{theme === 'dark' ? 'Switch to Normal Mode' : 'Switch to Dark Mode'}</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => {
