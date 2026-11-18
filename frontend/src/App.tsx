@@ -10,13 +10,13 @@ import { useToast } from './context/ToastContext';
 
 // Nav-Wise Module Views
 // 1. Core Operations & Inventory
-import { DashboardView, TreeView, DevicesView, PortsView, SensorsView } from './views/inventory';
+import { DashboardView, NocWallboardView, TreeView, DevicesView, PortsView, SensorsView } from './views/inventory';
 
 // 2. Routing, Faults & Alert Incidents
 import { AlertsView, RoutingView, WirelessView, MplsBillingView } from './views/alerts';
 
 // 3. Infrastructure & System Engine Tools
-import { VirtualizationView, PollersView, TopologyView, LogsView, SlaQosView, SettingsView } from './views/system';
+import { VirtualizationView, ApplicationsView, PollersView, TopologyView, LogsView, SlaQosView, SettingsView } from './views/system';
 
 // 4. Personnel, Alert Contacts & RBAC
 import { AlertContactsView, AlertMatrixView } from './views/personnel';
@@ -346,6 +346,13 @@ export default function App() {
             />
           )}
 
+          {activeTab === 'wallboard' && (
+            <NocWallboardView
+              devices={devices}
+              onNavigateTab={setActiveTab}
+            />
+          )}
+
           {activeTab === 'tree_view' && (
             <TreeView
               devices={devices}
@@ -489,6 +496,7 @@ export default function App() {
           {activeTab === 'wireless' && <WirelessView devices={devices} />}
           {activeTab === 'mpls_billing' && <MplsBillingView />}
           {activeTab === 'virtualization' && <VirtualizationView devices={devices} />}
+          {activeTab === 'applications' && <ApplicationsView apiBase={API_BASE} />}
           {activeTab === 'pollers' && <PollersView devices={devices} />}
           {activeTab === 'topology' && (
             <TopologyView

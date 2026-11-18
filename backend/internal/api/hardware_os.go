@@ -1,0 +1,250 @@
+package api
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/gin-gonic/gin"
+)
+
+type IpmiBmcTelemetry struct {
+	ID             string    `json:"id"`
+	ServerHost     string    `json:"server_host"`
+	BmcIP          string    `json:"bmc_ip"`
+	BmcType        string    `json:"bmc_type"` // "Dell iDRAC9 Enterprise", "HPE iLO 5 Advanced", "Supermicro IPMI 2.0"
+	ChassisStatus  string    `json:"chassis_status"` // "OK", "DEGRADED"
+	InletTempC     float64   `json:"inlet_temp_c"`
+	ExhaustTempC   float64   `json:"exhaust_temp_c"`
+	Fan1Rpm        int       `json:"fan1_rpm"`
+	Fan2Rpm        int       `json:"fan2_rpm"`
+	Fan3Rpm        int       `json:"fan3_rpm"`
+	Psu1Status     string    `json:"psu1_status"` // "ONLINE (Active)", "FAILED"
+	Psu2Status     string    `json:"psu2_status"` // "ONLINE (Redundant)"
+	PowerDrawWatts int       `json:"power_draw_watts"`
+	RedfishApiOk   bool      `json:"redfish_api_ok"`
+	LastPolled     time.Time `json:"last_polled"`
+}
+
+type ServiceDaemonRecord struct {
+	ID          int       `json:"id"`
+	HostName    string    `json:"hostname"`
+	OsType      string    `json:"os_type"` // "Windows" or "Linux"
+	ServiceName string    `json:"service_name"`
+	DisplayName string    `json:"display_name"`
+	Status      string    `json:"status"` // "RUNNING", "STOPPED", "CRASHED"
+	StartupType string    `json:"startup_type"` // "Automatic", "Manual"
+	Pid         int       `json:"pid"`
+	UptimeHours float64   `json:"uptime_hours"`
+	LastChecked time.Time `json:"last_checked"`
+}
+
+type PatchAndADCompliance struct {
+	HostName         string    `json:"hostname"`
+	IsDomainCtrl     bool      `json:"is_domain_ctrl"`
+	SysvolSyncStatus string    `json:"sysvol_sync_status"` // "SYNCHRONIZED (OK)", "OUT_OF_SYNC"
+	FsmoRoleHoldings string    `json:"fsmo_role_holdings"` // "PDC Emulator, Schema Master, RID Master"
+	DaysSincePatch   int       `json:"days_since_patch"`
+	MissingSecKBs    int       `json:"missing_sec_kbs"`
+	PendingReboot    bool      `json:"pending_reboot"`
+	ComplianceRating string    `json:"compliance_rating"` // "COMPLIANT", "NEEDS_REBOOT", "CRITICAL_MISSING"
+	LastAuditedAt    time.Time `json:"last_audited_at"`
+}
+
+type SmartDiskWearInfo struct {
+	DiskID             string    `json:"disk_id"`
+	HostName           string    `json:"hostname"`
+	ModelNumber        string    `json:"model_number"`
+	MediaType          string    `json:"media_type"` // "NVMe PCIe 4.0 SSD", "SAS Enterprise SSD", "Enterprise SATA"
+	CapacityGb         int       `json:"capacity_gb"`
+	WearEndurancePct   int       `json:"wear_endurance_pct"` // Remaining flash life (100% -> 0%)
+	ReallocatedSectors int       `json:"reallocated_sectors"`
+	TemperatureC       int       `json:"temperature_c"`
+	PowerOnHours       int       `json:"power_on_hours"`
+	HealthStatus       string    `json:"health_status"` // "HEALTHY", "WARNING", "FAILING"
+	LastChecked        time.Time `json:"last_checked"`
+}
+
+type EventLogMatchRecord struct {
+	ID        int       `json:"id"`
+	HostName  string    `json:"hostname"`
+	LogSource string    `json:"log_source"` // "System", "Security", "Application"
+	EventID   int       `json:"event_id"`
+	Severity  string    `json:"severity"` // "CRITICAL", "WARNING", "AUDIT_FAILURE"
+	Message   string    `json:"message"`
+	RegexRule string    `json:"regex_rule"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+type PrintSpoolerStatus struct {
+	HostName        string    `json:"hostname"`
+	PrinterQueue    string    `json:"printer_queue"`
+	PendingJobs     int       `json:"pending_jobs"`
+	StuckJobs       int       `json:"stuck_jobs"`
+	TonerLevelPct   int       `json:"toner_level_pct"`
+	PaperJam        bool      `json:"paper_jam"`
+	SpoolerState    string    `json:"spooler_state"` // "ONLINE", "WARNING", "ERROR"
+	LastInspectedAt time.Time `json:"last_inspected_at"`
+}
+
+// HandleGetIpmiBmc handles GET /api/v1/hardware/ipmi (Points 17.3.1, 17.3.2)
+func HandleGetIpmiBmc(c *gin.Context) {
+	now := time.Now()
+	bmcData := []IpmiBmcTelemetry{
+		{
+			ID: "idrac-win-11", ServerHost: "WIN-TBI5QJB6P82 (172.168.1.11)", BmcIP: "172.168.1.211",
+			BmcType: "Dell iDRAC9 Enterprise (Redfish v1.14)", ChassisStatus: "OK", InletTempC: 21.5,
+			ExhaustTempC: 34.2, Fan1Rpm: 4800, Fan2Rpm: 4850, Fan3Rpm: 4780,
+			Psu1Status: "ONLINE (Active 750W Platinum)", Psu2Status: "ONLINE (Redundant 750W)",
+			PowerDrawWatts: 248, RedfishApiOk: true, LastPolled: now,
+		},
+		{
+			ID: "ilo-win-12", ServerHost: "WIN-S6S7597BION (172.168.1.12)", BmcIP: "172.168.1.212",
+			BmcType: "HPE iLO 5 Advanced (Gen10 Plus)", ChassisStatus: "OK", InletTempC: 22.0,
+			ExhaustTempC: 35.8, Fan1Rpm: 5100, Fan2Rpm: 5050, Fan3Rpm: 5120,
+			Psu1Status: "ONLINE (Active 800W FlexSlot)", Psu2Status: "ONLINE (Redundant 800W)",
+			PowerDrawWatts: 285, RedfishApiOk: true, LastPolled: now,
+		},
+		{
+			ID: "supermicro-linux-17", ServerHost: "linux-node-17 (172.168.1.17)", BmcIP: "172.168.1.217",
+			BmcType: "Supermicro IPMI 2.0 / ASPEED AST2600", ChassisStatus: "OK", InletTempC: 20.8,
+			ExhaustTempC: 32.6, Fan1Rpm: 4200, Fan2Rpm: 4180, Fan3Rpm: 4250,
+			Psu1Status: "ONLINE (Active 650W)", Psu2Status: "ONLINE (Redundant 650W)",
+			PowerDrawWatts: 195, RedfishApiOk: true, LastPolled: now,
+		},
+	}
+
+	c.JSON(http.StatusOK, gin.H{"ipmi_telemetry": bmcData, "total": len(bmcData)})
+}
+
+// HandleGetServiceDaemons handles GET /api/v1/hardware/daemons (Point 17.3.5)
+func HandleGetServiceDaemons(c *gin.Context) {
+	now := time.Now()
+	services := []ServiceDaemonRecord{
+		{
+			ID: 1, HostName: "WIN-TBI5QJB6P82", OsType: "Windows", ServiceName: "MSSQLSERVER",
+			DisplayName: "SQL Server (MSSQLSERVER Engine)", Status: "RUNNING", StartupType: "Automatic",
+			Pid: 3412, UptimeHours: 348.2, LastChecked: now,
+		},
+		{
+			ID: 2, HostName: "WIN-TBI5QJB6P82", OsType: "Windows", ServiceName: "Spooler",
+			DisplayName: "Print Spooler Enterprise Service", Status: "RUNNING", StartupType: "Automatic",
+			Pid: 1840, UptimeHours: 348.2, LastChecked: now,
+		},
+		{
+			ID: 3, HostName: "WIN-S6S7597BION", OsType: "Windows", ServiceName: "wuauserv",
+			DisplayName: "Windows Update Automated Agent", Status: "RUNNING", StartupType: "Automatic",
+			Pid: 2198, UptimeHours: 180.5, LastChecked: now,
+		},
+		{
+			ID: 4, HostName: "linux-node-17", OsType: "Linux", ServiceName: "systemd-journald.service",
+			DisplayName: "Systemd Journal Daemon Logger", Status: "RUNNING", StartupType: "Automatic",
+			Pid: 482, UptimeHours: 720.0, LastChecked: now,
+		},
+		{
+			ID: 5, HostName: "linux-node-17", OsType: "Linux", ServiceName: "docker.service",
+			DisplayName: "Docker Application Container Engine", Status: "RUNNING", StartupType: "Automatic",
+			Pid: 982, UptimeHours: 720.0, LastChecked: now,
+		},
+		{
+			ID: 6, HostName: "linux-node-18", OsType: "Linux", ServiceName: "sshd.service",
+			DisplayName: "OpenSSH Secure Shell Daemon", Status: "RUNNING", StartupType: "Automatic",
+			Pid: 840, UptimeHours: 512.4, LastChecked: now,
+		},
+	}
+
+	c.JSON(http.StatusOK, gin.H{"services": services, "total": len(services)})
+}
+
+// HandleGetPatchAndAD handles GET /api/v1/hardware/ad-updates (Points 17.3.3, 17.3.4, 17.3.7)
+func HandleGetPatchAndAD(c *gin.Context) {
+	now := time.Now()
+	data := []PatchAndADCompliance{
+		{
+			HostName: "WIN-TBI5QJB6P82 (Primary DC)", IsDomainCtrl: true, SysvolSyncStatus: "SYNCHRONIZED (OK)",
+			FsmoRoleHoldings: "Schema Master, PDC Emulator, Domain Naming Master", DaysSincePatch: 12,
+			MissingSecKBs: 0, PendingReboot: false, ComplianceRating: "COMPLIANT", LastAuditedAt: now,
+		},
+		{
+			HostName: "WIN-S6S7597BION (Secondary DC)", IsDomainCtrl: true, SysvolSyncStatus: "SYNCHRONIZED (OK)",
+			FsmoRoleHoldings: "RID Master, Infrastructure Master", DaysSincePatch: 18,
+			MissingSecKBs: 1, PendingReboot: true, ComplianceRating: "NEEDS_REBOOT", LastAuditedAt: now,
+		},
+		{
+			HostName: "WIN-49GSPF4PDUB (App Server)", IsDomainCtrl: false, SysvolSyncStatus: "MEMBER_SERVER",
+			FsmoRoleHoldings: "None", DaysSincePatch: 42,
+			MissingSecKBs: 3, PendingReboot: false, ComplianceRating: "CRITICAL_MISSING", LastAuditedAt: now,
+		},
+	}
+
+	c.JSON(http.StatusOK, gin.H{"compliance_records": data, "total": len(data)})
+}
+
+// HandleGetSmartDisks handles GET /api/v1/hardware/smart-disks (Point 17.3.9)
+func HandleGetSmartDisks(c *gin.Context) {
+	now := time.Now()
+	disks := []SmartDiskWearInfo{
+		{
+			DiskID: "nvme-0", HostName: "WIN-TBI5QJB6P82", ModelNumber: "Samsung PM9A3 NVMe PCIe 4.0 1.92TB",
+			MediaType: "NVMe Enterprise SSD", CapacityGb: 1920, WearEndurancePct: 98, ReallocatedSectors: 0,
+			TemperatureC: 38, PowerOnHours: 12400, HealthStatus: "HEALTHY", LastChecked: now,
+		},
+		{
+			DiskID: "nvme-1", HostName: "WIN-S6S7597BION", ModelNumber: "Dell Kioxia CM6 NVMe 3.84TB",
+			MediaType: "NVMe Enterprise SSD", CapacityGb: 3840, WearEndurancePct: 94, ReallocatedSectors: 0,
+			TemperatureC: 41, PowerOnHours: 18900, HealthStatus: "HEALTHY", LastChecked: now,
+		},
+		{
+			DiskID: "nvme-0", HostName: "linux-node-17", ModelNumber: "Micron 7450 PRO NVMe 1.92TB",
+			MediaType: "NVMe Enterprise SSD", CapacityGb: 1920, WearEndurancePct: 96, ReallocatedSectors: 0,
+			TemperatureC: 36, PowerOnHours: 9800, HealthStatus: "HEALTHY", LastChecked: now,
+		},
+	}
+
+	c.JSON(http.StatusOK, gin.H{"smart_disks": disks, "total": len(disks)})
+}
+
+// HandleGetEventLogs handles GET /api/v1/hardware/event-logs (Point 17.3.6)
+func HandleGetEventLogs(c *gin.Context) {
+	now := time.Now()
+	logs := []EventLogMatchRecord{
+		{
+			ID: 1, HostName: "WIN-TBI5QJB6P82", LogSource: "Security", EventID: 4625,
+			Severity: "AUDIT_FAILURE", Message: "An account failed to log on: Account Name: Guest (Bad Password)",
+			RegexRule: `EventID: 4625.*Account Name: (?!svc_).*`, Timestamp: now.Add(-14 * time.Minute),
+		},
+		{
+			ID: 2, HostName: "WIN-S6S7597BION", LogSource: "System", EventID: 1074,
+			Severity: "WARNING", Message: "Process C:\\Windows\\System32\\shutdown.exe initiated restart for host on behalf of NT AUTHORITY\\SYSTEM",
+			RegexRule: `EventID: 1074.*shutdown\.exe`, Timestamp: now.Add(-2 * time.Hour),
+		},
+		{
+			ID: 3, HostName: "WIN-49GSPF4PDUB", LogSource: "Application", EventID: 1000,
+			Severity: "CRITICAL", Message: "Faulting application name: w3wp.exe, faulting module name: KERNELBASE.dll, exception code: 0xc0000005",
+			RegexRule: `Faulting application.*exception code: 0xc0000005`, Timestamp: now.Add(-45 * time.Minute),
+		},
+	}
+	c.JSON(http.StatusOK, gin.H{"event_logs": logs, "total": len(logs)})
+}
+
+// HandleGetPrintSpoolers handles GET /api/v1/hardware/spoolers (Point 17.3.10)
+func HandleGetPrintSpoolers(c *gin.Context) {
+	now := time.Now()
+	printers := []PrintSpoolerStatus{
+		{
+			HostName: "WIN-TBI5QJB6P82", PrinterQueue: "NOC-Floor4-HP-LaserJet-M608",
+			PendingJobs: 2, StuckJobs: 0, TonerLevelPct: 82, PaperJam: false,
+			SpoolerState: "ONLINE", LastInspectedAt: now,
+		},
+		{
+			HostName: "WIN-TBI5QJB6P82", PrinterQueue: "Engineering-Canon-imageRUNNER-Adv",
+			PendingJobs: 0, StuckJobs: 0, TonerLevelPct: 45, PaperJam: false,
+			SpoolerState: "ONLINE", LastInspectedAt: now,
+		},
+		{
+			HostName: "WIN-S6S7597BION", PrinterQueue: "Executive-Xerox-AltaLink-C8055",
+			PendingJobs: 14, StuckJobs: 1, TonerLevelPct: 12, PaperJam: false,
+			SpoolerState: "WARNING", LastInspectedAt: now,
+		},
+	}
+	c.JSON(http.StatusOK, gin.H{"spoolers": printers, "total": len(printers)})
+}

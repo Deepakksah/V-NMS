@@ -11,7 +11,12 @@ import {
   Server,
   Search,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Shield,
+  Activity,
+  Zap,
+  FileText,
+  RotateCcw
 } from 'lucide-react';
 import { 
   MOCK_SENSORS, 
@@ -27,9 +32,17 @@ interface SensorsViewProps {
 }
 
 export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' }) => {
-  const [subTab, setSubTab] = useState<'sensors' | 'processors' | 'mempools' | 'storage' | 'disk_io'>('storage');
+  const [subTab, setSubTab] = useState<
+    'storage' | 'disk_io' | 'ipmi' | 'daemons' | 'compliance' | 'smart_nvme' | 'event_logs' | 'sensors' | 'processors' | 'mempools'
+  >('storage');
   const [storageData, setStorageData] = useState<any[]>(MOCK_STORAGE);
   const [diskData, setDiskData] = useState<any[]>(MOCK_DISK_IO);
+  const [ipmiData, setIpmiData] = useState<any[]>([]);
+  const [daemonsData, setDaemonsData] = useState<any[]>([]);
+  const [complianceData, setComplianceData] = useState<any[]>([]);
+  const [smartDisksData, setSmartDisksData] = useState<any[]>([]);
+  const [eventLogsData, setEventLogsData] = useState<any[]>([]);
+  const [spoolersData, setSpoolersData] = useState<any[]>([]);
   const [isLive, setIsLive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grouped' | 'flat'>('grouped');
@@ -39,9 +52,15 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   useEffect(() => {
     const fetchStorageAndDisks = async () => {
       try {
-        const [resStorage, resDisks] = await Promise.allSettled([
+        const [resStorage, resDisks, resIpmi, resDaemons, resComp, resSmart, resLogs, resSpool] = await Promise.allSettled([
           axios.get(`${apiBase}/storage`, { timeout: 4000 }),
-          axios.get(`${apiBase}/disks`, { timeout: 4000 })
+          axios.get(`${apiBase}/disks`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/ipmi`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/daemons`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/ad-updates`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/smart-disks`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/event-logs`, { timeout: 4000 }),
+          axios.get(`${apiBase}/hardware/spoolers`, { timeout: 4000 })
         ]);
 
         if (resStorage.status === 'fulfilled' && resStorage.value.data?.storage) {
@@ -78,6 +97,25 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
             healthStatus: d.health_status
           }));
           setDiskData(mappedDisks);
+        }
+
+        if (resIpmi.status === 'fulfilled' && resIpmi.value.data?.ipmi_telemetry) {
+          setIpmiData(resIpmi.value.data.ipmi_telemetry);
+        }
+        if (resDaemons.status === 'fulfilled' && resDaemons.value.data?.services) {
+          setDaemonsData(resDaemons.value.data.services);
+        }
+        if (resComp.status === 'fulfilled' && resComp.value.data?.compliance_records) {
+          setComplianceData(resComp.value.data.compliance_records);
+        }
+        if (resSmart.status === 'fulfilled' && resSmart.value.data?.smart_disks) {
+          setSmartDisksData(resSmart.value.data.smart_disks);
+        }
+        if (resLogs.status === 'fulfilled' && resLogs.value.data?.event_logs) {
+          setEventLogsData(resLogs.value.data.event_logs);
+        }
+        if (resSpool.status === 'fulfilled' && resSpool.value.data?.spoolers) {
+          setSpoolersData(resSpool.value.data.spoolers);
         }
       } catch {
         // Fallback to audited mockEnterpriseData
@@ -216,13 +254,18 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
       </div>
 
       {/* SubTab Navigation */}
-      <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', flexWrap: 'wrap' }}>
         {[
           { id: 'storage', label: 'Disks & Partitions (#33)', icon: HardDrive, count: storageData.length },
           { id: 'disk_io', label: 'Physical Drives & IOPS (#34, #35)', icon: TrendingUp, count: diskData.length },
-          { id: 'sensors', label: 'Environmental Sensors (#26-#30)', icon: Thermometer, count: MOCK_SENSORS.length },
-          { id: 'processors', label: 'Multi-Core CPUs (#31)', icon: Cpu, count: MOCK_PROCESSORS.length },
-          { id: 'mempools', label: 'Memory Pools (#32)', icon: Database, count: MOCK_MEMPOOLS.length }
+          { id: 'ipmi', label: 'Out-of-Band IPMI & BMC (#21, #22)', icon: Zap, count: ipmiData.length },
+          { id: 'daemons', label: 'Services & Daemons (#25, #27, #28)', icon: Activity, count: daemonsData.length },
+          { id: 'compliance', label: 'Patch & AD Health (#23, #24)', icon: Shield, count: complianceData.length },
+          { id: 'smart_nvme', label: 'NVMe SMART & Spoolers (#29, #30)', icon: HardDrive, count: smartDisksData.length },
+          { id: 'event_logs', label: 'Event Log Regex (#26)', icon: FileText, count: eventLogsData.length },
+          { id: 'sensors', label: 'Environmental (#26-#30)', icon: Thermometer, count: MOCK_SENSORS.length },
+          { id: 'processors', label: 'CPUs (#31)', icon: Cpu, count: MOCK_PROCESSORS.length },
+          { id: 'mempools', label: 'RAM Pools (#32)', icon: Database, count: MOCK_MEMPOOLS.length }
         ].map(tab => {
           const Icon = tab.icon;
           const isActive = subTab === tab.id;
@@ -507,39 +550,39 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                               <tr
                                 key={st.id || `${group.key}-vol-${vIdx}`}
                                 style={{
-                                  borderBottom: '1px solid #e2e8f0',
-                                  background: '#f0f7ff', // Distinct light-blue child background
+                                  borderBottom: '1px solid #fed7aa',
+                                  background: '#fff7ed', // Distinct warm amber/orange child row background matching user specification
                                   transition: 'background-color 0.12s ease'
                                 }}
-                                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e0f2fe'}
-                                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f0f7ff'}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#ffedd5'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff7ed'}
                               >
                                 <td style={{
                                   padding: '5px 10px 5px 28px',
-                                  borderLeft: '4px solid #0284c7', // Distinct child tree connector accent
+                                  borderLeft: '4px solid #f97316', // Warm orange left accent
                                   fontFamily: 'var(--font-mono)',
                                   fontSize: '0.74rem'
                                 }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <span style={{ color: '#0284c7', fontSize: '0.80rem', fontWeight: 800, userSelect: 'none' }}>↳</span>
+                                    <span style={{ color: '#ea580c', fontSize: '0.80rem', fontWeight: 800, userSelect: 'none' }}>↳</span>
                                     <span style={{
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       gap: '4px',
                                       background: '#ffffff',
-                                      color: '#0369a1',
-                                      border: '1px solid #bae6fd',
+                                      color: '#c2410c',
+                                      border: '1px solid #fdba74',
                                       padding: '1px 6px',
                                       borderRadius: '4px',
                                       fontWeight: 800,
                                       fontSize: '0.72rem',
-                                      boxShadow: '0 1px 2px rgba(2,132,199,0.08)'
+                                      boxShadow: '0 1px 2px rgba(249,115,22,0.12)'
                                     }}>
-                                      <HardDrive size={11} color="#0284c7" />
+                                      <HardDrive size={11} color="#ea580c" />
                                       <span>{mountLetter}</span>
                                     </span>
                                     {mountDesc && (
-                                      <span style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 500 }}>
+                                      <span style={{ fontSize: '0.72rem', color: '#7c2d12', fontWeight: 600 }}>
                                         {mountDesc}
                                       </span>
                                     )}
@@ -866,6 +909,441 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 6. Out-of-Band IPMI & DMTF Redfish BMC Telemetry (#21, #22) */}
+      {subTab === 'ipmi' && (
+        <div className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                Out-of-Band IPMI &amp; DMTF Redfish BMC Hardware Chassis
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                UDP 623 IPMI 2.0 &amp; HTTPS 443 Redfish REST v1.14 polling Dell iDRAC9, HPE iLO 5, Supermicro IPMI
+              </p>
+            </div>
+            <ExportButtons data={ipmiData} filenamePrefix="vnms_ipmi_bmc" title="IPMI BMC Telemetry" />
+          </div>
+
+          <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <th style={{ padding: '8px 12px' }}>SERVER HOST / BMC IP</th>
+                  <th style={{ padding: '8px 12px' }}>BMC ARCHITECTURE</th>
+                  <th style={{ padding: '8px 12px' }}>CHASSIS TEMPS</th>
+                  <th style={{ padding: '8px 12px' }}>COOLING FANS (RPM)</th>
+                  <th style={{ padding: '8px 12px' }}>DUAL PSUs REDUNDANCY</th>
+                  <th style={{ padding: '8px 12px' }}>POWER DRAW</th>
+                  <th style={{ padding: '8px 12px' }}>STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ipmiData.map((b: any) => (
+                  <tr key={b.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '8px 12px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{b.server_host}</div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.70rem', color: '#0284c7' }}>BMC: {b.bmc_ip}</div>
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{ background: '#f1f5f9', color: '#334155', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                        {b.bmc_type}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#0f172a' }}>
+                      Inlet: <strong>{b.inlet_temp_c}°C</strong> | Exhaust: <strong>{b.exhaust_temp_c}°C</strong>
+                    </td>
+                    <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)' }}>
+                      Fan1: {b.fan1_rpm} | Fan2: {b.fan2_rpm} | Fan3: {b.fan3_rpm}
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <div style={{ color: '#16a34a', fontWeight: 600 }}>PSU1: {b.psu1_status}</div>
+                      <div style={{ color: '#0284c7', fontWeight: 600 }}>PSU2: {b.psu2_status}</div>
+                    </td>
+                    <td style={{ padding: '8px 12px', fontWeight: 800, color: '#d97706' }}>
+                      {b.power_draw_watts} W
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                        ● {b.chassis_status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Windows Services & Linux Daemons (#25, #27, #28) */}
+      {subTab === 'daemons' && (
+        <div className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                Enterprise Services &amp; Linux Systemd Daemons
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                Real-time daemon monitoring, automatic crash remediation, PID tracking, and scheduled task health
+              </p>
+            </div>
+            <ExportButtons data={daemonsData} filenamePrefix="vnms_service_daemons" title="Service Daemons" />
+          </div>
+
+          <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <th style={{ padding: '8px 12px' }}>HOST &amp; OS</th>
+                  <th style={{ padding: '8px 12px' }}>SERVICE NAME</th>
+                  <th style={{ padding: '8px 12px' }}>DISPLAY NAME</th>
+                  <th style={{ padding: '8px 12px' }}>STARTUP</th>
+                  <th style={{ padding: '8px 12px' }}>PID</th>
+                  <th style={{ padding: '8px 12px' }}>UPTIME</th>
+                  <th style={{ padding: '8px 12px' }}>STATUS</th>
+                  <th style={{ padding: '8px 12px' }}>REMEDIATION</th>
+                </tr>
+              </thead>
+              <tbody>
+                {daemonsData.map((s: any) => (
+                  <tr key={s.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '8px 12px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{s.hostname}</div>
+                      <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: '4px', background: s.os_type === 'Linux' ? '#fef3c7' : '#e0e7ff', color: s.os_type === 'Linux' ? '#b45309' : '#3730a3', fontWeight: 700 }}>
+                        {s.os_type}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', fontWeight: 600, color: '#0284c7' }}>
+                      {s.service_name}
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#334155' }}>
+                      {s.display_name}
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#64748b' }}>
+                      {s.startup_type}
+                    </td>
+                    <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)' }}>
+                      {s.pid}
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#16a34a', fontWeight: 600 }}>
+                      {s.uptime_hours.toFixed(1)} hrs
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{ background: s.status === 'RUNNING' ? '#dcfce7' : '#fee2e2', color: s.status === 'RUNNING' ? '#15803d' : '#b91c1c', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                        ● {s.status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <button
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '4px',
+                          padding: '3px 8px',
+                          fontSize: '0.70rem',
+                          color: '#0f172a',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                        title="Issue auto-restart command"
+                      >
+                        <RotateCcw size={11} color="#0284c7" />
+                        Restart
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 8. Active Directory & Windows Patch Compliance (#23, #24) */}
+      {subTab === 'compliance' && (
+        <div className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                Active Directory Replication &amp; Windows Update Compliance
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                Auditing Domain Controller SYSVOL replication, FSMO roles, missing security KBs, and pending reboots
+              </p>
+            </div>
+            <ExportButtons data={complianceData} filenamePrefix="vnms_ad_patch_compliance" title="Patch & AD Compliance" />
+          </div>
+
+          <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <th style={{ padding: '8px 12px' }}>SERVER HOST</th>
+                  <th style={{ padding: '8px 12px' }}>DOMAIN ROLE</th>
+                  <th style={{ padding: '8px 12px' }}>SYSVOL REPLICATION</th>
+                  <th style={{ padding: '8px 12px' }}>FSMO ROLE HOLDINGS</th>
+                  <th style={{ padding: '8px 12px' }}>DAYS SINCE PATCH</th>
+                  <th style={{ padding: '8px 12px' }}>MISSING SEC KBS</th>
+                  <th style={{ padding: '8px 12px' }}>PENDING REBOOT</th>
+                  <th style={{ padding: '8px 12px' }}>COMPLIANCE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {complianceData.map((c: any, idx: number) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>
+                      {c.hostname}
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{ background: c.is_domain_ctrl ? '#e0f2fe' : '#f1f5f9', color: c.is_domain_ctrl ? '#0369a1' : '#475569', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                        {c.is_domain_ctrl ? 'Domain Controller' : 'Member Server'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#16a34a', fontWeight: 600 }}>
+                      {c.sysvol_sync_status}
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#64748b' }}>
+                      {c.fsmo_role_holdings}
+                    </td>
+                    <td style={{ padding: '8px 12px', fontWeight: 700, color: c.days_since_patch > 30 ? '#dc2626' : '#0f172a' }}>
+                      {c.days_since_patch} days
+                    </td>
+                    <td style={{ padding: '8px 12px', fontWeight: 700, color: c.missing_sec_kbs > 0 ? '#d97706' : '#16a34a' }}>
+                      {c.missing_sec_kbs} KBs
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{ background: c.pending_reboot ? '#fee2e2' : '#f1f5f9', color: c.pending_reboot ? '#b91c1c' : '#64748b', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                        {c.pending_reboot ? 'YES (Reboot Needed)' : 'NO'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{
+                        background: c.compliance_rating === 'COMPLIANT' ? '#dcfce7' : c.compliance_rating === 'NEEDS_REBOOT' ? '#fef3c7' : '#fee2e2',
+                        color: c.compliance_rating === 'COMPLIANT' ? '#15803d' : c.compliance_rating === 'NEEDS_REBOOT' ? '#b45309' : '#b91c1c',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontWeight: 700
+                      }}>
+                        {c.compliance_rating}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 9. NVMe SSD SMART Wear & Enterprise Print Spoolers (#29, #30) */}
+      {subTab === 'smart_nvme' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                  NVMe / SSD SMART Wear-Leveling &amp; Flash Health Telemetry
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                  Monitoring remaining flash write endurance %, reallocated sectors, operating temperature, and power-on hours
+                </p>
+              </div>
+              <ExportButtons data={smartDisksData} filenamePrefix="vnms_smart_nvme" title="NVMe SMART Wear" />
+            </div>
+
+            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                    <th style={{ padding: '8px 12px' }}>DISK ID / HOST</th>
+                    <th style={{ padding: '8px 12px' }}>MODEL &amp; MEDIA</th>
+                    <th style={{ padding: '8px 12px' }}>CAPACITY</th>
+                    <th style={{ padding: '8px 12px' }}>FLASH ENDURANCE REMAINING</th>
+                    <th style={{ padding: '8px 12px' }}>BAD SECTORS</th>
+                    <th style={{ padding: '8px 12px' }}>TEMP</th>
+                    <th style={{ padding: '8px 12px' }}>POWER-ON HOURS</th>
+                    <th style={{ padding: '8px 12px' }}>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {smartDisksData.map((d: any, idx: number) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px 12px' }}>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{d.disk_id}</div>
+                        <div style={{ color: '#0284c7', fontSize: '0.70rem' }}>{d.hostname}</div>
+                      </td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{d.model_number}</div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{d.media_type}</div>
+                      </td>
+                      <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>
+                        {d.capacity_gb} GB
+                      </td>
+                      <td style={{ padding: '8px 12px', width: '180px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
+                            <div style={{ width: `${d.wear_endurance_pct}%`, height: '100%', background: d.wear_endurance_pct < 20 ? '#dc2626' : '#16a34a' }} />
+                          </div>
+                          <span style={{ fontWeight: 700, color: '#16a34a' }}>{d.wear_endurance_pct}%</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 12px', color: d.reallocated_sectors > 0 ? '#dc2626' : '#16a34a', fontWeight: 700 }}>
+                        {d.reallocated_sectors}
+                      </td>
+                      <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>
+                        {d.temperature_c}°C
+                      </td>
+                      <td style={{ padding: '8px 12px', color: '#64748b' }}>
+                        {d.power_on_hours.toLocaleString()} hrs
+                      </td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                          ● {d.health_status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Enterprise Print Spoolers */}
+          <div className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                  Enterprise Print Server &amp; Spooler Queue Telemetry
+                </h3>
+                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                  Monitoring stuck print jobs, paper jams, and toner percentages across office printers
+                </p>
+              </div>
+              <ExportButtons data={spoolersData} filenamePrefix="vnms_print_spoolers" title="Print Spoolers" />
+            </div>
+
+            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                    <th style={{ padding: '8px 12px' }}>HOST &amp; PRINTER QUEUE</th>
+                    <th style={{ padding: '8px 12px' }}>PENDING JOBS</th>
+                    <th style={{ padding: '8px 12px' }}>STUCK JOBS</th>
+                    <th style={{ padding: '8px 12px' }}>TONER LEVEL</th>
+                    <th style={{ padding: '8px 12px' }}>PAPER JAM</th>
+                    <th style={{ padding: '8px 12px' }}>SPOOLER STATE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {spoolersData.map((p: any, idx: number) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '8px 12px' }}>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{p.printer_queue}</div>
+                        <div style={{ color: '#0284c7', fontSize: '0.70rem' }}>Host: {p.hostname}</div>
+                      </td>
+                      <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>
+                        {p.pending_jobs} jobs
+                      </td>
+                      <td style={{ padding: '8px 12px', fontWeight: 700, color: p.stuck_jobs > 0 ? '#dc2626' : '#16a34a' }}>
+                        {p.stuck_jobs} stuck
+                      </td>
+                      <td style={{ padding: '8px 12px', width: '150px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
+                            <div style={{ width: `${p.toner_level_pct}%`, height: '100%', background: p.toner_level_pct < 20 ? '#dc2626' : '#0284c7' }} />
+                          </div>
+                          <span style={{ fontWeight: 700, color: '#0f172a' }}>{p.toner_level_pct}%</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <span style={{ background: p.paper_jam ? '#fee2e2' : '#f1f5f9', color: p.paper_jam ? '#b91c1c' : '#64748b', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                          {p.paper_jam ? 'PAPER JAM!' : 'NO JAM'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <span style={{
+                          background: p.spooler_state === 'ONLINE' ? '#dcfce7' : p.spooler_state === 'WARNING' ? '#fef3c7' : '#fee2e2',
+                          color: p.spooler_state === 'ONLINE' ? '#15803d' : p.spooler_state === 'WARNING' ? '#b45309' : '#b91c1c',
+                          padding: '2px 8px',
+                          borderRadius: '4px',
+                          fontWeight: 700
+                        }}>
+                          ● {p.spooler_state}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 10. Windows Event Log & Syslog Regex Matcher (#26) */}
+      {subTab === 'event_logs' && (
+        <div className="glass-panel" style={{ padding: '20px', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                Windows Event Log &amp; Syslog Regex Matcher
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                Scanning System, Security, and Application event streams for critical event IDs and patterns
+              </p>
+            </div>
+            <ExportButtons data={eventLogsData} filenamePrefix="vnms_event_log_regex" title="Event Log Regex" />
+          </div>
+
+          <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.75rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc', color: '#475569', fontSize: '0.70rem', fontWeight: 700, textTransform: 'uppercase' }}>
+                  <th style={{ padding: '8px 12px' }}>HOST &amp; LOG SOURCE</th>
+                  <th style={{ padding: '8px 12px' }}>EVENT ID</th>
+                  <th style={{ padding: '8px 12px' }}>SEVERITY</th>
+                  <th style={{ padding: '8px 12px' }}>MATCHED EVENT MESSAGE</th>
+                  <th style={{ padding: '8px 12px' }}>APPLIED REGEX PATTERN</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eventLogsData.map((l: any) => (
+                  <tr key={l.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '8px 12px' }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{l.hostname}</div>
+                      <span style={{ fontSize: '0.68rem', color: '#0284c7', fontWeight: 600 }}>{l.log_source} Log</span>
+                    </td>
+                    <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: '#0f172a' }}>
+                      Event {l.event_id}
+                    </td>
+                    <td style={{ padding: '8px 12px' }}>
+                      <span style={{
+                        background: l.severity === 'CRITICAL' ? '#fee2e2' : l.severity === 'WARNING' ? '#fef3c7' : '#ede9fe',
+                        color: l.severity === 'CRITICAL' ? '#b91c1c' : l.severity === 'WARNING' ? '#b45309' : '#6d28d9',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontWeight: 700
+                      }}>
+                        {l.severity}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 12px', color: '#334155' }}>
+                      {l.message}
+                    </td>
+                    <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', color: '#475569', fontSize: '0.70rem' }}>
+                      <code>{l.regex_rule}</code>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

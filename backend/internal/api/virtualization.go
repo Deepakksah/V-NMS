@@ -133,6 +133,16 @@ func HandleGetCloudTelemetry(c *gin.Context) {
 			ResourceID: "sql-fin-prod-eastus", Region: "East US", Status: "Healthy",
 			MetricKey: "DTU Consumption %", MetricValue: "34.0%", BudgetSpent: "$540 / $750 mo", SlaPercent: 99.99, LastPolled: now,
 		},
+		{
+			ID: "m365-exchange-corp", Provider: "Microsoft 365", ServiceName: "Exchange Online & Mail Routing",
+			ResourceID: "tenant-enterprise-m365", Region: "Global / Multi-Geo", Status: "Healthy",
+			MetricKey: "Active Mailboxes / Quota", MetricValue: "420 / 500 Licenses", BudgetSpent: "$9,240 / mo", SlaPercent: 99.995, LastPolled: now,
+		},
+		{
+			ID: "m365-teams-sharepoint", Provider: "Microsoft 365", ServiceName: "Teams & SharePoint Enterprise",
+			ResourceID: "sp-tenant-cloud-storage", Region: "Global", Status: "Healthy",
+			MetricKey: "Cloud Storage Used", MetricValue: "4.8 TB / 25 TB", BudgetSpent: "Included E5", SlaPercent: 100.0, LastPolled: now,
+		},
 	}
 
 	c.JSON(http.StatusOK, gin.H{"cloud_services": clouds, "total": len(clouds)})
@@ -180,7 +190,13 @@ func HandleGetHypervisors(c *gin.Context) {
 			Cluster: "PVE Compute Grid (Quorum 3/3)", VmCount: 14, CpuGhzUsed: 16.2, CpuGhzTotal: 48.0,
 			RamGbUsed: 78.0, RamGbTotal: 128.0, DatastoreLatencyMs: 0.9, Status: "ONLINE",
 		},
+		{
+			ID: "xenserver-xcp-01", Type: "Citrix XenServer / XCP-ng 8.3 LTS", Hostname: "xen-pool-master.internal.local",
+			Cluster: "XCP-ng Production Resource Pool", VmCount: 22, CpuGhzUsed: 31.0, CpuGhzTotal: 64.0,
+			RamGbUsed: 110.0, RamGbTotal: 192.0, DatastoreLatencyMs: 1.4, Status: "ONLINE",
+		},
 	}
 
 	c.JSON(http.StatusOK, gin.H{"hypervisors": hypervisors, "total": len(hypervisors)})
 }
+

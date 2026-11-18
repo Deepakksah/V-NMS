@@ -94,9 +94,41 @@ func SetupRouter() *gin.Engine {
 		api.GET("/network/flows", HandleGetNetFlows)
 		api.GET("/network/voip", HandleGetVoipQuality)
 		api.GET("/network/traps", HandleGetSnmpTrapsAndBgp)
+
+		// 11. Server Hardware BMC, IPMI, Daemons & Patching Domain (PRTG Section 17.3)
+		api.GET("/hardware/ipmi", HandleGetIpmiBmc)
+		api.GET("/hardware/daemons", HandleGetServiceDaemons)
+		api.GET("/hardware/ad-updates", HandleGetPatchAndAD)
+		api.GET("/hardware/smart-disks", HandleGetSmartDisks)
+		api.GET("/hardware/event-logs", HandleGetEventLogs)
+		api.GET("/hardware/spoolers", HandleGetPrintSpoolers)
+
+		// 12. Enterprise Applications, Databases & Storage Fabric (PRTG Section 17.5)
+		api.GET("/apps/databases", HandleGetDatabaseTelemetry)
+		api.GET("/apps/storage-fabric", HandleGetStorageFabric)
+		api.GET("/apps/synthetics", HandleGetAppSynthetics)
+
+		// 13. Synthetic Transactions, Web Journeys & SLAs (PRTG Section 17.6)
+		api.GET("/synthetics/web", HandleGetSyntheticsWeb)
+		api.GET("/synthetics/specialized", HandleGetSyntheticsSpecialized)
+
+		// 14. Advanced Alerting, Escalations & Webhooks (PRTG Section 17.7)
+		api.GET("/alerting/escalations", HandleGetEscalations)
+		api.GET("/alerting/triggers", HandleGetAdvancedTriggers)
+		api.GET("/alerting/dispatches", HandleGetDispatches)
+
+		// 15. Analytics, SLA Penalties & Capacity Forecasting (PRTG Section 17.9)
+		api.GET("/analytics/capacity", HandleGetCapacityForecast)
+		api.GET("/analytics/sla-penalties", HandleGetSlaCompliance)
+		api.GET("/analytics/root-cause", HandleGetAiRootCause)
+
+		// 16. Probe Infrastructure, Maintenance Windows & Extensibility (PRTG Sections 17.1 & 17.10)
+		api.GET("/system/probe-cluster", HandleGetProbeCluster)
+		api.GET("/system/maintenance", HandleGetMaintenanceWindows)
+		api.GET("/system/extensibility", HandleGetExtensibility)
 	}
 
-	// 11. Static Web SPA routes for embedded frontend
+	// 17. Static Web SPA routes for embedded frontend
 	web.RegisterWebRoutes(r)
 
 	return r

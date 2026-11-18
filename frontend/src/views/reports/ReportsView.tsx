@@ -35,7 +35,7 @@ interface ReportsViewProps {
 
 export type Timeframe = 'daily' | 'weekly' | 'monthly' | 'yearly';
 export type CategoryFilter = 'all' | 'server' | 'switch' | 'firewall' | 'workstation' | 'ntp';
-export type MetricMode = 'sla' | 'spikes' | 'storage' | 'outages';
+export type MetricMode = 'sla' | 'spikes' | 'storage' | 'outages' | 'capacity_forecast' | 'sla_penalties' | 'ai_root_cause' | 'probes_maintenance';
 
 export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
   const [timeframe, setTimeframe] = useState<Timeframe>('weekly');
@@ -43,12 +43,40 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
   const [metricMode, setMetricMode] = useState<MetricMode>('sla');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedChartDevice, setSelectedChartDevice] = useState<Device | null>(null);
+  const [capacityForecasts, setCapacityForecasts] = useState<any[]>([]);
+  const [slaAudits, setSlaAudits] = useState<any[]>([]);
+  const [aiRootCauses, setAiRootCauses] = useState<any[]>([]);
+  const [probesList, setProbesList] = useState<any[]>([]);
+  const [maintenanceWindows, setMaintenanceWindows] = useState<any[]>([]);
+  const [extensibilityData, setExtensibilityData] = useState<any>(null);
   const [hoveredCell, setHoveredCell] = useState<{
     device: string;
     period: string;
     primary: string;
     secondary: string;
   } | null>(null);
+
+  React.useEffect(() => {
+    const fetchAnalyticsAndSystem = async () => {
+      try {
+        const [resCap, resSla, resAi, resProbe, resMaint, resExt] = await Promise.allSettled([
+          fetch('/api/v1/analytics/capacity').then(r => r.json()),
+          fetch('/api/v1/analytics/sla-penalties').then(r => r.json()),
+          fetch('/api/v1/analytics/root-cause').then(r => r.json()),
+          fetch('/api/v1/system/probe-cluster').then(r => r.json()),
+          fetch('/api/v1/system/maintenance').then(r => r.json()),
+          fetch('/api/v1/system/extensibility').then(r => r.json())
+        ]);
+        if (resCap.status === 'fulfilled' && resCap.value?.forecasts) setCapacityForecasts(resCap.value.forecasts);
+        if (resSla.status === 'fulfilled' && resSla.value?.sla_audits) setSlaAudits(resSla.value.sla_audits);
+        if (resAi.status === 'fulfilled' && resAi.value?.root_causes) setAiRootCauses(resAi.value.root_causes);
+        if (resProbe.status === 'fulfilled' && resProbe.value?.probes) setProbesList(resProbe.value.probes);
+        if (resMaint.status === 'fulfilled' && resMaint.value?.maintenance_windows) setMaintenanceWindows(resMaint.value.maintenance_windows);
+        if (resExt.status === 'fulfilled' && resExt.value?.extensibility) setExtensibilityData(resExt.value.extensibility);
+      } catch {}
+    };
+    fetchAnalyticsAndSystem();
+  }, []);
 
   // Filter devices based on category tab and live search query
   const displayedDevices = useMemo(() => {
@@ -544,7 +572,11 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
               { id: 'sla', label: 'Availability SLA (%)', icon: CheckCircle2, color: '#16a34a' },
               { id: 'spikes', label: 'Latency & Jitter Spikes', icon: Zap, color: '#d97706' },
               { id: 'storage', label: 'Storage & Disk Full', icon: HardDrive, color: '#dc2626' },
-              { id: 'outages', label: 'Outage History', icon: Clock, color: '#7c3aed' }
+              { id: 'outages', label: 'Outage History', icon: Clock, color: '#7c3aed' },
+              { id: 'capacity_forecast', label: 'Predictive Capacity & Anomaly (#86, #87)', icon: TrendingUp, color: '#0284c7' },
+              { id: 'sla_penalties', label: 'Contractual SLA Penalties (#83, #84, #88)', icon: CheckCircle2, color: '#16a34a' },
+              { id: 'ai_root_cause', label: 'AI Root-Cause Diagnosis (#90)', icon: Activity, color: '#dc2626' },
+              { id: 'probes_maintenance', label: 'Probes & Maintenance Windows (#1-#10, #96-#100)', icon: Layers, color: '#7c3aed' }
             ].map(mode => {
               const Icon = mode.icon;
               const isSelected = metricMode === mode.id;
@@ -654,7 +686,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
         </div>
 
         {/* Heatmap Table Matrix (Compact & Tight) */}
-        <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+        {(metricMode === 'sla' || metricMode === 'spikes' || metricMode === 'storage' || metricMode === 'outages') && (
+          <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
             <thead>
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
@@ -917,6 +950,300 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
             </tbody>
           </table>
         </div>
+        )}
+
+        {/* 1. Predictive Capacity & Anomaly Detection (#86, #87) */}
+        {metricMode === 'capacity_forecast' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  Predictive Capacity Forecasting &amp; Exhaustion Dates (#87)
+                </h4>
+                <p style={{ fontSize: '0.72rem', color: '#64748b', margin: '2px 0 0' }}>
+                  Linear regression projection predicting the exact date disk volumes, memory pools, and bandwidth hit 100%
+                </p>
+              </div>
+            </div>
+
+            <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>RESOURCE &amp; HOST</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>RESOURCE TYPE</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>CURRENT USAGE</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>DAILY GROWTH</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>ESTIMATED 100% EXHAUSTION</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>DAYS LEFT</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>ANOMALY STATE</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {capacityForecasts.map(fc => (
+                    <tr key={fc.resource_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '8px 12px' }}>
+                        <div style={{ fontWeight: 700, color: '#0f172a' }}>{fc.hostname}</div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{fc.resource_id}</div>
+                      </td>
+                      <td style={{ padding: '8px 12px', color: '#334155', fontWeight: 600 }}>
+                        {fc.resource_type}
+                      </td>
+                      <td style={{ padding: '8px 12px', width: '150px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
+                            <div style={{ width: `${fc.current_percent}%`, height: '100%', background: fc.current_percent > 85 ? '#dc2626' : '#0284c7' }} />
+                          </div>
+                          <span style={{ fontWeight: 700, color: '#0f172a' }}>{fc.current_percent}%</span>
+                        </div>
+                      </td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0284c7' }}>
+                        +{fc.daily_growth_rate_pct}% / day
+                      </td>
+                      <td style={{ padding: '8px 12px', fontWeight: 800, color: fc.days_remaining < 60 ? '#dc2626' : '#0f172a' }}>
+                        {fc.exhaustion_date}
+                      </td>
+                      <td style={{ padding: '8px 12px', fontWeight: 700, color: fc.days_remaining < 60 ? '#dc2626' : '#16a34a' }}>
+                        {fc.days_remaining} days
+                      </td>
+                      <td style={{ padding: '8px 12px' }}>
+                        <span style={{
+                          background: fc.anomaly_state === 'NOMINAL' ? '#dcfce7' : '#fee2e2',
+                          color: fc.anomaly_state === 'NOMINAL' ? '#15803d' : '#b91c1c',
+                          padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.68rem'
+                        }}>
+                          ● {fc.anomaly_state}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 2. Contractual SLA Compliance & Penalty Calculator (#83, #84, #88) */}
+        {metricMode === 'sla_penalties' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+              Contractual SLA Compliance &amp; Penalty Calculator (#83)
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '14px' }}>
+              {slaAudits.map((sla, sIdx) => (
+                <div key={sIdx} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h5 style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>{sla.contract_name}</h5>
+                    <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 700 }}>
+                      ● {sla.compliance_status}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginBottom: '12px' }}>
+                    Period: {sla.audit_period}
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.74rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#475569' }}>Target Contractual SLA:</span>
+                      <strong style={{ color: '#0f172a' }}>{sla.target_sla_pct}%</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#475569' }}>Actual Measured Uptime:</span>
+                      <strong style={{ color: '#16a34a' }}>{sla.actual_uptime_pct}%</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: '#475569' }}>Total Downtime Logged:</span>
+                      <strong style={{ color: '#0f172a' }}>{sla.total_downtime_min} mins (Allowed: {sla.allowed_downtime}m)</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '6px', marginTop: '4px' }}>
+                      <span style={{ color: '#475569', fontWeight: 700 }}>Contractual Penalty:</span>
+                      <strong style={{ color: '#16a34a' }}>{sla.penalty_incurred}</strong>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 3. AI Incident Root-Cause Diagnosis (#90) */}
+        {metricMode === 'ai_root_cause' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+              AI Incident Root-Cause Analysis Diagnosis (#90)
+            </h4>
+            {aiRootCauses.map(rc => (
+              <div key={rc.incident_id} style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ background: '#0f172a', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                      {rc.incident_id}
+                    </span>
+                    <h5 style={{ margin: 0, fontSize: '0.90rem', fontWeight: 800, color: '#0f172a' }}>{rc.summary_title}</h5>
+                  </div>
+                  <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 800 }}>
+                    AI Confidence: {rc.confidence_score}%
+                  </span>
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '4px' }}>Cascading Multi-Device Symptoms:</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    {rc.cascade_symptoms.map((s: string, sIdx: number) => (
+                      <div key={sIdx} style={{ fontSize: '0.72rem', color: '#334155', fontFamily: 'var(--font-mono)', background: '#ffffff', padding: '4px 8px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                        {s}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '10px 12px', fontSize: '0.74rem' }}>
+                  <div style={{ color: '#b91c1c', fontWeight: 700, marginBottom: '2px' }}>
+                    Diagnosed Root Cause:
+                  </div>
+                  <div style={{ color: '#0f172a', marginBottom: '6px' }}>
+                    {rc.identified_root_cause}
+                  </div>
+                  <div style={{ color: '#16a34a', fontWeight: 700 }}>
+                    Recommended Action: <span style={{ color: '#334155', fontWeight: 500 }}>{rc.recommended_action}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* 4. Distributed Probes & Maintenance Windows (#1-#10, #96-#100) */}
+        {metricMode === 'probes_maintenance' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Distributed Probes */}
+            <div>
+              <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: '0 0 10px 0' }}>
+                Distributed Remote Probe Agents &amp; Failover Cluster VIP (#1, #2, #3, #10)
+              </h4>
+              <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>PROBE NAME &amp; LOCATION</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>OUTBOUND TLS PORT</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>OFFLINE BUFFER</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>AUTO-UPDATE</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>FAILOVER VIP ROLE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {probesList.map((pr, pIdx) => (
+                      <tr key={pIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '8px 12px' }}>
+                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{pr.probe_name}</div>
+                          <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{pr.location} ({pr.ip_address})</div>
+                        </td>
+                        <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)' }}>
+                          TCP Port {pr.outbound_tls_port} (TLS 1.3)
+                        </td>
+                        <td style={{ padding: '8px 12px', color: '#16a34a', fontWeight: 600 }}>
+                          SQLite Synced (0 queued)
+                        </td>
+                        <td style={{ padding: '8px 12px' }}>
+                          <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.68rem' }}>
+                            {pr.auto_update_status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '8px 12px' }}>
+                          <strong style={{ color: '#0284c7' }}>{pr.cluster_failover_vip}</strong>
+                          <span style={{ fontSize: '0.68rem', color: '#64748b', marginLeft: '6px' }}>({pr.failover_node_role})</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Maintenance Windows */}
+            <div>
+              <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: '0 0 10px 0' }}>
+                Planned Recurring Maintenance Windows (#9)
+              </h4>
+              <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>MAINTENANCE WINDOW TITLE</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>CRON SCHEDULE</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>DURATION</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>ALERTS SILENCED</th>
+                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>SLA EXEMPT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {maintenanceWindows.map((mw, mIdx) => (
+                      <tr key={mIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: 700, color: '#0f172a' }}>
+                          {mw.title}
+                        </td>
+                        <td style={{ padding: '8px 12px', color: '#334155' }}>
+                          {mw.cron_schedule}
+                        </td>
+                        <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0284c7' }}>
+                          {mw.duration_hours} hours
+                        </td>
+                        <td style={{ padding: '8px 12px' }}>
+                          <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.68rem' }}>
+                            YES (Muted)
+                          </span>
+                        </td>
+                        <td style={{ padding: '8px 12px' }}>
+                          <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '0.68rem' }}>
+                            YES (Protected)
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* In-Browser MIB Compiler & Script Sensors */}
+            {extensibilityData && (
+              <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px' }}>
+                <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: '0 0 10px 0' }}>
+                  In-Browser MIB Compiler, PRTG Script Sensors &amp; OpenAPI (#96, #97, #100)
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', fontSize: '0.74rem' }}>
+                  <div>
+                    <strong style={{ color: '#475569' }}>Compiled Enterprise MIB Files:</strong>
+                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px', color: '#334155' }}>
+                      {extensibilityData.loaded_mib_files.map((mib: string, idx: number) => (
+                        <li key={idx} style={{ fontFamily: 'var(--font-mono)' }}>{mib}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <strong style={{ color: '#475569' }}>PRTG Script Sensor Runners:</strong>
+                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px', color: '#334155' }}>
+                      {extensibilityData.custom_script_sensors.map((sc: string, idx: number) => (
+                        <li key={idx} style={{ fontFamily: 'var(--font-mono)' }}>{sc}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <strong style={{ color: '#475569' }}>Interactive REST OpenAPI 3.0:</strong>
+                    <div style={{ marginTop: '4px' }}>
+                      <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 8px', borderRadius: '4px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                        {extensibilityData.swagger_endpoint}
+                      </span>
+                    </div>
+                    <div style={{ marginTop: '8px', color: '#16a34a', fontWeight: 600 }}>
+                      SSO Enabled: {extensibilityData.sso_provider}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Dynamic Tooltip on Hover */}
         {hoveredCell && (

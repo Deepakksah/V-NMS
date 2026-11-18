@@ -144,3 +144,4 @@ func HandleGetSnmpTrapsAndBgp(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"traps": traps, "bgp_peers": bgp})
 }
+

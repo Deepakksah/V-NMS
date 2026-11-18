@@ -23,6 +23,8 @@ import {
   Users,
   UserCheck,
   Link2,
+  Database,
+  Tv,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -112,6 +114,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           iconColor: '#2563eb', 
           iconBg: '#dbeafe', 
           count: null 
+        },
+        { 
+          id: 'wallboard', 
+          label: 'NOC Wallboard & Studio', 
+          icon: Tv, 
+          iconColor: '#0284c7', 
+          iconBg: '#e0f2fe', 
+          count: 'TV', 
+          highlight: true 
         },
         { 
           id: 'tree_view', 
@@ -254,6 +265,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           iconColor: '#0284c7', 
           iconBg: '#e0f2fe', 
           count: serversCount > 0 ? String(serversCount) : null 
+        },
+        { 
+          id: 'applications', 
+          label: 'Apps, Databases & Synthetics', 
+          icon: Database, 
+          iconColor: '#7c3aed', 
+          iconBg: '#ede9fe', 
+          count: 'DB/SAN',
+          highlight: true
         },
         { 
           id: 'pollers', 
