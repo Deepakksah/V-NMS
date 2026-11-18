@@ -362,7 +362,7 @@ Last Updated: 2026-11-13 | Subnet: `172.168.1.0/24` | Database: `PostgreSQL 18`
 
 ---
 
-### 17. PRTG-Inspired Enterprise 100-Feature Roadmap (V-NMS Evolution)
+### 17. Enterprise NOC 100-Feature Roadmap (V-NMS Evolution)
 
 #### 17.1 Core Architecture & Probe Infrastructure (Points 1–10)
 - [x] ✅ **17.1.1 Distributed Remote Probe Agent (`vnms-probe`):** Lightweight Go binary polling remote branches/VPCs via outbound TLS (port 23560).
@@ -478,7 +478,7 @@ Last Updated: 2026-11-13 | Subnet: `172.168.1.0/24` | Database: `PostgreSQL 18`
 - [x] ✅ **17.10.3 Multi-Tenant Client Portal Isolation:** MSP workspaces where customer accounts are restricted to their own subnets/devices.
 - [x] ✅ **17.10.4 Granular Object-Level Access Control Matrix:** Define Read, Write, Admin, and Acknowledge permissions per device group.
 - [x] ✅ **17.10.5 Built-in Incident Helpdesk & Ticketing System:** Link alarms to assignable support tickets with full lifecycle history.
-- [x] ✅ **17.10.6 PRTG-Compatible Script Sensor Runner:** Execute PowerShell, Python, or Bash scripts returning JSON/XML channels.
+- [x] ✅ **17.10.6 Multi-Channel Script Sensor Runner:** Execute PowerShell, Python, or Bash scripts returning JSON/XML channels.
 - [x] ✅ **17.10.7 Full OpenAPI / Swagger REST API Documentation:** Interactive Swagger UI for all V-NMS endpoints.
 - [x] ✅ **17.10.8 CIDR IP Whitelisting & API Rate Limiting:** Restrict management API access to authorized administrative IP ranges.
 - [x] ✅ **17.10.9 Automated Subnet Discovery Templates:** Probe system OIDs during discovery and auto-attach appropriate vendor sensor profiles.

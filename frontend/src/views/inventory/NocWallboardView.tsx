@@ -103,7 +103,7 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
               NOC Interactive Wallboard &amp; Visual Studio
               <span style={{ fontSize: '0.65rem', background: '#22c55e', color: '#052e16', padding: '2px 8px', borderRadius: '9999px', fontWeight: 800 }}>
-                PRTG #71-#80
+                NOC STUDIO LIVE
               </span>
             </h2>
             <p style={{ fontSize: '0.74rem', color: '#94a3b8', margin: '2px 0 0 0' }}>

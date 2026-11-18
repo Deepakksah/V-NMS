@@ -210,3 +210,4 @@ func HandleGetExtensibility(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"extensibility": ext})
 }
+

@@ -368,7 +368,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
       // 3. Fetch alert recipients
       await fetchRecipients();
 
-      // 4. Fetch escalations, advanced triggers, and webhook dispatches (PRTG Section 17.7)
+      // 4. Fetch escalations, advanced triggers, and webhook dispatches (Advanced Escalations)
       try {
         const [resEsc, resTrig, resDisp] = await Promise.allSettled([
           fetch('/api/v1/alerting/escalations').then(r => r.json()),

@@ -23,7 +23,7 @@ func SetGatewayStatus(alive bool) {
 	gatewayDownStatus = !alive
 }
 
-// EvaluateDeviceRules checks device metrics against SLA rules with PRTG-inspired
+// EvaluateDeviceRules checks device metrics against SLA rules with Enterprise NOC
 // Parent-Child Dependency Alarm Suppression (17.1.5) and Flapping Protection (17.6.9)
 func EvaluateDeviceRules(d *models.Device, pingAlive bool, latency float64) {
 	pollHysteresisMutex.Lock()

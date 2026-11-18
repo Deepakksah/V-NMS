@@ -131,3 +131,4 @@ func HandleGetDispatches(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"dispatches": dispatches, "total": len(dispatches)})
 }
+

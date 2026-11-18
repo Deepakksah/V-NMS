@@ -96,7 +96,7 @@ export const RoutingView: React.FC<RoutingViewProps> = ({ devices = [] }) => {
               IP Routing, NetFlow, VoIP MOS &amp; Telecom Telemetry
             </h2>
             <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              PRTG Deep Network Flow Engine
+              V-NMS Deep Network Flow Engine
             </span>
           </div>
           <p style={{ fontSize: '0.80rem', color: '#64748b', margin: '4px 0 0 0' }}>

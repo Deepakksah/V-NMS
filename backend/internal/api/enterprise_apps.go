@@ -150,3 +150,4 @@ func HandleGetAppSynthetics(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"synthetics": data})
 }
+

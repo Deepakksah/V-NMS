@@ -1,27 +1,27 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  BarChart2, 
-  Download, 
-  Printer, 
-  Activity, 
-  Clock, 
-  CheckCircle2, 
-  TrendingUp, 
+import {
+  BarChart2,
+  Download,
+  Printer,
+  Activity,
+  Clock,
+  CheckCircle2,
+  TrendingUp,
   Layers,
   Search,
   X,
   HardDrive,
   Zap
 } from 'lucide-react';
-import { 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  ResponsiveContainer, 
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
   CartesianGrid,
   Legend
 } from 'recharts';
@@ -73,7 +73,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
         if (resProbe.status === 'fulfilled' && resProbe.value?.probes) setProbesList(resProbe.value.probes);
         if (resMaint.status === 'fulfilled' && resMaint.value?.maintenance_windows) setMaintenanceWindows(resMaint.value.maintenance_windows);
         if (resExt.status === 'fulfilled' && resExt.value?.extensibility) setExtensibilityData(resExt.value.extensibility);
-      } catch {}
+      } catch { }
     };
     fetchAnalyticsAndSystem();
   }, []);
@@ -158,8 +158,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
 
   const onlineNodes = devices.filter(d => d.status).length;
   const overallSLA = totalNodes > 0 ? Number(((onlineNodes / totalNodes) * 100).toFixed(2)) : 100;
-  const avgPing = totalNodes > 0 
-    ? Number((devices.reduce((acc, d) => acc + (d.last_ping_ms || 0), 0) / totalNodes).toFixed(2)) 
+  const avgPing = totalNodes > 0
+    ? Number((devices.reduce((acc, d) => acc + (d.last_ping_ms || 0), 0) / totalNodes).toFixed(2))
     : 0.5;
 
   // Chart time-series historical data based on timeframe
@@ -688,268 +688,268 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
         {/* Heatmap Table Matrix (Compact & Tight) */}
         {(metricMode === 'sla' || metricMode === 'spikes' || metricMode === 'storage' || metricMode === 'outages') && (
           <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: '6px' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '6px 10px', textAlign: 'left', minWidth: '170px', color: '#475569', fontWeight: 700 }}>
-                  NODE &amp; VENDOR
-                </th>
-                <th style={{ padding: '6px 6px', textAlign: 'left', minWidth: '85px', color: '#475569', fontWeight: 700 }}>
-                  TYPE
-                </th>
-                <th style={{ padding: '6px 6px', textAlign: 'left', minWidth: '95px', color: '#475569', fontWeight: 700 }}>
-                  IP ADDRESS
-                </th>
-                {/* Column Headers for Periods */}
-                {columns.map(col => (
-                  <th 
-                    key={col.id} 
-                    style={{ 
-                      padding: '4px 1px', 
-                      textAlign: 'center', 
-                      fontSize: '0.62rem', 
-                      color: '#64748b', 
-                      minWidth: timeframe === 'monthly' ? '18px' : timeframe === 'daily' ? '22px' : '36px'
-                    }}
-                    title={col.label}
-                  >
-                    {col.short}
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <th style={{ padding: '6px 10px', textAlign: 'left', minWidth: '170px', color: '#475569', fontWeight: 700 }}>
+                    NODE &amp; VENDOR
                   </th>
-                ))}
-                <th style={{ padding: '6px 8px', textAlign: 'right', minWidth: '70px', color: '#475569', fontWeight: 700 }}>
-                  {metricMode === 'sla' ? 'SLA %' : metricMode === 'spikes' ? 'LATENCY' : metricMode === 'storage' ? 'DISK %' : 'OUTAGES'}
-                </th>
-                <th style={{ padding: '6px 8px', textAlign: 'center', minWidth: '60px', color: '#475569', fontWeight: 700 }}>
-                  CHARTS
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayedDevices.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length + 5} style={{ padding: '24px', textAlign: 'center', color: '#64748b', fontSize: '0.78rem' }}>
-                    No matching devices found for "<strong>{searchQuery}</strong>". Try searching by IP (e.g. {devices[0]?.ip_address || '10.0.0.1'}), hostname, or vendor.
-                  </td>
-                </tr>
-              ) : (
-                displayedDevices.map(dev => {
-                  const isOnline = dev.status;
-                  const devSla = calculateDeviceSla(dev);
-                  const baseLatency = dev.last_ping_ms || 0.5;
-                  const diskPct = (dev as any).disk_percent || Math.min(88, Math.round(25 + ((dev.id * 11) % 52)));
-
-                  return (
-                    <tr 
-                      key={dev.id} 
-                      onClick={() => setSelectedChartDevice(dev)}
-                      style={{ 
-                        borderBottom: '1px solid #f1f5f9',
-                        transition: 'background 0.1s ease',
-                        cursor: 'pointer'
+                  <th style={{ padding: '6px 6px', textAlign: 'left', minWidth: '85px', color: '#475569', fontWeight: 700 }}>
+                    TYPE
+                  </th>
+                  <th style={{ padding: '6px 6px', textAlign: 'left', minWidth: '95px', color: '#475569', fontWeight: 700 }}>
+                    IP ADDRESS
+                  </th>
+                  {/* Column Headers for Periods */}
+                  {columns.map(col => (
+                    <th
+                      key={col.id}
+                      style={{
+                        padding: '4px 1px',
+                        textAlign: 'center',
+                        fontSize: '0.62rem',
+                        color: '#64748b',
+                        minWidth: timeframe === 'monthly' ? '18px' : timeframe === 'daily' ? '22px' : '36px'
                       }}
-                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      title={col.label}
                     >
-                      {/* Device & Vendor */}
-                      <td style={{ padding: '4px 10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <VendorLogo vendor={dev.vendor || 'Generic'} size="xs" showLabel={false} />
-                          <div>
-                            <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.75rem', lineHeight: '1.1' }}>
-                              {dev.hostname}
-                            </div>
-                            <div style={{ fontSize: '0.64rem', color: '#64748b' }}>
-                              {dev.hardware || 'Enterprise Hardware'}
+                      {col.short}
+                    </th>
+                  ))}
+                  <th style={{ padding: '6px 8px', textAlign: 'right', minWidth: '70px', color: '#475569', fontWeight: 700 }}>
+                    {metricMode === 'sla' ? 'SLA %' : metricMode === 'spikes' ? 'LATENCY' : metricMode === 'storage' ? 'DISK %' : 'OUTAGES'}
+                  </th>
+                  <th style={{ padding: '6px 8px', textAlign: 'center', minWidth: '60px', color: '#475569', fontWeight: 700 }}>
+                    CHARTS
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayedDevices.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length + 5} style={{ padding: '24px', textAlign: 'center', color: '#64748b', fontSize: '0.78rem' }}>
+                      No matching devices found for "<strong>{searchQuery}</strong>". Try searching by IP (e.g. {devices[0]?.ip_address || '10.0.0.1'}), hostname, or vendor.
+                    </td>
+                  </tr>
+                ) : (
+                  displayedDevices.map(dev => {
+                    const isOnline = dev.status;
+                    const devSla = calculateDeviceSla(dev);
+                    const baseLatency = dev.last_ping_ms || 0.5;
+                    const diskPct = (dev as any).disk_percent || Math.min(88, Math.round(25 + ((dev.id * 11) % 52)));
+
+                    return (
+                      <tr
+                        key={dev.id}
+                        onClick={() => setSelectedChartDevice(dev)}
+                        style={{
+                          borderBottom: '1px solid #f1f5f9',
+                          transition: 'background 0.1s ease',
+                          cursor: 'pointer'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        {/* Device & Vendor */}
+                        <td style={{ padding: '4px 10px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <VendorLogo vendor={dev.vendor || 'Generic'} size="xs" showLabel={false} />
+                            <div>
+                              <div style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.75rem', lineHeight: '1.1' }}>
+                                {dev.hostname}
+                              </div>
+                              <div style={{ fontSize: '0.64rem', color: '#64748b' }}>
+                                {dev.hardware || 'Enterprise Hardware'}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Device Type */}
-                      <td style={{ padding: '4px 6px' }}>
-                        <DeviceTypeBadge type={dev.device_type || 'server'} size="xs" />
-                      </td>
+                        {/* Device Type */}
+                        <td style={{ padding: '4px 6px' }}>
+                          <DeviceTypeBadge type={dev.device_type || 'server'} size="xs" />
+                        </td>
 
-                      {/* IP Address */}
-                      <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#0284c7', fontWeight: 600 }}>
-                        {dev.ip_address}
-                      </td>
+                        {/* IP Address */}
+                        <td style={{ padding: '4px 6px', fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: '#0284c7', fontWeight: 600 }}>
+                          {dev.ip_address}
+                        </td>
 
-                      {/* Heatmap Blocks */}
-                      {columns.map((col, idx) => {
-                        let color = '#10b981';
-                        let hoverPrimary = '';
-                        let hoverSecondary = '';
+                        {/* Heatmap Blocks */}
+                        {columns.map((col, idx) => {
+                          let color = '#10b981';
+                          let hoverPrimary = '';
+                          let hoverSecondary = '';
 
-                        if (metricMode === 'sla') {
-                          if (!isOnline) {
-                            color = idx > columns.length - 4 ? '#f87171' : '#34d399';
-                            hoverPrimary = idx > columns.length - 4 ? '0% Uptime (Down)' : '99.8% Uptime';
-                            hoverSecondary = 'Offline Timeout';
-                          } else {
-                            if ((dev.id + idx) % 19 === 0) {
-                              color = '#34d399';
-                              hoverPrimary = '99.8% Uptime';
-                              hoverSecondary = `RTT: ${baseLatency} ms`;
-                            } else if ((dev.id * 3 + idx) % 43 === 0) {
-                              color = '#fbbf24';
-                              hoverPrimary = '98.9% Uptime';
-                              hoverSecondary = `Jitter RTT: ${(baseLatency + 1.2).toFixed(2)} ms`;
+                          if (metricMode === 'sla') {
+                            if (!isOnline) {
+                              color = idx > columns.length - 4 ? '#f87171' : '#34d399';
+                              hoverPrimary = idx > columns.length - 4 ? '0% Uptime (Down)' : '99.8% Uptime';
+                              hoverSecondary = 'Offline Timeout';
                             } else {
-                              color = '#10b981';
-                              hoverPrimary = '100% Uptime (Optimal)';
-                              hoverSecondary = `RTT: ${baseLatency} ms`;
+                              if ((dev.id + idx) % 19 === 0) {
+                                color = '#34d399';
+                                hoverPrimary = '99.8% Uptime';
+                                hoverSecondary = `RTT: ${baseLatency} ms`;
+                              } else if ((dev.id * 3 + idx) % 43 === 0) {
+                                color = '#fbbf24';
+                                hoverPrimary = '98.9% Uptime';
+                                hoverSecondary = `Jitter RTT: ${(baseLatency + 1.2).toFixed(2)} ms`;
+                              } else {
+                                color = '#10b981';
+                                hoverPrimary = '100% Uptime (Optimal)';
+                                hoverSecondary = `RTT: ${baseLatency} ms`;
+                              }
                             }
-                          }
-                        } else if (metricMode === 'spikes') {
-                          if (!isOnline) {
-                            color = '#ef4444';
-                            hoverPrimary = 'Host Unreachable';
-                            hoverSecondary = '100% Packet Loss Spike';
-                          } else {
-                            const isSpike = (dev.id * 7 + idx) % 23 === 0;
-                            const isJitter = (dev.id * 3 + idx) % 11 === 0;
-                            if (isSpike) {
+                          } else if (metricMode === 'spikes') {
+                            if (!isOnline) {
                               color = '#ef4444';
-                              const spikeVal = Number((baseLatency + 14.2).toFixed(2));
-                              hoverPrimary = `${spikeVal} ms (SPIKE ALERT!)`;
-                              hoverSecondary = 'Threshold > 10ms exceeded';
-                            } else if (isJitter) {
-                              color = '#f59e0b';
-                              const jitterVal = Number((baseLatency + 4.5).toFixed(2));
-                              hoverPrimary = `${jitterVal} ms (Jitter)`;
-                              hoverSecondary = 'Moderate latency fluctuation';
-                            } else if (baseLatency < 1.0) {
-                              color = '#10b981';
-                              hoverPrimary = `${baseLatency} ms (Optimal)`;
-                              hoverSecondary = 'Zero Jitter Stable';
+                              hoverPrimary = 'Host Unreachable';
+                              hoverSecondary = '100% Packet Loss Spike';
                             } else {
+                              const isSpike = (dev.id * 7 + idx) % 23 === 0;
+                              const isJitter = (dev.id * 3 + idx) % 11 === 0;
+                              if (isSpike) {
+                                color = '#ef4444';
+                                const spikeVal = Number((baseLatency + 14.2).toFixed(2));
+                                hoverPrimary = `${spikeVal} ms (SPIKE ALERT!)`;
+                                hoverSecondary = 'Threshold > 10ms exceeded';
+                              } else if (isJitter) {
+                                color = '#f59e0b';
+                                const jitterVal = Number((baseLatency + 4.5).toFixed(2));
+                                hoverPrimary = `${jitterVal} ms (Jitter)`;
+                                hoverSecondary = 'Moderate latency fluctuation';
+                              } else if (baseLatency < 1.0) {
+                                color = '#10b981';
+                                hoverPrimary = `${baseLatency} ms (Optimal)`;
+                                hoverSecondary = 'Zero Jitter Stable';
+                              } else {
+                                color = '#34d399';
+                                hoverPrimary = `${baseLatency} ms (Normal)`;
+                                hoverSecondary = 'Jitter < 0.1 ms';
+                              }
+                            }
+                          } else if (metricMode === 'storage') {
+                            const cellDiskPct = diskPct + ((idx % 3) - 1);
+                            if (cellDiskPct >= 90) {
+                              color = '#ef4444';
+                              hoverPrimary = `${cellDiskPct}% Disk Used`;
+                              hoverSecondary = 'STORAGE FULL CRITICAL ALERT!';
+                            } else if (cellDiskPct >= 75) {
+                              color = '#f59e0b';
+                              hoverPrimary = `${cellDiskPct}% Disk Used`;
+                              hoverSecondary = 'Elevated capacity warning';
+                            } else if (cellDiskPct >= 60) {
                               color = '#34d399';
-                              hoverPrimary = `${baseLatency} ms (Normal)`;
-                              hoverSecondary = 'Jitter < 0.1 ms';
+                              hoverPrimary = `${cellDiskPct}% Disk Used`;
+                              hoverSecondary = 'Normal operating capacity';
+                            } else {
+                              color = '#10b981';
+                              hoverPrimary = `${cellDiskPct}% Disk Used`;
+                              hoverSecondary = 'Optimal free space available';
+                            }
+                          } else if (metricMode === 'outages') {
+                            if (!isOnline) {
+                              color = '#ef4444';
+                              hoverPrimary = 'Active Outage Incident';
+                              hoverSecondary = 'Host Powered Off / ICMP Timeout';
+                            } else if ((dev.id + idx) % 37 === 0) {
+                              color = '#ef4444';
+                              hoverPrimary = '1 Outage Logged (1m 45s)';
+                              hoverSecondary = 'Kernel Live-Patch Applied (Resolved)';
+                            } else {
+                              color = '#10b981';
+                              hoverPrimary = '0 Outages (100% Operational)';
+                              hoverSecondary = 'SLA Fully Compliant';
                             }
                           }
-                        } else if (metricMode === 'storage') {
-                          const cellDiskPct = diskPct + ((idx % 3) - 1);
-                          if (cellDiskPct >= 90) {
-                            color = '#ef4444';
-                            hoverPrimary = `${cellDiskPct}% Disk Used`;
-                            hoverSecondary = 'STORAGE FULL CRITICAL ALERT!';
-                          } else if (cellDiskPct >= 75) {
-                            color = '#f59e0b';
-                            hoverPrimary = `${cellDiskPct}% Disk Used`;
-                            hoverSecondary = 'Elevated capacity warning';
-                          } else if (cellDiskPct >= 60) {
-                            color = '#34d399';
-                            hoverPrimary = `${cellDiskPct}% Disk Used`;
-                            hoverSecondary = 'Normal operating capacity';
-                          } else {
-                            color = '#10b981';
-                            hoverPrimary = `${cellDiskPct}% Disk Used`;
-                            hoverSecondary = 'Optimal free space available';
-                          }
-                        } else if (metricMode === 'outages') {
-                          if (!isOnline) {
-                            color = '#ef4444';
-                            hoverPrimary = 'Active Outage Incident';
-                            hoverSecondary = 'Host Powered Off / ICMP Timeout';
-                          } else if ((dev.id + idx) % 37 === 0) {
-                            color = '#ef4444';
-                            hoverPrimary = '1 Outage Logged (1m 45s)';
-                            hoverSecondary = 'Kernel Live-Patch Applied (Resolved)';
-                          } else {
-                            color = '#10b981';
-                            hoverPrimary = '0 Outages (100% Operational)';
-                            hoverSecondary = 'SLA Fully Compliant';
-                          }
-                        }
 
-                        return (
-                          <td 
-                            key={col.id} 
-                            style={{ padding: '3px 1px', textAlign: 'center' }}
+                          return (
+                            <td
+                              key={col.id}
+                              style={{ padding: '3px 1px', textAlign: 'center' }}
+                            >
+                              <div
+                                onMouseEnter={() => setHoveredCell({
+                                  device: dev.hostname,
+                                  period: col.label,
+                                  primary: hoverPrimary,
+                                  secondary: hoverSecondary
+                                })}
+                                onMouseLeave={() => setHoveredCell(null)}
+                                style={{
+                                  width: '100%',
+                                  height: '14px',
+                                  minWidth: '12px',
+                                  backgroundColor: color,
+                                  borderRadius: '2px',
+                                  cursor: 'pointer',
+                                  transition: 'transform 0.08s ease'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                                onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                              />
+                            </td>
+                          );
+                        })}
+
+                        {/* Dynamic Metric Value Column */}
+                        <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 800, fontSize: '0.74rem' }}>
+                          {metricMode === 'sla' && (
+                            <span style={{ color: devSla >= 99.9 ? '#15803d' : '#b91c1c' }}>
+                              {devSla.toFixed(2)}%
+                            </span>
+                          )}
+                          {metricMode === 'spikes' && (
+                            <span style={{ color: baseLatency < 5 ? '#15803d' : '#d97706' }}>
+                              {baseLatency.toFixed(2)} ms
+                            </span>
+                          )}
+                          {metricMode === 'storage' && (
+                            <span style={{ color: diskPct >= 90 ? '#dc2626' : diskPct >= 75 ? '#d97706' : '#15803d' }}>
+                              {diskPct}% {diskPct >= 90 ? 'FULL' : ''}
+                            </span>
+                          )}
+                          {metricMode === 'outages' && (
+                            <span style={{ color: isOnline ? '#15803d' : '#dc2626' }}>
+                              {isOnline ? '0' : '1 Active'}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Action: Open Chart Telemetry Modal */}
+                        <td style={{ padding: '4px 8px', textAlign: 'center' }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedChartDevice(dev);
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '3px',
+                              padding: '3px 7px',
+                              borderRadius: '4px',
+                              border: '1px solid #bbf7d0',
+                              background: '#f0fdf4',
+                              color: '#15803d',
+                              fontSize: '0.67rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            title="Open Live Telemetry & Spikes Modal"
                           >
-                            <div
-                              onMouseEnter={() => setHoveredCell({
-                                device: dev.hostname,
-                                period: col.label,
-                                primary: hoverPrimary,
-                                secondary: hoverSecondary
-                              })}
-                              onMouseLeave={() => setHoveredCell(null)}
-                              style={{
-                                width: '100%',
-                                height: '14px',
-                                minWidth: '12px',
-                                backgroundColor: color,
-                                borderRadius: '2px',
-                                cursor: 'pointer',
-                                transition: 'transform 0.08s ease'
-                              }}
-                              onMouseOver={e => e.currentTarget.style.transform = 'scale(1.2)'}
-                              onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                            />
-                          </td>
-                        );
-                      })}
-
-                      {/* Dynamic Metric Value Column */}
-                      <td style={{ padding: '4px 8px', textAlign: 'right', fontWeight: 800, fontSize: '0.74rem' }}>
-                        {metricMode === 'sla' && (
-                          <span style={{ color: devSla >= 99.9 ? '#15803d' : '#b91c1c' }}>
-                            {devSla.toFixed(2)}%
-                          </span>
-                        )}
-                        {metricMode === 'spikes' && (
-                          <span style={{ color: baseLatency < 5 ? '#15803d' : '#d97706' }}>
-                            {baseLatency.toFixed(2)} ms
-                          </span>
-                        )}
-                        {metricMode === 'storage' && (
-                          <span style={{ color: diskPct >= 90 ? '#dc2626' : diskPct >= 75 ? '#d97706' : '#15803d' }}>
-                            {diskPct}% {diskPct >= 90 ? 'FULL' : ''}
-                          </span>
-                        )}
-                        {metricMode === 'outages' && (
-                          <span style={{ color: isOnline ? '#15803d' : '#dc2626' }}>
-                            {isOnline ? '0' : '1 Active'}
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Action: Open Chart Telemetry Modal */}
-                      <td style={{ padding: '4px 8px', textAlign: 'center' }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedChartDevice(dev);
-                          }}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '3px',
-                            padding: '3px 7px',
-                            borderRadius: '4px',
-                            border: '1px solid #bbf7d0',
-                            background: '#f0fdf4',
-                            color: '#15803d',
-                            fontSize: '0.67rem',
-                            fontWeight: 700,
-                            cursor: 'pointer'
-                          }}
-                          title="Open Live Telemetry & Spikes Modal"
-                        >
-                          <BarChart2 size={11} color="#15803d" />
-                          <span>Charts</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                            <BarChart2 size={11} color="#15803d" />
+                            <span>Charts</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
 
         {/* 1. Predictive Capacity & Anomaly Detection (#86, #87) */}
@@ -1209,7 +1209,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
             {extensibilityData && (
               <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px' }}>
                 <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: '0 0 10px 0' }}>
-                  In-Browser MIB Compiler, PRTG Script Sensors &amp; OpenAPI (#96, #97, #100)
+                  In-Browser MIB Compiler, Custom Script Sensors &amp; OpenAPI (#96, #97, #100)
                 </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', fontSize: '0.74rem' }}>
                   <div>
@@ -1221,7 +1221,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
                     </ul>
                   </div>
                   <div>
-                    <strong style={{ color: '#475569' }}>PRTG Script Sensor Runners:</strong>
+                    <strong style={{ color: '#475569' }}>Custom Script Sensor Runners:</strong>
                     <ul style={{ margin: '4px 0 0 0', paddingLeft: '18px', color: '#334155' }}>
                       {extensibilityData.custom_script_sensors.map((sc: string, idx: number) => (
                         <li key={idx} style={{ fontFamily: 'var(--font-mono)' }}>{sc}</li>
@@ -1271,8 +1271,8 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
           <DeviceChartsModal
             device={selectedChartDevice}
             onClose={() => setSelectedChartDevice(null)}
-            onPing={() => {}}
-            onPoll={() => {}}
+            onPing={() => { }}
+            onPoll={() => { }}
             pingingId={null}
             pollingId={null}
           />
@@ -1303,14 +1303,14 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
               <AreaChart data={trendData} margin={{ top: 6, right: 6, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorLatency" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0284c7" stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor="#0284c7" stopOpacity={0.0}/>
+                    <stop offset="5%" stopColor="#0284c7" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#0284c7" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="period" stroke="#94a3b8" fontSize={10} tickLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} unit="ms" />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '5px', color: '#ffffff', fontSize: '11px', padding: '5px 9px' }}
                   formatter={(val: any) => [`${val} ms`, 'Average RTT']}
                 />
@@ -1343,7 +1343,7 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="period" stroke="#94a3b8" fontSize={10} tickLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} unit="G" />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', border: 'none', borderRadius: '5px', color: '#ffffff', fontSize: '11px', padding: '5px 9px' }}
                 />
                 <Legend iconSize={8} wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }} />
