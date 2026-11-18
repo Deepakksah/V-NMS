@@ -195,11 +195,13 @@ func GetVendorFromMAC(mac string) string {
 		return "MikroTik"
 
 	// TP-Link
-	case strings.HasPrefix(prefix, "00:0a:eb"), strings.HasPrefix(prefix, "50:c7:bf"), strings.HasPrefix(prefix, "ec:08:6b"):
+	case strings.HasPrefix(prefix, "00:0a:eb"), strings.HasPrefix(prefix, "50:c7:bf"), strings.HasPrefix(prefix, "ec:08:6b"),
+		strings.HasPrefix(prefix, "c0:c9:e3"):
 		return "TP-Link"
 
 	// D-Link
-	case strings.HasPrefix(prefix, "00:05:5d"), strings.HasPrefix(prefix, "00:0d:88"), strings.HasPrefix(prefix, "1c:7e:e5"):
+	case strings.HasPrefix(prefix, "00:05:5d"), strings.HasPrefix(prefix, "00:0d:88"), strings.HasPrefix(prefix, "1c:7e:e5"),
+		strings.HasPrefix(prefix, "bc:0f:9a"):
 		return "D-Link"
 
 	// Lenovo

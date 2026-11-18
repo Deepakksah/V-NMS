@@ -195,6 +195,32 @@ export const VendorLogo: React.FC<VendorLogoProps> = ({
     );
   }
 
+  // 10. D-Link
+  if (norm.includes('d-link') || norm.includes('dlink')) {
+    return (
+      <span style={{ ...baseStyle, background: '#f0fdfa', border: '1px solid #99f6e4', color: '#0d9488' }}>
+        <svg width={config.icon} height={config.icon} viewBox="0 0 100 100" fill="none" style={{ width: `${config.icon}px`, height: `${config.icon}px`, flexShrink: 0, display: 'inline-block' }}>
+          <rect x="8" y="15" width="84" height="70" rx="12" fill="#0d9488" />
+          <text x="50" y="62" textAnchor="middle" fill="#FFFFFF" fontFamily="Arial, Helvetica, sans-serif" fontWeight="900" fontSize="28" letterSpacing="-0.5">D-Link</text>
+        </svg>
+        {showLabel && <span>D-Link</span>}
+      </span>
+    );
+  }
+
+  // 11. TP-Link
+  if (norm.includes('tp-link') || norm.includes('tplink')) {
+    return (
+      <span style={{ ...baseStyle, background: '#ecfeff', border: '1px solid #a5f3fc', color: '#0284c7' }}>
+        <svg width={config.icon} height={config.icon} viewBox="0 0 100 100" fill="none" style={{ width: `${config.icon}px`, height: `${config.icon}px`, flexShrink: 0, display: 'inline-block' }}>
+          <circle cx="50" cy="50" r="44" fill="#0284c7" />
+          <path d="M30 40H70M50 40V72" stroke="#FFFFFF" strokeWidth="12" strokeLinecap="round" />
+        </svg>
+        {showLabel && <span>TP-Link</span>}
+      </span>
+    );
+  }
+
   // Generic Fallback
   return (
     <span style={{ ...baseStyle, background: '#f1f5f9', border: '1px solid #e2e8f0', color: '#475569' }}>

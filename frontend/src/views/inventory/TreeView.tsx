@@ -585,19 +585,61 @@ export const TreeView: React.FC<TreeViewProps> = ({
     return getDeviceTelemetryHistory(activeDevice, treeTimeframe);
   }, [activeDevice, treeTimeframe]);
 
-  // Deterministic storage info calculation derived from runtime device properties
+  // Deterministic storage info calculation derived from runtime device properties & appliance roles
   const storageInfo = useMemo(() => {
     if (!activeDevice) return { diskUsage: 45, partition: 'C:\\', capacity: '512 GB', isFull: false };
-    const devType = (activeDevice.device_type || 'server').toLowerCase();
+    const devType = (activeDevice.device_type || selectedNode?.type || 'server').toLowerCase();
     const isWin = (activeDevice.os || '').toLowerCase().includes('windows');
-    const totalGb = devType === 'server' ? 1024 : 512;
+    const isFirewall = devType === 'firewall' || devType === 'gateway' || selectedNode?.id === 'tier-firewall' || (activeDevice.hardware || '').toLowerCase().includes('cisco') || (activeDevice.hardware || '').toLowerCase().includes('security');
+    const isSwitch = devType === 'switch' || selectedNode?.id === 'tier-switches' || (activeDevice.hardware || '').toLowerCase().includes('switch');
+    const isServerCluster = selectedNode?.id === 'tier-servers';
+    const isWorkstationTier = selectedNode?.id === 'tier-workstations';
+
     const diskUsage = (activeDevice as any).disk_percent || Math.min(88, Math.round(28 + ((activeDevice.id * 11) % 48)));
     const isFull = diskUsage >= 90;
-    const usedGb = Math.round(totalGb * (diskUsage / 100));
-    const partition = isWin ? 'C:\\ (System NVMe)' : '/ (ext4 NVMe Root)';
-    const capacity = `${totalGb} GB (${usedGb} GB Used • ${isWin ? 'NTFS' : 'EXT4'})`;
+
+    let partition = 'C:\\ (System NVMe)';
+    let capacity = '1024 GB (480 GB Used • NTFS)';
+
+    if (isFirewall) {
+      partition = 'flash0:/ (Firmware & ACL Store)';
+      const totalGb = 16;
+      const usedGb = (totalGb * (diskUsage / 100)).toFixed(1);
+      capacity = `${totalGb} GB (${usedGb} GB Used • Cisco FlashFS)`;
+    } else if (isSwitch) {
+      partition = 'flash:/ (Boot Flash & Config)';
+      const totalMb = 2048;
+      const usedMb = Math.round(totalMb * (diskUsage / 100));
+      capacity = `${totalMb} MB (${usedMb} MB Used • FlashFS)`;
+    } else if (isServerCluster) {
+      partition = 'Cluster Storage Pool (SAS/NVMe SAN)';
+      const serverCount = dynamicNetworkNode.children?.find(c => c.id === 'tier-servers')?.children?.length || 12;
+      const totalClusterGb = serverCount * 1024;
+      const usedClusterGb = Math.round(totalClusterGb * (diskUsage / 100));
+      capacity = `${(totalClusterGb / 1024).toFixed(1)} TB (${(usedClusterGb / 1024).toFixed(1)} TB Used • ZFS / ReFS)`;
+    } else if (isWorkstationTier) {
+      partition = 'Fleet Endpoint Storage (SSD Pool)';
+      const wkCount = dynamicNetworkNode.children?.find(c => c.id === 'tier-workstations')?.children?.length || 17;
+      const totalWkGb = wkCount * 512;
+      const usedWkGb = Math.round(totalWkGb * (diskUsage / 100));
+      capacity = `${(totalWkGb / 1024).toFixed(1)} TB (${(usedWkGb / 1024).toFixed(1)} TB Used • NTFS)`;
+    } else if (devType === 'server') {
+      const totalGb = 1024;
+      const fs = isWin ? 'NTFS' : 'EXT4';
+      const usedGb = Math.round(totalGb * (diskUsage / 100));
+      partition = isWin ? 'C:\\ (System NVMe)' : '/ (ext4 NVMe Root)';
+      capacity = `${totalGb} GB (${usedGb} GB Used • ${fs})`;
+    } else {
+      // Workstation / client machine
+      const totalGb = 512;
+      const fs = isWin ? 'NTFS' : 'EXT4';
+      const usedGb = Math.round(totalGb * (diskUsage / 100));
+      partition = isWin ? 'C:\\ (Local System SSD)' : '/ (ext4 SSD Root)';
+      capacity = `${totalGb} GB (${usedGb} GB Used • ${fs})`;
+    }
+
     return { diskUsage, partition, capacity, isFull };
-  }, [activeDevice]);
+  }, [activeDevice, selectedNode, dynamicNetworkNode]);
 
   // Find corresponding device for charts if clicked
   const handleOpenChartForNode = (node: TreeNode) => {
@@ -1050,16 +1092,18 @@ export const TreeView: React.FC<TreeViewProps> = ({
                 fontSize: '0.70rem'
               }}>
                 <div>
-                  <span style={{ color: '#0f172a', fontWeight: 700 }}>IP Address: </span>
-                  <strong style={{ fontFamily: 'var(--font-mono)', color: '#0284c7' }}>{selectedNode.ip || '172.168.1.x'}</strong>
+                  <span style={{ color: '#0f172a', fontWeight: 700 }}>{selectedNode.type === 'tier' ? 'Subnet Scope: ' : 'IP Address: '}</span>
+                  <strong style={{ fontFamily: 'var(--font-mono)', color: '#0284c7' }}>{selectedNode.ip || '172.168.1.0/24'}</strong>
                 </div>
                 <div>
-                  <span style={{ color: '#0f172a', fontWeight: 700 }}>OS: </span>
-                  <strong style={{ color: '#0f172a' }}>{selectedNode.os || 'Enterprise OS'}</strong>
+                  <span style={{ color: '#0f172a', fontWeight: 700 }}>{selectedNode.type === 'tier' ? 'Cluster Stack: ' : 'OS: '}</span>
+                  <strong style={{ color: '#0f172a' }}>{selectedNode.os || (selectedNode.type === 'tier' ? 'Clustered Infrastructure' : 'Enterprise OS')}</strong>
                 </div>
                 <div>
-                  <span style={{ color: '#0f172a', fontWeight: 700 }}>MAC: </span>
-                  <strong style={{ fontFamily: 'var(--font-mono)', color: '#0f172a' }}>{selectedNode.mac || '00:50:56:xx:xx:xx'}</strong>
+                  <span style={{ color: '#0f172a', fontWeight: 700 }}>{selectedNode.type === 'tier' ? 'Member Nodes: ' : 'MAC: '}</span>
+                  <strong style={{ fontFamily: 'var(--font-mono)', color: '#0f172a' }}>
+                    {selectedNode.type === 'tier' ? `${selectedNode.children?.length || 0} Connected Devices` : (selectedNode.mac || '00:50:56:xx:xx:xx')}
+                  </strong>
                 </div>
                 <div>
                   <span style={{ color: '#0f172a', fontWeight: 700 }}>Uptime: </span>

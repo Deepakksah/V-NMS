@@ -262,6 +262,16 @@ func RunAutoMigrations() error {
 	    os = 'D-Link Managed Switch OS'
 	WHERE (ip_address = '172.168.1.31' OR hostname ILIKE '%dlink%')
 	  AND device_type != 'switch';
+
+	-- Self-healing: Ensure TP-Link managed switch is properly typed as switch
+	UPDATE devices
+	SET hostname = 'tplink-sw-30',
+	    device_type = 'switch',
+	    vendor = 'TP-Link',
+	    hardware = 'TP-Link JetStream 8-Port Gigabit Smart Switch',
+	    os = 'TP-Link Enterprise Switch OS'
+	WHERE (ip_address = '172.168.1.30' OR mac_address ILIKE 'c0-c9-e3%' OR mac_address ILIKE 'c0:c9:e3%')
+	  AND device_type != 'switch';
 	`
 
 	_, err := Pool.Exec(ctx, schemaSQL)
