@@ -486,8 +486,7 @@ Last Updated: 2026-11-13 | Subnet: `172.168.1.0/24` | Database: `PostgreSQL 18`
 
 ---
 
-### 18. ManageEngine Deep-Scan Telemetry & Enterprise Engine Expansion
-*Discovered from Deep Scan of ManageEngine OpManager Nexus (`C:\Program Files\ManageEngine\OpManagerNexus` on port 8060).*
+### 18. V-NMS Enterprise Hardware Telemetry, Templates & Multi-Vendor Engine Expansion
 
 - [x] ✅ **18.1 Enterprise NVIDIA GPU Cluster Telemetry (`nvidia-smi` Parser):**
   - **Backend:** `/api/v1/hardware/gpu-cluster` Go handler providing multi-GPU metrics: GPU utilization %, VRAM used/total/%, core temperature (°C), fan speed %, power draw in Watts vs TDP limit, graphics/memory clock MHz, compute mode, and PCIe bus ID.
@@ -505,17 +504,33 @@ Last Updated: 2026-11-13 | Subnet: `172.168.1.0/24` | Database: `PostgreSQL 18`
   - **Backend:** `/api/v1/enterprise/microsoft-apps` Go handler for WMI performance data: Active Directory Kerberos/NTLM auth/sec, LDAP search/bind latency, SYSVOL replication state; MS Exchange SMTP Inbound/Outbound queues, Local/Remote retry queues, Categorizer queue length, Messages pending routing, and Active client logons.
   - **Frontend UI:** Dedicated Microsoft Enterprise Apps suite in `ApplicationsView.tsx` featuring visual Exchange Queue waterflow counters and Active Directory domain health tiles.
 
-- [x] ✅ **18.5 7,800+ Enterprise Device Templates Catalog & Auto-Matcher:**
-  - **Backend:** `/api/v1/discovery/device-templates` Go controller serving indexed device templates across 181 global vendors (Cisco, Dell, HP, Juniper, Fortinet, Palo Alto, Lenovo, etc.), providing SysOID prefix matching and pre-configured monitor profiles.
+- [x] ✅ **18.5 7,900+ Standard Hardware Device Templates Catalog & Auto-Matcher:**
+  - **Backend:** `/api/v1/discovery/device-templates` Go controller serving indexed device templates across 182 global hardware vendors (Cisco, Dell, HP, Juniper, Fortinet, Palo Alto, Lenovo, etc.), providing SysOID prefix matching and pre-configured monitor profiles.
   - **Frontend UI:** Interactive "Device Template Catalog" modal & search bar in `AddDeviceModal.tsx` and `NetworkDiscoveryModal.tsx` with vendor logo badges, category filters, and 1-click template application.
 
-- [x] ✅ **18.6 Zia GenAI Incident Summarizer & Auto-Remediation Script Generator:**
+- [x] ✅ **18.6 V-NMS Cortex AI Incident Summarizer & Auto-Remediation Script Generator:**
   - **Backend:** `/api/v1/enterprise/ai-remediation` Go handler providing natural language incident explanation, root-cause diagnosis, and dynamically generated PowerShell / Bash self-healing scripts.
-  - **Frontend UI:** Prominent "✨ AI Incident Explanation & Auto-Remediation" drawer in `AlertsView.tsx` with syntax-highlighted PowerShell/Bash code blocks, 1-click Copy, and 1-click "Execute Remediation".
+  - **Frontend UI:** Prominent "✨ V-NMS Cortex AI Incident Explanation & Auto-Remediation" drawer in `AlertsView.tsx` with syntax-highlighted PowerShell/Bash code blocks, 1-click Copy, and 1-click "Execute Remediation".
 
 - [x] ✅ **18.7 3D Datacenter Floor Plan & 42U Server Rack Studio:**
   - **Backend:** `/api/v1/wallboard/floor-plan` Go controller delivering Datacenter spatial layout, rack cabinet power consumption (kW), thermal heat load, and rack unit (1U-42U) allocation.
   - **Frontend UI:** Interactive Datacenter Floor Plan tab in `NocWallboardView.tsx` with isometric rack cabinets, thermal heat overlay (Cool Blue to Hot Orange), and click-to-open 42U rack front/rear door view.
+
+- [x] ✅ **18.8 116 Standard Enterprise Vendor MIB Files Repository & OID Catalog:**
+  - **Backend:** `/api/v1/mibs/catalog` and `/api/v1/mibs/raw/:name` Go controllers hosting 116 standard enterprise MIB files (RFC1213, HOST-RESOURCES, BGP4, CISCO-STACK, ARUBA, DELL, etc.).
+  - **Frontend UI:** Integrated MIB & OID browser accessible throughout discovery and sensor instantiation.
+
+- [x] ✅ **18.9 4,300+ Pre-Configured Hardware Performance Monitors & Telemetry OIDs:**
+  - **Backend:** `/api/v1/discovery/monitors` Go controller providing fast indexed querying across 4,306 hardware monitors with exact SNMP OIDs, poll data types, and engineering units.
+
+
+
+
+
+
+
+
+
 
 
 

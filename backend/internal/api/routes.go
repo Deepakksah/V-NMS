@@ -132,6 +132,9 @@ func SetupRouter() *gin.Engine {
 		api.GET("/system/extensibility", HandleGetExtensibility)
 		api.GET("/discovery/rogue-dhcp", HandleGetRogueDhcp)
 		api.GET("/discovery/device-templates", HandleGetDeviceTemplatesCatalog)
+		api.GET("/discovery/monitors", HandleGetMonitorsCatalog)
+		api.GET("/mibs/catalog", HandleGetMibsCatalog)
+		api.GET("/mibs/raw/:name", HandleGetMibRawContent)
 		api.GET("/wallboard/floor-plan", HandleGetFloorPlan)
 	}
 
@@ -140,4 +143,3 @@ func SetupRouter() *gin.Engine {
 
 	return r
 }
-

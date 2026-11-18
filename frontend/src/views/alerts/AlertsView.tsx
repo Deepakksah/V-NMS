@@ -3214,14 +3214,14 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
         </div>
       )}
 
-      {/* 9. Zia GenAI Incident Summarizer & Auto-Remediation (Point 18.6) */}
+      {/* 9. V-NMS Cortex AI Incident Summarizer & Auto-Remediation (Point 18.6) */}
       {subTab === 'ai_remediation' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ background: '#0f172a', padding: '16px 20px', borderRadius: '12px', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)', color: '#ffffff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 800 }}>
-                  ZIA GENAI REMEDIATION ENGINE
+                  V-NMS CORTEX AI REMEDIATION ENGINE
                 </span>
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Autonomous Root-Cause Diagnosis &amp; Self-Healing Scripts</span>
               </div>

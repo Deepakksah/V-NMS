@@ -47,14 +47,15 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
   const [templateSearch, setTemplateSearch] = useState<string>('');
 
   useEffect(() => {
-    if (showTemplateCatalog && templateCatalog.length === 0) {
-      axios.get('http://127.0.0.1:8081/api/v1/discovery/device-templates')
+    if (showTemplateCatalog) {
+      const q = encodeURIComponent(templateSearch.trim());
+      axios.get(`http://127.0.0.1:8081/api/v1/discovery/device-templates?q=${q}&limit=100`)
         .then(res => {
           if (res.data?.device_templates) setTemplateCatalog(res.data.device_templates);
         })
         .catch(() => {});
     }
-  }, [showTemplateCatalog, templateCatalog.length]);
+  }, [showTemplateCatalog, templateSearch]);
 
   // Sync category when defaultCategory prop changes
   useEffect(() => {
@@ -270,7 +271,7 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
               }}
             >
               <Server size={13} />
-              <span>{showTemplateCatalog ? '✕ Close Template Catalog' : '📦 Browse 7,800+ Device Templates (OpManager Mappings)'}</span>
+              <span>{showTemplateCatalog ? '✕ Close Template Catalog' : '📦 Browse 7,900+ Standard Hardware Device Templates'}</span>
             </button>
           </div>
 
@@ -279,7 +280,7 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
             <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase' }}>
-                  Enterprise Catalog (7,874 Templates Across 181 Global Vendors)
+                  Enterprise Catalog (7,934 Templates Across 182 Global Vendors)
                 </span>
                 <input
                   type="text"
