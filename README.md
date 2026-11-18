@@ -31,13 +31,21 @@ Go backend follows standard Clean Architecture with clean domain-separated packa
 backend/
 ├── cmd/
 │   └── server/
-│       └── main.go                 # Core Application Entry Point & Service Bootstrapper
+│       └── main.go                 # Core Application Entry Point & Windows Service Bootstrapper
 ├── internal/
-│   ├── alerts/                     # Alarms & Incident Rules Engine (Flapping suppression, Parent-child gating)
-│   ├── api/                        # Domain-Driven REST API Controllers:
+│   ├── alerts/                     # Alarms & Incident Rules Engine
+│   │   ├── engine.go               # Flapping suppression, hysteresis, parent-child dependency
+│   │   └── notifications.go        # SMTP & SMS delivery pipeline
+│   ├── api/                        # Domain-Driven REST API Controllers (16 Handlers):
 │   │   ├── routes.go               # Gin Router Setup, Middleware & Route Grouping
 │   │   ├── auth.go                 # Authentication & Session Handlers
 │   │   ├── devices.go              # Device Inventory, Ping & Polling Endpoints
+│   │   ├── alerts.go               # Active Incident Management & Resolution
+│   │   ├── discovery.go            # Subnet CIDR Auto-Discovery Scanner
+│   │   ├── personnel.go            # Alert Contacts & Notification Matrix
+│   │   ├── settings.go             # Global System Settings & Credentials Vault
+│   │   ├── storage.go              # Physical Disk Partitions & Storage Pools
+│   │   ├── users.go                # RBAC User Management & Password Controls
 │   │   ├── hardware_os.go          # Out-of-band IPMI, Redfish BMC, Daemons, AD/Patch & NVMe SMART
 │   │   ├── virtualization.go       # VMware ESXi, Hyper-V, Proxmox, XenServer, Docker, K8s, AWS/Azure
 │   │   ├── telecom.go              # NetFlow v9/IPFIX, VoIP MOS Jitter, BGP4 & SNMP Traps
@@ -45,15 +53,19 @@ backend/
 │   │   ├── synthetics.go           # TTFB Web Waterfalls, Multi-Step Journeys, DNS/NTP & PACS
 │   │   ├── escalations_webhooks.go # Timed Escalations, Quotas, Teams/Slack Webhooks & PowerShell Self-Healing
 │   │   └── enterprise_core.go      # Predictive Capacity Forecasting, SLA Penalties, AI Root Cause & Probes
-│   ├── auth/                       # JWT Authentication, Session Tokens & BCrypt Hashing
-│   ├── database/                   # PostgreSQL 18 Connection Pooling & Database Migrations
-│   ├── models/                     # Strongly-Typed Database Entities & Telemetry Structs
-│   ├── ping/                       # High-Speed Raw ICMP Socket Ping Engine
-│   ├── poller/                     # Recurring Background SNMP & Network Telemetry Workers
-│   ├── scanner/                    # ARP/ICMP Subnet Auto-Discovery & Embedded IEEE MAC OUI (33,266 vendors)
-│   ├── service/                    # Windows Service Lifecycle Management (VNMSService)
-│   └── web/                        # Production Embedded SPA Static Assets Router
-└── migrations/                     # PostgreSQL DDL Schemas (Tables, Constraints, Indexes)
+│   ├── auth/                       # JWT Authentication, Session Tokens & BCrypt Hashing (auth.go)
+│   ├── database/                   # PostgreSQL 18 Connection & Repositories (db.go, migrations.go, repository.go)
+│   ├── models/                     # Strongly-Typed Database Entities & Telemetry Structs (models.go)
+│   ├── ping/                       # High-Speed Raw ICMP Socket Ping Engine (ping.go)
+│   ├── poller/                     # Recurring Background Telemetry Workers (ports.go, snmp.go, worker.go)
+│   ├── scanner/                    # ARP/ICMP Auto-Discovery & IEEE MAC OUI (oui.txt, scanner.go)
+│   ├── service/                    # Windows Service Lifecycle Management (service_windows.go)
+│   └── web/                        # Production Embedded SPA Static Assets Router (web.go, dist/)
+├── migrations/
+│   └── 001_initial_schema.sql      # PostgreSQL DDL Schemas (Tables, Constraints, Indexes)
+├── .env                            # Environment Configuration
+├── go.mod                          # Go Module Dependencies
+└── go.sum                          # Go Module Checksums
 ```
 
 ---
