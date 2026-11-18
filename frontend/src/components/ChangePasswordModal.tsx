@@ -217,7 +217,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
                 Password Updated Successfully!
               </h3>
               <p style={{ fontSize: '0.82rem', color: '#64748b', margin: 0 }}>
-                Your new password is now active in PostgreSQL.
+                Your new password is now saved and active.
               </p>
             </div>
           ) : (

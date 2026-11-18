@@ -14,7 +14,9 @@ import {
   FolderTree,
   TrendingUp,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Sun,
+  Moon
 } from 'lucide-react';
 import type { AuthUser } from '../types';
 
@@ -35,6 +37,8 @@ interface NavbarProps {
   isScanning?: boolean;
   isSidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
+  theme?: 'light' | 'dark';
+  onToggleTheme?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -53,7 +57,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onTriggerScan,
   isScanning,
   isSidebarCollapsed,
-  onToggleSidebar
+  onToggleSidebar,
+  theme = 'light',
+  onToggleTheme
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -339,6 +345,40 @@ export const Navbar: React.FC<NavbarProps> = ({
           <span>Reports &amp; SLA</span>
         </button>
 
+        {/* Dark / Light Normal Mode Toggle Button */}
+        {onToggleTheme && (
+          <button
+            onClick={onToggleTheme}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 12px',
+              borderRadius: '8px',
+              background: '#1e293b',
+              border: `1px solid ${theme === 'dark' ? '#f59e0b' : '#334155'}`,
+              color: '#f8fafc',
+              cursor: 'pointer',
+              fontSize: '0.82rem',
+              fontWeight: 600,
+              transition: 'all 0.15s ease'
+            }}
+            title={theme === 'dark' ? 'Switch to Normal (Light) Mode' : 'Switch to Dark Mode'}
+          >
+            {theme === 'dark' ? (
+              <>
+                <Sun size={15} color="#f59e0b" />
+                <span style={{ color: '#f59e0b' }}>Normal Mode</span>
+              </>
+            ) : (
+              <>
+                <Moon size={15} color="#818cf8" />
+                <span style={{ color: '#cbd5e1' }}>Dark Mode</span>
+              </>
+            )}
+          </button>
+        )}
+
         {/* User Profile & Session Dropdown (Dark Themed) */}
         <div ref={dropdownRef} style={{ position: 'relative', borderLeft: '1px solid #1e293b', paddingLeft: '10px' }}>
           <button
@@ -425,7 +465,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div style={{ padding: '10px 16px', borderBottom: '1px solid #1e293b', fontSize: '0.74rem', color: '#cbd5e1' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                   <Shield size={13} color="#10b981" />
-                  <span>Session: <strong style={{ color: '#10b981' }}>JWT Authenticated</strong></span>
+                  <span>Session: <strong style={{ color: '#10b981' }}>Active &amp; Secure</strong></span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Key size={13} color="#38bdf8" />

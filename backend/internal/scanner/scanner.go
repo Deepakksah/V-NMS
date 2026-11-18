@@ -9,6 +9,7 @@ import (
 	"net"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -47,7 +48,7 @@ type ScanStatus struct {
 var (
 	CurrentStatus = ScanStatus{
 		IsScanning:      false,
-		SubnetScanned:   "172.168.1.0/24",
+		SubnetScanned:   "",
 		TotalDiscovered: 0,
 		TotalScanned:    0,
 		TotalTargets:    0,
@@ -76,6 +77,61 @@ func GetStatus() ScanStatus {
 	return res
 }
 
+// DetectLocalSubnet dynamically finds the primary active IPv4 subnet of this machine at runtime
+func DetectLocalSubnet() (string, string) {
+	// 1. Try UDP routing dial to determine outbound interface IP
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	var hostIP net.IP
+	if err == nil {
+		defer conn.Close()
+		hostIP = conn.LocalAddr().(*net.UDPAddr).IP
+	}
+
+	ifaces, err := net.Interfaces()
+	if err == nil {
+		// Pass 1: Interface matching hostIP
+		if hostIP != nil {
+			for _, iface := range ifaces {
+				addrs, _ := iface.Addrs()
+				for _, addr := range addrs {
+					if ipnet, ok := addr.(*net.IPNet); ok {
+						if ipnet.IP.To4() != nil && ipnet.IP.Equal(hostIP) {
+							mask := ipnet.Mask
+							networkIP := ipnet.IP.Mask(mask)
+							ones, _ := mask.Size()
+							return fmt.Sprintf("%s/%d", networkIP.String(), ones), hostIP.String()
+						}
+					}
+				}
+			}
+		}
+
+		// Pass 2: First active non-loopback interface with private IPv4
+		for _, iface := range ifaces {
+			if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+				continue
+			}
+			addrs, err := iface.Addrs()
+			if err != nil {
+				continue
+			}
+			for _, addr := range addrs {
+				if ipnet, ok := addr.(*net.IPNet); ok {
+					ip4 := ipnet.IP.To4()
+					if ip4 != nil && !ip4.IsLoopback() {
+						mask := ipnet.Mask
+						networkIP := ip4.Mask(mask)
+						ones, _ := mask.Size()
+						return fmt.Sprintf("%s/%d", networkIP.String(), ones), ip4.String()
+					}
+				}
+			}
+		}
+	}
+
+	return "192.168.1.0/24", "192.168.1.1"
+}
+
 // GetVendorFromMAC maps MAC OUI prefixes to known hardware vendors
 func GetVendorFromMAC(mac string) string {
 	clean := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(mac, "-", ":"), " ", ""))
@@ -85,22 +141,95 @@ func GetVendorFromMAC(mac string) string {
 	prefix := clean[:8]
 
 	switch {
-	case strings.HasPrefix(prefix, "f0:d4:e2"), strings.HasPrefix(prefix, "a4:bb:6d"), strings.HasPrefix(prefix, "4c:d7:17"), strings.HasPrefix(prefix, "00:be:43"):
-		return "Dell PowerEdge Server"
-	case strings.HasPrefix(prefix, "00:1c:7f"):
-		return "Check Point / Cisco Security Gateway"
-	case strings.HasPrefix(prefix, "24:fb:e3"), strings.HasPrefix(prefix, "00:1e:bd"):
-		return "Cisco Systems Catalyst"
-	case strings.HasPrefix(prefix, "f8:75:a4"):
-		return "Ubiquiti UniFi / EdgeSwitch"
-	case strings.HasPrefix(prefix, "20:88:10"):
-		return "Supermicro Enterprise Node"
+	// Cisco
+	case strings.HasPrefix(prefix, "00:00:0c"), strings.HasPrefix(prefix, "00:01:42"), strings.HasPrefix(prefix, "00:01:43"),
+		strings.HasPrefix(prefix, "00:1c:7f"), strings.HasPrefix(prefix, "00:1e:bd"), strings.HasPrefix(prefix, "24:fb:e3"),
+		strings.HasPrefix(prefix, "70:ea:1a"), strings.HasPrefix(prefix, "dc:a5:f4"):
+		return "Cisco"
+
+	// Dell
+	case strings.HasPrefix(prefix, "00:14:22"), strings.HasPrefix(prefix, "00:1e:4f"), strings.HasPrefix(prefix, "00:be:43"),
+		strings.HasPrefix(prefix, "4c:d7:17"), strings.HasPrefix(prefix, "a4:bb:6d"), strings.HasPrefix(prefix, "f0:d4:e2"),
+		strings.HasPrefix(prefix, "b8:2a:72"):
+		return "Dell"
+
+	// HP / Hewlett Packard Enterprise
+	case strings.HasPrefix(prefix, "00:01:e6"), strings.HasPrefix(prefix, "00:08:02"), strings.HasPrefix(prefix, "00:0e:7f"),
+		strings.HasPrefix(prefix, "00:11:85"), strings.HasPrefix(prefix, "3c:d9:2b"), strings.HasPrefix(prefix, "9c:b6:54"):
+		return "HP"
+
+	// VMware
+	case strings.HasPrefix(prefix, "00:05:69"), strings.HasPrefix(prefix, "00:0c:29"), strings.HasPrefix(prefix, "00:50:56"):
+		return "VMware"
+
+	// Microsoft Hyper-V / Surface
+	case strings.HasPrefix(prefix, "00:15:5d"), strings.HasPrefix(prefix, "dc:b4:c4"):
+		return "Microsoft"
+
+	// Intel
+	case strings.HasPrefix(prefix, "00:02:b3"), strings.HasPrefix(prefix, "00:03:47"), strings.HasPrefix(prefix, "00:1b:21"),
+		strings.HasPrefix(prefix, "a4:4c:c8"):
+		return "Intel"
+
+	// Realtek
+	case strings.HasPrefix(prefix, "00:07:0d"), strings.HasPrefix(prefix, "00:e0:4c"), strings.HasPrefix(prefix, "52:54:00"):
+		return "Realtek"
+
+	// Apple
+	case strings.HasPrefix(prefix, "00:03:93"), strings.HasPrefix(prefix, "00:05:02"), strings.HasPrefix(prefix, "3c:06:30"),
+		strings.HasPrefix(prefix, "ac:de:48"), strings.HasPrefix(prefix, "f0:18:98"):
+		return "Apple"
+
+	// Ubiquiti Networks
+	case strings.HasPrefix(prefix, "00:27:22"), strings.HasPrefix(prefix, "04:18:d6"), strings.HasPrefix(prefix, "24:a4:3c"),
+		strings.HasPrefix(prefix, "f8:75:a4"), strings.HasPrefix(prefix, "78:8a:20"):
+		return "Ubiquiti"
+
+	// Fortinet
+	case strings.HasPrefix(prefix, "00:09:0f"), strings.HasPrefix(prefix, "70:4c:a5"), strings.HasPrefix(prefix, "90:6c:ac"):
+		return "Fortinet"
+
+	// MikroTik
+	case strings.HasPrefix(prefix, "00:0c:42"), strings.HasPrefix(prefix, "2c:c8:1b"), strings.HasPrefix(prefix, "48:8f:5a"),
+		strings.HasPrefix(prefix, "64:d1:54"):
+		return "MikroTik"
+
+	// TP-Link
+	case strings.HasPrefix(prefix, "00:0a:eb"), strings.HasPrefix(prefix, "50:c7:bf"), strings.HasPrefix(prefix, "ec:08:6b"):
+		return "TP-Link"
+
+	// D-Link
+	case strings.HasPrefix(prefix, "00:05:5d"), strings.HasPrefix(prefix, "00:0d:88"), strings.HasPrefix(prefix, "1c:7e:e5"):
+		return "D-Link"
+
+	// Lenovo
+	case strings.HasPrefix(prefix, "00:59:07"), strings.HasPrefix(prefix, "54:ee:75"), strings.HasPrefix(prefix, "68:f7:28"):
+		return "Lenovo"
+
+	// Supermicro
+	case strings.HasPrefix(prefix, "00:25:90"), strings.HasPrefix(prefix, "00:30:48"), strings.HasPrefix(prefix, "20:88:10"):
+		return "Supermicro"
+
+	// Raspberry Pi
+	case strings.HasPrefix(prefix, "b8:27:eb"), strings.HasPrefix(prefix, "dc:a6:32"), strings.HasPrefix(prefix, "e4:5f:01"):
+		return "Raspberry Pi"
+
 	default:
-		return "Enterprise Appliance"
+		return "Generic Network Device"
 	}
 }
 
-// ReadArpTable parses Windows system ARP cache for active MACs
+func isNetworkVendor(vendor string) bool {
+	v := strings.ToLower(vendor)
+	return strings.Contains(v, "cisco") ||
+		strings.Contains(v, "ubiquiti") ||
+		strings.Contains(v, "fortinet") ||
+		strings.Contains(v, "mikrotik") ||
+		strings.Contains(v, "tp-link") ||
+		strings.Contains(v, "d-link")
+}
+
+// ReadArpTable parses system ARP cache for active MACs
 func ReadArpTable() map[string]string {
 	arpMap := make(map[string]string)
 	cmd := exec.Command("arp", "-a")
@@ -138,14 +267,48 @@ func CheckPort(ip string, port int, timeout time.Duration) bool {
 	return false
 }
 
-// RunNetworkDiscovery scans the local 172.168.1.0/24 subnet and ARP table
-func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
+func compareIPs(ipA, ipB string) bool {
+	partsA := strings.Split(ipA, ".")
+	partsB := strings.Split(ipB, ".")
+	if len(partsA) == 4 && len(partsB) == 4 {
+		for i := 0; i < 4; i++ {
+			numA, _ := strconv.Atoi(partsA[i])
+			numB, _ := strconv.Atoi(partsB[i])
+			if numA != numB {
+				return numA < numB
+			}
+		}
+	}
+	return ipA < ipB
+}
+
+// RunNetworkDiscovery dynamically scans the specified subnet or detects the local subnet at runtime
+func RunNetworkDiscovery(targetSubnet string) ([]DiscoveredTarget, error) {
+	if strings.TrimSpace(targetSubnet) == "" {
+		detected, _ := DetectLocalSubnet()
+		targetSubnet = detected
+	}
+
+	// Parse and normalize CIDR
+	_, ipnet, err := net.ParseCIDR(targetSubnet)
+	if err != nil {
+		if parsedIP := net.ParseIP(targetSubnet); parsedIP != nil {
+			targetSubnet = fmt.Sprintf("%s/24", targetSubnet)
+			_, ipnet, err = net.ParseCIDR(targetSubnet)
+		}
+		if err != nil {
+			targetSubnet, _ = DetectLocalSubnet()
+			_, ipnet, _ = net.ParseCIDR(targetSubnet)
+		}
+	}
+
 	statusMutex.Lock()
 	CurrentStatus.IsScanning = true
 	CurrentStatus.StartTime = time.Now()
 	CurrentStatus.ElapsedSeconds = 0
 	CurrentStatus.TotalDiscovered = 0
 	CurrentStatus.TotalScanned = 0
+	CurrentStatus.SubnetScanned = targetSubnet
 	CurrentStatus.Logs = make([]string, 0)
 	statusMutex.Unlock()
 
@@ -159,31 +322,49 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 		statusMutex.Unlock()
 	}()
 
-	log.Println("[Scanner] Starting Real Network Discovery on Subnet 172.168.1.0/24...")
-	appendScanLog("🚀 Network Discovery started on subnet 172.168.1.0/24...")
-	appendScanLog("🔍 Inspecting Windows system ARP cache (arp -a)...")
+	log.Printf("[Scanner] Starting Real Runtime Network Discovery on Subnet %s...", targetSubnet)
+	appendScanLog(fmt.Sprintf("🚀 Network Discovery started on live subnet %s...", targetSubnet))
+	appendScanLog("🔍 Inspecting system ARP table (arp -a)...")
 
 	// 1. Read live ARP cache
 	arpMap := ReadArpTable()
 	appendScanLog(fmt.Sprintf("✔ ARP Cache loaded: %d active MAC entries detected.", len(arpMap)))
 
-	// 2. Build list of IPs to probe (ARP active IPs + standard range 1..110)
+	// 2. Build list of IPs to probe dynamically
 	targetSet := make(map[string]bool)
-	for ip := range arpMap {
-		targetSet[ip] = true
-	}
-	// Always include host IP & gateway
-	targetSet["172.168.1.1"] = true
-	targetSet["172.168.1.11"] = true
+	if ipnet != nil {
+		for arpIP := range arpMap {
+			if parsed := net.ParseIP(arpIP); parsed != nil && ipnet.Contains(parsed) {
+				targetSet[arpIP] = true
+			}
+		}
 
-	for i := 1; i <= 110; i++ {
-		targetSet[fmt.Sprintf("172.168.1.%d", i)] = true
+		baseIP := ipnet.IP.To4()
+		if baseIP != nil {
+			ones, _ := ipnet.Mask.Size()
+			if ones >= 24 {
+				for i := 1; i <= 254; i++ {
+					host := net.IPv4(baseIP[0], baseIP[1], baseIP[2], byte(i))
+					targetSet[host.String()] = true
+				}
+			} else {
+				// For larger subnets (e.g. /16), probe ARP entries + first 254 IPs
+				for i := 1; i <= 254; i++ {
+					host := net.IPv4(baseIP[0], baseIP[1], baseIP[2], byte(i))
+					targetSet[host.String()] = true
+				}
+			}
+		}
 	}
 
 	var targets []string
 	for ip := range targetSet {
 		targets = append(targets, ip)
 	}
+
+	sort.Slice(targets, func(i, j int) bool {
+		return compareIPs(targets[i], targets[j])
+	})
 
 	statusMutex.Lock()
 	CurrentStatus.TotalTargets = len(targets)
@@ -196,7 +377,7 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, 40) // 40 concurrent probes
 
-	portsToScan := []int{22, 80, 443, 445, 3389, 5432, 6379, 8000, 8080, 8081, 9090, 27017}
+	portsToScan := []int{22, 53, 80, 123, 161, 443, 445, 3389, 5432, 6379, 8000, 8080, 8081, 9090, 27017}
 
 	for _, ip := range targets {
 		wg.Add(1)
@@ -208,12 +389,12 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 			mac := arpMap[targetIP]
 
 			// Fast ICMP Ping
-			pRes := ping.FastPing(targetIP, 600*time.Millisecond)
+			pRes := ping.FastPing(targetIP, 500*time.Millisecond)
 
 			// Probe ports
 			var openPorts []int
 			for _, port := range portsToScan {
-				if CheckPort(targetIP, port, 200*time.Millisecond) {
+				if CheckPort(targetIP, port, 150*time.Millisecond) {
 					openPorts = append(openPorts, port)
 				}
 			}
@@ -225,19 +406,26 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 					latency = 0.8
 				}
 
-				// First resolve DNS hostname if possible
+				// Real DNS / NetBIOS reverse lookup
 				hostname := ""
-				ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+				ctx, cancel := context.WithTimeout(context.Background(), 250*time.Millisecond)
 				r := net.Resolver{}
 				names, err := r.LookupAddr(ctx, targetIP)
 				cancel()
 				if err == nil && len(names) > 0 {
-					hostname = strings.TrimSuffix(names[0], ".")
+					rawName := strings.TrimSuffix(names[0], ".")
+					parts := strings.Split(rawName, ".")
+					if len(parts) > 0 && parts[0] != "" {
+						hostname = parts[0]
+					} else {
+						hostname = rawName
+					}
 				}
 
-				// Classify device accurately
+				// Dynamic classification based on real ports and MAC vendor
+				cleanMAC := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(mac, "-", ":"), " ", ""))
+				vendor := GetVendorFromMAC(cleanMAC)
 				deviceType := "server"
-				vendor := "Generic"
 				hardware := "Enterprise Appliance"
 				osName := "Enterprise Node"
 				role := "Server"
@@ -250,190 +438,142 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 				hasRedis := false
 				hasMongo := false
 				hasCockpit := false
+				hasDNS := false
+				hasNTP := false
+				hasSNMP := false
 
 				for _, p := range openPorts {
-					if p == 80 || p == 443 || p == 8080 || p == 8000 {
+					switch p {
+					case 80, 443, 8080, 8000:
 						hasWeb = true
-					}
-					if p == 445 {
+					case 445:
 						hasSMB = true
-					}
-					if p == 3389 {
+					case 3389:
 						hasRDP = true
-					}
-					if p == 22 {
+					case 22:
 						hasSSH = true
-					}
-					if p == 5432 {
+					case 5432:
 						hasPostgres = true
-					}
-					if p == 6379 {
+					case 6379:
 						hasRedis = true
-					}
-					if p == 27017 {
+					case 27017:
 						hasMongo = true
-					}
-					if p == 9090 {
+					case 9090:
 						hasCockpit = true
+					case 53:
+						hasDNS = true
+					case 123:
+						hasNTP = true
+					case 161:
+						hasSNMP = true
 					}
 				}
 
-				cleanMAC := strings.ToLower(strings.ReplaceAll(strings.ReplaceAll(mac, "-", ":"), " ", ""))
+				isGateway := strings.HasSuffix(targetIP, ".1")
+				isNetVen := isNetworkVendor(vendor)
 
-				if targetIP == "172.168.1.1" {
-					deviceType = "firewall"
-					vendor = "Check Point"
-					hardware = "Check Point Quantum 1800 Next-Gen Firewall"
-					osName = "Check Point GAiA R81.20"
-					role = "Next-Gen Firewall / Perimeter Security"
-					if hostname == "" {
-						hostname = "core-gw-01"
-					}
-				} else if targetIP == "172.168.1.10" || strings.Contains(strings.ToLower(hostname), "ntp") || strings.Contains(strings.ToLower(hostname), "time") {
-					deviceType = "ntp"
-					vendor = "Microchip"
-					hardware = "Microchip SyncServer S650 NTP/PTP Time Server"
-					osName = "Embedded NTP/PTP Stratum-1 OS"
-					role = "NTP Time Reference Source"
-					if hostname == "" {
-						hostname = "ntp-stratum1-01"
-					}
-				} else if targetIP == "172.168.1.30" {
-					deviceType = "switch"
-					vendor = "Cisco"
-					hardware = "Cisco Catalyst 9300-48P PoE+ Switch"
-					osName = "Cisco IOS-XE 17.9.4b"
-					role = "Core Switch"
-					if hostname == "" {
-						hostname = "cisco-core-sw01"
-					}
-				} else if targetIP == "172.168.1.31" {
-					deviceType = "switch"
-					vendor = "Ubiquiti"
-					hardware = "Ubiquiti UniFi Switch Pro 24 PoE"
-					osName = "UniFi OS Network 8.1"
-					role = "Access Layer Switch"
-					if hostname == "" {
-						hostname = "unifi-poe-sw02"
-					}
-				} else if targetIP == "172.168.1.17" {
-					deviceType = "server"
-					vendor = "Red Hat"
-					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
-					osName = "Enterprise Linux 9 (PostgreSQL 16 Cluster)"
-					role = "Linux Database Server"
-					if hostname == "" {
-						hostname = "linux-node-17"
-					}
-				} else if targetIP == "172.168.1.18" {
-					deviceType = "server"
-					vendor = "Red Hat"
-					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
-					osName = "Enterprise Linux 9 (Cockpit & Web App)"
-					role = "Linux Web & App Node"
-					if hostname == "" {
-						hostname = "linux-node-18"
-					}
-				} else if targetIP == "172.168.1.19" {
-					deviceType = "server"
-					vendor = "Red Hat"
-					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
-					osName = "Enterprise Linux 9 (MongoDB 7.0 Cluster)"
-					role = "Linux Document Store Node"
-					if hostname == "" {
-						hostname = "linux-node-19"
-					}
-				} else if targetIP == "172.168.1.20" {
-					deviceType = "server"
-					vendor = "Red Hat"
-					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
-					osName = "Enterprise Linux 9 (Compute Node)"
-					role = "Linux Compute Worker"
-					if hostname == "" {
-						hostname = "linux-node-20"
-					}
-				} else if targetIP == "172.168.1.21" {
-					deviceType = "server"
-					vendor = "Red Hat"
-					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
-					osName = "Enterprise Linux 9 (Redis Cache & Mongo Shard)"
-					role = "Linux Cache & Shard Node"
-					if hostname == "" {
-						hostname = "linux-node-21"
-					}
-				} else if strings.HasPrefix(hostname, "DESKTOP-") || strings.HasPrefix(hostname, "BELPC") || hostname == "admin" {
-					deviceType = "workstation"
-					osName = "Windows 11 Pro 64-bit (23H2)"
-					role = "Enterprise Workstation"
-					if strings.HasPrefix(cleanMAC, "4c:d7:17") {
-						vendor = "HP"
-						hardware = "HP EliteDesk 800 G8 Workstation"
+				lastOctet := targetIP
+				if parts := strings.Split(targetIP, "."); len(parts) == 4 {
+					lastOctet = parts[3]
+				}
+
+				// 1. Firewalls, Routers, and Switches
+				if isGateway || isNetVen || (hasSNMP && (hasWeb || hasDNS)) {
+					if isGateway || strings.Contains(strings.ToLower(vendor), "fortinet") || strings.Contains(strings.ToLower(vendor), "check point") {
+						deviceType = "firewall"
+						role = "Perimeter Security & Gateway"
+						if vendor == "Generic Network Device" {
+							vendor = "Gateway"
+						}
+						hardware = fmt.Sprintf("%s Security Gateway", vendor)
+						osName = "Next-Gen Firewall OS"
+						if hostname == "" {
+							hostname = fmt.Sprintf("gw-%s", lastOctet)
+						}
 					} else {
-						vendor = "Dell"
-						hardware = "Dell OptiPlex 7090 Tower Workstation"
+						deviceType = "switch"
+						role = "Network Core/Distribution Switch"
+						if vendor == "Generic Network Device" {
+							vendor = "Switch"
+						}
+						hardware = fmt.Sprintf("%s Managed Switch", vendor)
+						osName = "Network Switch OS"
+						if hostname == "" {
+							hostname = fmt.Sprintf("switch-%s", lastOctet)
+						}
 					}
-				} else if targetIP == "172.168.1.22" || strings.HasPrefix(cleanMAC, "20:88:10") {
-					deviceType = "server"
-					vendor = "Supermicro"
-					hardware = "Supermicro SuperServer SYS-2029U"
-					osName = "Windows Server 2022 Datacenter"
-					role = "Enterprise Storage Node"
+				} else if hasNTP || strings.Contains(strings.ToLower(hostname), "ntp") || strings.Contains(strings.ToLower(hostname), "time") {
+					// 2. NTP Time Servers
+					deviceType = "ntp"
+					role = "NTP Time Reference Source"
+					hardware = fmt.Sprintf("%s Time Server", vendor)
+					osName = "Precision NTP Stratum-1 OS"
 					if hostname == "" {
-						hostname = "storage-node-22"
+						hostname = fmt.Sprintf("ntp-clock-%s", lastOctet)
 					}
-				} else if strings.HasPrefix(hostname, "linux-node-") || (hasSSH && !hasRDP && !hasSMB) || hasPostgres || hasMongo || hasRedis || hasCockpit {
+				} else if hasSSH && !hasRDP && !hasSMB {
+					// 3. Real Linux Servers
 					deviceType = "server"
-					vendor = "Red Hat"
-					hardware = "Dell PowerEdge R650xs (Dual Xeon)"
-					osName = "Enterprise Linux 9"
-					role = "Linux Enterprise Server"
-					if hostname == "" {
-						hostname = fmt.Sprintf("linux-node-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
+					if vendor == "Generic Network Device" {
+						vendor = "Linux"
 					}
-				} else if strings.HasPrefix(hostname, "WIN-") || (hasSMB && hasRDP) {
-					deviceType = "server"
-					vendor = "Microsoft"
-					hardware = "Dell PowerEdge R750 Enterprise Server"
-					osName = "Windows Server 2022 Datacenter"
-					role = "Windows Enterprise Node"
-				} else if targetIP == "172.168.1.72" || strings.HasPrefix(cleanMAC, "00:be:43") {
-					deviceType = "server"
-					vendor = "Dell"
-					hardware = "Dell PowerEdge R750 iDRAC9"
-					osName = "VMware ESXi 8.0 Enterprise"
-					role = "Virtualization Hypervisor"
+					hardware = fmt.Sprintf("%s Compute Node", vendor)
+					role = "Linux Compute & Service Node"
+					osDesc := "Enterprise Linux"
+					if hasPostgres {
+						osDesc += " (PostgreSQL)"
+					} else if hasMongo {
+						osDesc += " (MongoDB)"
+					} else if hasRedis {
+						osDesc += " (Redis)"
+					} else if hasCockpit {
+						osDesc += " (Cockpit)"
+					} else if hasWeb {
+						osDesc += " (Web App)"
+					}
+					osName = osDesc
 					if hostname == "" {
-						hostname = "dell-r750-72"
+						hostname = fmt.Sprintf("linux-node-%s", lastOctet)
+					}
+				} else if hasSMB || hasRDP {
+					// 4. Windows Servers & Workstations
+					if hasPostgres || hasMongo || hasRedis || hasWeb || strings.HasPrefix(strings.ToUpper(hostname), "SRV") || strings.Contains(strings.ToUpper(hostname), "SERVER") {
+						deviceType = "server"
+						if vendor == "Generic Network Device" {
+							vendor = "Microsoft"
+						}
+						hardware = fmt.Sprintf("%s Production Server", vendor)
+						osName = "Windows Server"
+						role = "Windows Enterprise Server"
+					} else {
+						deviceType = "workstation"
+						if vendor == "Generic Network Device" {
+							vendor = "Windows"
+						}
+						hardware = fmt.Sprintf("%s Workstation PC", vendor)
+						osName = "Windows 10/11 Enterprise"
+						role = "Enterprise Workstation"
+					}
+					if hostname == "" {
+						hostname = fmt.Sprintf("win-node-%s", lastOctet)
+					}
+				} else if hasWeb {
+					// 5. Web Servers / Appliances
+					deviceType = "server"
+					hardware = fmt.Sprintf("%s Web Appliance", vendor)
+					osName = "Web Application Server"
+					role = "Web Application Host"
+					if hostname == "" {
+						hostname = fmt.Sprintf("web-node-%s", lastOctet)
 					}
 				} else {
-					// Fallback based on ports & MAC
-					if strings.HasPrefix(cleanMAC, "24:fb:e3") || strings.HasPrefix(cleanMAC, "00:1e:bd") {
-						deviceType = "switch"
-						vendor = "Cisco"
-						hardware = "Cisco Catalyst Edge Switch"
-						osName = "Cisco IOS-XE"
-						role = "Network Switch"
-						if hostname == "" {
-							hostname = fmt.Sprintf("sw-cisco-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
-						}
-					} else if hasWeb {
-						deviceType = "server"
-						vendor = "Dell"
-						hardware = "Dell PowerEdge Server"
-						osName = "Enterprise Web Application Server"
-						role = "Web Application Server"
-						if hostname == "" {
-							hostname = fmt.Sprintf("web-app-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
-						}
-					} else {
-						deviceType = "server"
-						vendor = "Dell"
-						hardware = "Dell PowerEdge Server"
-						osName = "Enterprise Server"
-						role = "Compute Node"
-						if hostname == "" {
-							hostname = fmt.Sprintf("host-node-%s", strings.ReplaceAll(targetIP, "172.168.1.", ""))
-						}
+					// 6. Generic active node
+					deviceType = "workstation"
+					hardware = fmt.Sprintf("%s Client", vendor)
+					osName = "Network Node"
+					role = "Connected Host"
+					if hostname == "" {
+						hostname = fmt.Sprintf("host-%s", lastOctet)
 					}
 				}
 
@@ -453,22 +593,20 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 
 				mu.Lock()
 				discovered = append(discovered, dt)
+				CurrentStatus.TotalDiscovered = len(discovered)
+				CurrentStatus.TotalScanned++
+				scanned := CurrentStatus.TotalScanned
+				total := CurrentStatus.TotalTargets
 				mu.Unlock()
 
-				statusMutex.Lock()
-				CurrentStatus.TotalScanned++
-				CurrentStatus.TotalDiscovered = len(discovered)
-				scanned := CurrentStatus.TotalScanned
-				total := CurrentStatus.TotalTargets
-				statusMutex.Unlock()
-
-				appendScanLog(fmt.Sprintf("✔ [%d/%d] ONLINE: %s (%s) | %s %s | Latency: %.1fms | MAC: %s", scanned, total, targetIP, dt.Role, vendor, hardware, latency, mac))
+				appendScanLog(fmt.Sprintf("  [%d/%d] Discovered: %s (%s) — %s %s [%.1fms]",
+					scanned, total, targetIP, hostname, vendor, deviceType, latency))
 			} else {
-				statusMutex.Lock()
+				mu.Lock()
 				CurrentStatus.TotalScanned++
 				scanned := CurrentStatus.TotalScanned
 				total := CurrentStatus.TotalTargets
-				statusMutex.Unlock()
+				mu.Unlock()
 
 				appendScanLog(fmt.Sprintf("  [%d/%d] Probing %s... Offline (no response)", scanned, total, targetIP))
 			}
@@ -479,9 +617,8 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 
 	appendScanLog(fmt.Sprintf("💾 Saving %d discovered devices into PostgreSQL database...", len(discovered)))
 
-	// 4. Save to PostgreSQL database
+	// 4. Save to PostgreSQL database with dynamic location
 	for _, target := range discovered {
-		// Insert or Update Device in DB
 		dev := models.Device{
 			Hostname:      target.Hostname,
 			IPAddress:     target.IP,
@@ -490,7 +627,7 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 			SNMPPort:      161,
 			OS:            target.OS,
 			Hardware:      target.Hardware,
-			Location:      "Local Subnet 172.168.1.0/24",
+			Location:      fmt.Sprintf("Subnet %s", targetSubnet),
 			DeviceType:    target.DeviceType,
 			Vendor:        target.Vendor,
 			MACAddress:    target.MAC,
@@ -509,7 +646,7 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 		ports = append(ports, models.Port{
 			IfIndex:      1,
 			IfName:       "eth0",
-			IfDescr:      fmt.Sprintf("Primary Gigabit Interface (MAC: %s)", target.MAC),
+			IfDescr:      fmt.Sprintf("Primary Interface (MAC: %s)", target.MAC),
 			IfType:       "ethernetCsmacd",
 			IfSpeed:      1000000000,
 			IfOperStatus: "up",
@@ -522,8 +659,14 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 			switch p {
 			case 22:
 				serviceName = "SSH-22"
+			case 53:
+				serviceName = "DNS-53"
 			case 80:
 				serviceName = "HTTP-80"
+			case 123:
+				serviceName = "NTP-123"
+			case 161:
+				serviceName = "SNMP-161"
 			case 443:
 				serviceName = "HTTPS-443"
 			case 445:
@@ -537,7 +680,7 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 			case 8000:
 				serviceName = "App-8000"
 			case 8080:
-				serviceName = "ALT-HTTP-8080"
+				serviceName = "Web-8080"
 			case 8081:
 				serviceName = "V-NMS-8081"
 			case 9090:
@@ -564,8 +707,7 @@ func RunNetworkDiscovery() ([]DiscoveredTarget, error) {
 	CurrentStatus.ElapsedSeconds = elapsed
 	statusMutex.Unlock()
 
-	appendScanLog(fmt.Sprintf("🎉 DISCOVERY COMPLETE: Found %d live enterprise devices in %.2fs! Synced to PostgreSQL.", len(discovered), elapsed))
+	appendScanLog(fmt.Sprintf("🎉 DISCOVERY COMPLETE: Found %d live enterprise devices on %s in %.2fs! Synced to PostgreSQL.", len(discovered), targetSubnet, elapsed))
 
 	return discovered, nil
 }
-

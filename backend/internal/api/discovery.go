@@ -1,21 +1,47 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"v-nms/internal/database"
 	"v-nms/internal/scanner"
 
 	"github.com/gin-gonic/gin"
 )
 
-// HandleTriggerDiscoveryScan triggers a live asynchronous CIDR sweep across the local subnet
+type DiscoveryScanRequest struct {
+	Subnet string `json:"subnet"`
+}
+
+// HandleTriggerDiscoveryScan triggers a live asynchronous CIDR sweep across the target or detected subnet
 func HandleTriggerDiscoveryScan(c *gin.Context) {
-	go func() {
-		_, _ = scanner.RunNetworkDiscovery()
-	}()
+	var req DiscoveryScanRequest
+	_ = c.ShouldBindJSON(&req)
+
+	targetSubnet := strings.TrimSpace(req.Subnet)
+	if targetSubnet == "" {
+		detected, _ := scanner.DetectLocalSubnet()
+		targetSubnet = detected
+	}
+
+	go func(sub string) {
+		_, _ = scanner.RunNetworkDiscovery(sub)
+	}(targetSubnet)
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "started",
-		"message": "Network discovery scan initiated across subnet 172.168.1.0/24",
+		"subnet":  targetSubnet,
+		"message": fmt.Sprintf("Live network discovery scan initiated across subnet %s", targetSubnet),
+	})
+}
+
+// HandleGetDetectedSubnet returns the machine's primary live subnet and host IP
+func HandleGetDetectedSubnet(c *gin.Context) {
+	subnet, hostIP := scanner.DetectLocalSubnet()
+	c.JSON(http.StatusOK, gin.H{
+		"subnet":  subnet,
+		"host_ip": hostIP,
 	})
 }
 

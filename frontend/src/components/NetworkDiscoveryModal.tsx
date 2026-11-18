@@ -37,7 +37,8 @@ export const NetworkDiscoveryModal: React.FC<NetworkDiscoveryModalProps> = ({
   onScanComplete,
   apiBase
 }) => {
-  const [subnet, setSubnet] = useState('172.168.1.0/24');
+  const [subnet, setSubnet] = useState('');
+  const [detectedHostIP, setDetectedHostIP] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [statusData, setStatusData] = useState<ScanStatusResponse | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -46,6 +47,22 @@ export const NetworkDiscoveryModal: React.FC<NetworkDiscoveryModalProps> = ({
 
   const logEndRef = useRef<HTMLDivElement | null>(null);
   const pollRef = useRef<any>(null);
+
+  // Auto-detect host machine subnet on modal open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    axios.get<{ subnet: string; host_ip: string }>(`${apiBase}/discovery/subnet`)
+      .then(res => {
+        if (res.data) {
+          if (res.data.subnet) setSubnet(res.data.subnet);
+          if (res.data.host_ip) setDetectedHostIP(res.data.host_ip);
+        }
+      })
+      .catch(() => {
+        setSubnet('192.168.1.0/24');
+      });
+  }, [isOpen, apiBase]);
 
   // Auto-scroll logs to bottom
   useEffect(() => {
@@ -115,7 +132,7 @@ export const NetworkDiscoveryModal: React.FC<NetworkDiscoveryModalProps> = ({
     setElapsedTime(0);
 
     try {
-      await axios.post(`${apiBase}/discovery/scan`);
+      await axios.post(`${apiBase}/discovery/scan`, { subnet: subnet.trim() });
     } catch (err: any) {
       setIsScanning(false);
       alert('Failed to start scan: ' + (err.response?.data?.error || err.message));
@@ -242,6 +259,7 @@ export const NetworkDiscoveryModal: React.FC<NetworkDiscoveryModalProps> = ({
             <input
               type="text"
               value={subnet}
+              placeholder="e.g. 192.168.1.0/24"
               onChange={e => setSubnet(e.target.value)}
               disabled={isScanning}
               style={{
@@ -251,10 +269,15 @@ export const NetworkDiscoveryModal: React.FC<NetworkDiscoveryModalProps> = ({
                 fontSize: '0.85rem',
                 fontWeight: 700,
                 color: '#0f172a',
-                width: '140px',
+                width: '150px',
                 background: isScanning ? '#f1f5f9' : '#ffffff'
               }}
             />
+            {detectedHostIP && (
+              <span style={{ fontSize: '0.72rem', color: '#64748b', background: '#e2e8f0', padding: '3px 7px', borderRadius: '4px' }} title="Detected local host IP">
+                Host IP: {detectedHostIP}
+              </span>
+            )}
           </div>
 
           {/* Action Buttons */}

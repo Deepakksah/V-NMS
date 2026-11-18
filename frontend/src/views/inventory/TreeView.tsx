@@ -87,6 +87,30 @@ export const TreeView: React.FC<TreeViewProps> = ({
   const [chartDevice, setChartDevice] = useState<Device | null>(null);
   const [treeTimeframe, setTreeTimeframe] = useState<ChartTimeframe>('1h');
 
+  // Dynamically calculate the active subnet from real discovered devices
+  const activeSubnet = useMemo(() => {
+    if (devices.length === 0) return 'Local Network';
+    const counts: Record<string, number> = {};
+    for (const d of devices) {
+      if (d.ip_address) {
+        const parts = d.ip_address.split('.');
+        if (parts.length === 4) {
+          const prefix = `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
+          counts[prefix] = (counts[prefix] || 0) + 1;
+        }
+      }
+    }
+    let topPrefix = '';
+    let topCount = 0;
+    for (const [p, c] of Object.entries(counts)) {
+      if (c > topCount) {
+        topCount = c;
+        topPrefix = p;
+      }
+    }
+    return topPrefix ? `Subnet ${topPrefix}` : 'Local Network';
+  }, [devices]);
+
   // Dynamic Real Network Hierarchy from autodiscovered devices
   const dynamicNetworkNode: TreeNode = useMemo(() => {
     const sortByIP = (list: Device[]) => [...list].sort((a, b) => {
@@ -98,11 +122,11 @@ export const TreeView: React.FC<TreeViewProps> = ({
       return (a.id || 0) - (b.id || 0);
     });
 
-    const firewalls = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall' || d.ip_address === '172.168.1.1'));
+    const firewalls = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'firewall'));
     const switches = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'switch' && !firewalls.includes(d)));
     const servers = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'server' && !firewalls.includes(d) && !switches.includes(d)));
     const workstations = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'workstation'));
-    const ntpNodes = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp' || d.ip_address === '172.168.1.10'));
+    const ntpNodes = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp'));
 
     const mapDeviceToNode = (d: Device): TreeNode => {
       const v = d.vendor || 'Generic';
@@ -128,15 +152,15 @@ export const TreeView: React.FC<TreeViewProps> = ({
           traffic: `${((d.last_ping_ms || 1.2) * 12.4 + 2).toFixed(1)} Mbps`
         },
         children: [
-          { id: `dev-${d.id}-eth0`, name: `eth0 [Gigabit Ethernet 1 Gbps Full-Duplex]`, type: 'port', status: d.status ? 'up' : 'down', meta: `Latency: ${d.last_ping_ms || 0.5} ms â€¢ MTU 1500` },
-          { id: `dev-${d.id}-ping`, name: `ICMP Fast-Ping Telemetry Probe`, type: 'sensor', status: d.status ? 'up' : 'down', meta: `Roundtrip RTT: ${d.last_ping_ms || 0.5} ms â€¢ 0% Loss` }
+          { id: `dev-${d.id}-eth0`, name: `eth0 [Gigabit Ethernet 1 Gbps Full-Duplex]`, type: 'port', status: d.status ? 'up' : 'down', meta: `Latency: ${d.last_ping_ms || 0.5} ms • MTU 1500` },
+          { id: `dev-${d.id}-ping`, name: `ICMP Fast-Ping Telemetry Probe`, type: 'sensor', status: d.status ? 'up' : 'down', meta: `Roundtrip RTT: ${d.last_ping_ms || 0.5} ms • 0% Loss` }
         ]
       };
     };
 
     return {
       id: 'local-subnet',
-      name: `Production LAN Subnet 172.168.1.0/24 (Active Network)`,
+      name: `${activeSubnet} (Active Network)`,
       type: 'datacenter',
       badge: `${devices.length} LIVE NODES`,
       badgeColor: '#059669',
@@ -798,7 +822,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '8px', borderBottom: '1px solid #f1f5f9' }}>
             <div>
               <span style={{ fontSize: '0.74rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#64748b' }}>
-                Subnet 172.168.1.0/24 Tree ({devices.length} Devices)
+                {activeSubnet} Tree ({devices.length} Devices)
               </span>
               <div style={{ fontSize: '0.66rem', color: '#64748b' }}>Default collapsed &bull; click + to expand</div>
             </div>

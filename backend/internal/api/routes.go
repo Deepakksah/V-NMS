@@ -78,6 +78,7 @@ func SetupRouter() *gin.Engine {
 		api.POST("/notifications/sms/test", HandleTestSMS)
 
 		// 8. Network Discovery & Subnet Scanner Domain
+		api.GET("/discovery/subnet", HandleGetDetectedSubnet)
 		api.POST("/discovery/scan", HandleTriggerDiscoveryScan)
 		api.GET("/discovery/status", HandleGetDiscoveryStatus)
 		api.POST("/devices/clear", HandleClearAllDevices)

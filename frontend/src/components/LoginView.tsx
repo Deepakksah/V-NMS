@@ -7,8 +7,9 @@ import {
   EyeOff, 
   ShieldCheck, 
   AlertCircle, 
-  KeyRound, 
-  Database
+  KeyRound,
+  Sun,
+  Moon
 } from 'lucide-react';
 import type { AuthSession } from '../types';
 import { ForgotPasswordModal } from './ForgotPasswordModal';
@@ -16,9 +17,40 @@ import { ForgotPasswordModal } from './ForgotPasswordModal';
 interface LoginViewProps {
   onLoginSuccess: (session: AuthSession) => void;
   apiBase: string;
+  theme?: 'light' | 'dark';
+  onToggleTheme?: () => void;
 }
 
-export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase }) => {
+export const LoginView: React.FC<LoginViewProps> = ({ 
+  onLoginSuccess, 
+  apiBase,
+  theme: propTheme,
+  onToggleTheme: propToggleTheme
+}) => {
+  const [internalTheme, setInternalTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      return (localStorage.getItem('vnms_theme') as 'light' | 'dark') || 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  const currentTheme = propTheme || internalTheme;
+  const isDark = currentTheme === 'dark';
+
+  const toggleTheme = () => {
+    if (propToggleTheme) {
+      propToggleTheme();
+    } else {
+      const next = isDark ? 'light' : 'dark';
+      setInternalTheme(next);
+      try {
+        localStorage.setItem('vnms_theme', next);
+        document.documentElement.setAttribute('data-theme', next);
+      } catch {}
+    }
+  };
+
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
@@ -66,7 +98,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
       if (err.response && err.response.data && err.response.data.error) {
         setErrorMsg(err.response.data.error);
       } else if (err.code === 'ERR_NETWORK') {
-        setErrorMsg('Cannot reach V-NMS backend server at ' + apiBase + '. Ensure PostgreSQL and server are running.');
+        setErrorMsg('Cannot reach V-NMS backend server at ' + apiBase + '. Ensure server service is running.');
       } else {
         setErrorMsg('Login failed: ' + (err.message || 'Unknown error'));
       }
@@ -84,31 +116,76 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f1f5f9',
-      backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px), radial-gradient(#cbd5e1 1px, #f1f5f9 1px)',
-      backgroundSize: '24px 24px',
-      backgroundPosition: '0 0, 12px 12px',
+      backgroundColor: isDark ? '#0b1120' : '#f8fafc',
+      backgroundImage: isDark 
+        ? 'radial-gradient(#334155 1.2px, transparent 1.2px)' 
+        : 'radial-gradient(#94a3b8 1.2px, transparent 1.2px)',
+      backgroundSize: '28px 28px',
+      backgroundPosition: '0 0',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '24px',
       fontFamily: 'Inter, system-ui, sans-serif',
-      color: '#0f172a'
+      color: isDark ? '#f8fafc' : '#0f172a',
+      position: 'relative'
     }}>
+      {/* Top Floating Theme Switcher Button */}
+      <div style={{ position: 'absolute', top: '20px', right: '24px', zIndex: 10 }}>
+        <button
+          type="button"
+          onClick={toggleTheme}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '10px',
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
+            color: isDark ? '#f8fafc' : '#1e293b',
+            cursor: 'pointer',
+            fontSize: '0.84rem',
+            fontWeight: 600,
+            boxShadow: isDark 
+              ? '0 4px 12px rgba(0, 0, 0, 0.4)' 
+              : '0 4px 12px rgba(15, 23, 42, 0.08)',
+            transition: 'all 0.15s ease'
+          }}
+          title={isDark ? 'Switch to Normal (Light) Mode' : 'Switch to Dark Mode'}
+        >
+          {isDark ? (
+            <>
+              <Sun size={16} color="#f59e0b" />
+              <span>Normal Mode</span>
+            </>
+          ) : (
+            <>
+              <Moon size={16} color="#6366f1" />
+              <span>Dark Mode</span>
+            </>
+          )}
+        </button>
+      </div>
+
       <div style={{
         width: '100%',
         maxWidth: '460px',
-        backgroundColor: '#ffffff',
+        backgroundColor: isDark ? '#0f172a' : '#ffffff',
         borderRadius: '16px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
+        border: `1px solid ${isDark ? '#1e293b' : '#cbd5e1'}`,
+        boxShadow: isDark 
+          ? '0 25px 35px -5px rgba(0, 0, 0, 0.6), 0 10px 15px -6px rgba(0, 0, 0, 0.4)' 
+          : '0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04)',
         overflow: 'hidden'
       }}>
         {/* Brand Banner Header with Official Favicon */}
         <div style={{
           padding: '28px 32px 22px 32px',
-          borderBottom: '1px solid #f1f5f9',
-          background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          borderBottom: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}`,
+          background: isDark 
+            ? 'linear-gradient(180deg, #1e293b 0%, #0f172a 100%)' 
+            : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
           textAlign: 'center',
           position: 'relative'
         }}>
@@ -122,12 +199,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               width: '64px',
               height: '64px',
               borderRadius: '16px',
-              background: '#ffffff',
-              border: '1px solid #e2e8f0',
+              background: isDark ? '#0f172a' : '#ffffff',
+              border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.22), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              boxShadow: isDark 
+                ? '0 10px 25px -5px rgba(0, 0, 0, 0.5)' 
+                : '0 10px 25px -5px rgba(2, 132, 199, 0.22), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
               padding: '8px'
             }}>
               <img
@@ -154,7 +233,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                 height: '14px',
                 borderRadius: '50%',
                 backgroundColor: loading ? '#f59e0b' : '#10b981',
-                border: '2.5px solid #ffffff',
+                border: `2.5px solid ${isDark ? '#0f172a' : '#ffffff'}`,
                 boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
               }}
               title={loading ? 'Authenticating credentials...' : 'NOC Telemetry Gateway Active'}
@@ -162,7 +241,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '6px' }}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.025em', color: '#0f172a', margin: 0 }}>
+            <h1 style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: 800, 
+              letterSpacing: '-0.025em', 
+              color: isDark ? '#f8fafc' : '#0f172a', 
+              margin: 0 
+            }}>
               V-NMS
             </h1>
             <span style={{
@@ -170,14 +255,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               fontWeight: 700,
               padding: '2px 8px',
               borderRadius: '6px',
-              background: '#e0f2fe',
-              color: '#0369a1',
-              border: '1px solid #bae6fd'
+              background: isDark ? 'rgba(2, 132, 199, 0.2)' : '#e0f2fe',
+              color: isDark ? '#38bdf8' : '#0369a1',
+              border: `1px solid ${isDark ? 'rgba(56, 189, 248, 0.3)' : '#bae6fd'}`
             }}>
               ENTERPRISE
             </span>
           </div>
-          <p style={{ fontSize: '0.86rem', color: '#64748b', margin: 0 }}>
+          <p style={{ fontSize: '0.86rem', color: isDark ? '#94a3b8' : '#64748b', margin: 0 }}>
             Network Management & Autonomous Telemetry Engine
           </p>
         </div>
@@ -191,9 +276,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               gap: '10px',
               padding: '12px 14px',
               borderRadius: '8px',
-              backgroundColor: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: '#991b1b',
+              backgroundColor: isDark ? 'rgba(220, 38, 38, 0.15)' : '#fef2f2',
+              border: `1px solid ${isDark ? 'rgba(239, 68, 68, 0.3)' : '#fecaca'}`,
+              color: isDark ? '#fca5a5' : '#991b1b',
               fontSize: '0.84rem',
               marginBottom: '20px'
             }}>
@@ -209,7 +294,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                 display: 'block',
                 fontSize: '0.82rem',
                 fontWeight: 600,
-                color: '#334155',
+                color: isDark ? '#cbd5e1' : '#334155',
                 marginBottom: '6px'
               }}>
                 Username or Email
@@ -217,13 +302,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                border: '1px solid #cbd5e1',
+                border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
                 borderRadius: '8px',
-                backgroundColor: '#ffffff',
+                backgroundColor: isDark ? '#1e293b' : '#ffffff',
                 padding: '0 12px',
                 transition: 'border-color 0.15s ease'
               }}>
-                <User size={16} color="#64748b" style={{ marginRight: '8px' }} />
+                <User size={16} color={isDark ? '#94a3b8' : '#64748b'} style={{ marginRight: '8px' }} />
                 <input
                   type="text"
                   required
@@ -236,7 +321,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                     border: 'none',
                     outline: 'none',
                     fontSize: '0.88rem',
-                    color: '#0f172a',
+                    color: isDark ? '#f8fafc' : '#0f172a',
                     background: 'transparent'
                   }}
                 />
@@ -249,7 +334,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                 <label style={{
                   fontSize: '0.82rem',
                   fontWeight: 600,
-                  color: '#334155'
+                  color: isDark ? '#cbd5e1' : '#334155'
                 }}>
                   Password
                 </label>
@@ -272,12 +357,12 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
               <div style={{
                 display: 'flex',
                 alignItems: 'center',
-                border: '1px solid #cbd5e1',
+                border: `1px solid ${isDark ? '#334155' : '#cbd5e1'}`,
                 borderRadius: '8px',
-                backgroundColor: '#ffffff',
+                backgroundColor: isDark ? '#1e293b' : '#ffffff',
                 padding: '0 12px'
               }}>
-                <Lock size={16} color="#64748b" style={{ marginRight: '8px' }} />
+                <Lock size={16} color={isDark ? '#94a3b8' : '#64748b'} style={{ marginRight: '8px' }} />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
@@ -290,7 +375,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                     border: 'none',
                     outline: 'none',
                     fontSize: '0.88rem',
-                    color: '#0f172a',
+                    color: isDark ? '#f8fafc' : '#0f172a',
                     background: 'transparent'
                   }}
                 />
@@ -301,7 +386,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: '#64748b',
+                    color: isDark ? '#94a3b8' : '#64748b',
                     display: 'flex',
                     alignItems: 'center',
                     padding: '4px'
@@ -315,7 +400,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
 
             {/* Remember Me */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.82rem', color: '#475569' }}>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                cursor: 'pointer', 
+                fontSize: '0.82rem', 
+                color: isDark ? '#94a3b8' : '#475569' 
+              }}>
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -389,13 +481,17 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
           </form>
 
           {/* Quick Demo Credentials */}
-          <div style={{ marginTop: '26px', paddingTop: '20px', borderTop: '1px solid #f1f5f9' }}>
+          <div style={{ 
+            marginTop: '26px', 
+            paddingTop: '20px', 
+            borderTop: `1px solid ${isDark ? '#1e293b' : '#f1f5f9'}` 
+          }}>
             <p style={{
               fontSize: '0.74rem',
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
-              color: '#64748b',
+              color: isDark ? '#94a3b8' : '#64748b',
               marginBottom: '10px',
               display: 'flex',
               alignItems: 'center',
@@ -415,20 +511,28 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                   alignItems: 'flex-start',
                   padding: '8px 10px',
                   borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  background: username === 'admin' ? '#e0f2fe' : '#ffffff',
-                  borderColor: username === 'admin' ? '#38bdf8' : '#cbd5e1',
+                  border: `1px solid ${username === 'admin' ? '#38bdf8' : (isDark ? '#334155' : '#cbd5e1')}`,
+                  background: username === 'admin' 
+                    ? (isDark ? 'rgba(2, 132, 199, 0.25)' : '#e0f2fe') 
+                    : (isDark ? '#1e293b' : '#ffffff'),
                   cursor: 'pointer',
                   textAlign: 'left'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>admin</span>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0284c7', background: '#dbeafe', padding: '1px 4px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>admin</span>
+                  <span style={{ 
+                    fontSize: '0.62rem', 
+                    fontWeight: 700, 
+                    color: '#0284c7', 
+                    background: isDark ? 'rgba(2, 132, 199, 0.3)' : '#dbeafe', 
+                    padding: '1px 4px', 
+                    borderRadius: '4px' 
+                  }}>
                     ROOT
                   </span>
                 </div>
-                <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>SuperAdmin</span>
+                <span style={{ fontSize: '0.7rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '2px' }}>SuperAdmin</span>
               </button>
 
               <button
@@ -440,20 +544,28 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                   alignItems: 'flex-start',
                   padding: '8px 10px',
                   borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  background: username === 'deepak.sah' ? '#e0f2fe' : '#ffffff',
-                  borderColor: username === 'deepak.sah' ? '#38bdf8' : '#cbd5e1',
+                  border: `1px solid ${username === 'deepak.sah' ? '#38bdf8' : (isDark ? '#334155' : '#cbd5e1')}`,
+                  background: username === 'deepak.sah' 
+                    ? (isDark ? 'rgba(2, 132, 199, 0.25)' : '#e0f2fe') 
+                    : (isDark ? '#1e293b' : '#ffffff'),
                   cursor: 'pointer',
                   textAlign: 'left'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>deepak.sah</span>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#0284c7', background: '#dbeafe', padding: '1px 4px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>deepak.sah</span>
+                  <span style={{ 
+                    fontSize: '0.62rem', 
+                    fontWeight: 700, 
+                    color: '#0284c7', 
+                    background: isDark ? 'rgba(2, 132, 199, 0.3)' : '#dbeafe', 
+                    padding: '1px 4px', 
+                    borderRadius: '4px' 
+                  }}>
                     ADMIN
                   </span>
                 </div>
-                <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>SuperAdmin</span>
+                <span style={{ fontSize: '0.7rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '2px' }}>SuperAdmin</span>
               </button>
 
               <button
@@ -465,46 +577,47 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, apiBase })
                   alignItems: 'flex-start',
                   padding: '8px 10px',
                   borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  background: username === 'operator' ? '#f0fdf4' : '#ffffff',
-                  borderColor: username === 'operator' ? '#4ade80' : '#cbd5e1',
+                  border: `1px solid ${username === 'operator' ? '#4ade80' : (isDark ? '#334155' : '#cbd5e1')}`,
+                  background: username === 'operator' 
+                    ? (isDark ? 'rgba(16, 185, 129, 0.25)' : '#f0fdf4') 
+                    : (isDark ? '#1e293b' : '#ffffff'),
                   cursor: 'pointer',
                   textAlign: 'left'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a' }}>operator</span>
-                  <span style={{ fontSize: '0.62rem', fontWeight: 700, color: '#16a34a', background: '#dcfce7', padding: '1px 4px', borderRadius: '4px' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>operator</span>
+                  <span style={{ 
+                    fontSize: '0.62rem', 
+                    fontWeight: 700, 
+                    color: '#16a34a', 
+                    background: isDark ? 'rgba(16, 185, 129, 0.3)' : '#dcfce7', 
+                    padding: '1px 4px', 
+                    borderRadius: '4px' 
+                  }}>
                     OP
                   </span>
                 </div>
-                <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '2px' }}>Operator</span>
+                <span style={{ fontSize: '0.7rem', color: isDark ? '#94a3b8' : '#64748b', marginTop: '2px' }}>Operator</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Footer Security Badges */}
+        {/* Footer Security Badge (Removed JWT & PostgreSQL mentions) */}
         <div style={{
-          backgroundColor: '#f8fafc',
-          borderTop: '1px solid #e2e8f0',
+          backgroundColor: isDark ? '#0b1120' : '#f8fafc',
+          borderTop: `1px solid ${isDark ? '#1e293b' : '#e2e8f0'}`,
           padding: '14px 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '16px',
-          fontSize: '0.72rem',
-          color: '#64748b'
+          gap: '8px',
+          fontSize: '0.76rem',
+          color: isDark ? '#94a3b8' : '#64748b'
         }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Database size={13} color="#16a34a" />
-            <span>PostgreSQL 18 RBAC</span>
-          </span>
-          <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#cbd5e1' }} />
-          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <ShieldCheck size={13} color="#0284c7" />
-            <span>JWT 256-bit Session</span>
-          </span>
+          <ShieldCheck size={15} color="#0284c7" />
+          <span>Enterprise Secured NOC Gateway • High Availability Telemetry</span>
         </div>
       </div>
 

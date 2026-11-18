@@ -63,6 +63,29 @@ export default function App() {
     }
   });
 
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      return (localStorage.getItem('vnms_theme') as 'light' | 'dark') || 'light';
+    } catch {
+      return 'light';
+    }
+  });
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('vnms_theme', next);
+        document.documentElement.setAttribute('data-theme', next);
+      } catch {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   const toggleSidebarCollapse = () => {
     setIsSidebarCollapsed(prev => {
       const next = !prev;
@@ -232,12 +255,25 @@ export default function App() {
 
   // If no authenticated session, render Enterprise Login Card
   if (!session) {
-    return <LoginView onLoginSuccess={handleLoginSuccess} apiBase={API_BASE} />;
+    return (
+      <LoginView 
+        onLoginSuccess={handleLoginSuccess} 
+        apiBase={API_BASE} 
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f8fafc', color: '#0f172a' }}>
-      {/* Top Clean Light Sticky Navigation Bar */}
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      minHeight: '100vh', 
+      backgroundColor: theme === 'dark' ? '#0b1120' : '#f8fafc', 
+      color: theme === 'dark' ? '#f8fafc' : '#0f172a' 
+    }}>
+      {/* Top Clean Navigation Bar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -254,6 +290,8 @@ export default function App() {
         onTriggerScan={() => setShowDiscoveryModal(true)}
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleSidebar={toggleSidebarCollapse}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <div style={{ display: 'flex', flex: 1 }}>
@@ -274,7 +312,7 @@ export default function App() {
           overflowY: activeTab === 'topology' ? 'hidden' : 'auto',
           height: 'calc(100vh - 65px)',
           maxHeight: 'calc(100vh - 65px)',
-          backgroundColor: '#f8fafc',
+          backgroundColor: theme === 'dark' ? '#0b1120' : '#f8fafc',
           display: activeTab === 'topology' ? 'flex' : 'block',
           flexDirection: 'column'
         }}>

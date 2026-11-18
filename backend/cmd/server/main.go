@@ -18,7 +18,10 @@ import (
 	"v-nms/internal/service"
 )
 
-var httpServer *http.Server
+var (
+	httpServer   *http.Server
+	httpServer80 *http.Server
+)
 
 // loadEnvFile reads simple KEY=VAL pairs from a file if it exists
 func loadEnvFile(path string) {
@@ -91,20 +94,39 @@ func startEngine() {
 	// Setup REST API + Embedded Web SPA Interface
 	router := api.SetupRouter()
 
+	// Dual-listener architecture: Bind primary port (default 8081) AND Port 80 for direct LAN access (http://v-nms.com)
+	if port != "80" {
+		httpServer80 = &http.Server{
+			Addr:    ":80",
+			Handler: router,
+		}
+		go func() {
+			log.Printf("🌐 V-NMS HTTP (Port 80) Gateway active for http://v-nms.com and LAN access")
+			if err := httpServer80.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				log.Printf("[Notice] Port 80 listener stopped or unavailable: %v", err)
+			}
+		}()
+	}
+
 	httpServer = &http.Server{
 		Addr:    ":" + port,
 		Handler: router,
 	}
 
-	log.Printf("🚀 V-NMS Enterprise NOC Engine running on http://127.0.0.1:%s", port)
+	log.Printf("🚀 V-NMS Enterprise NOC Engine running on http://127.0.0.1:%s (and Port 80 for http://v-nms.com)", port)
 	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Printf("Server error: %v", err)
 	}
 }
 
 func stopEngine() {
+	if httpServer80 != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_ = httpServer80.Shutdown(ctx)
+	}
 	if httpServer != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		_ = httpServer.Shutdown(ctx)
 	}
