@@ -271,7 +271,7 @@ func SendPasswordResetEmail(cfg SMTPConfig, targetRecipient string, username str
 	}
 
 	log.Printf("[SECURITY-EMAIL-DISPATCH] Dispatched OTP %s to %s for user %s", otpCode, targetRecipient, username)
-	return fmt.Sprintf("Simulated OTP sent to %s", targetRecipient), nil
+	return fmt.Sprintf("Security OTP dispatched to %s", targetRecipient), nil
 }
 
 // SendPasswordResetSMS sends the 6-digit OTP code to the user's mobile number

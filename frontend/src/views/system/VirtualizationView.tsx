@@ -11,9 +11,7 @@ import {
   RefreshCw,
   Plus,
   Trash2,
-  X,
-  ToggleLeft,
-  ToggleRight
+  X
 } from 'lucide-react';
 import type { Device } from '../../types';
 import { ExportButtons } from '../../components/ExportButtons';
@@ -31,7 +29,6 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
   const [certs, setCerts] = useState<any[]>([]);
   const [hypervisors, setHypervisors] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [demoMode, setDemoMode] = useState<boolean>(false);
 
   // Modals
   const [isCloudModalOpen, setIsCloudModalOpen] = useState(false);
@@ -53,13 +50,12 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
   const [workloadImage, setWorkloadImage] = useState('');
   const [workloadMemoryLimit, setWorkloadMemoryLimit] = useState(512);
 
-  const fetchVirtualizationData = async (isDemo = demoMode) => {
+  const fetchVirtualizationData = async () => {
     setLoading(true);
     try {
-      const demoParam = isDemo ? '?demo=true' : '';
       const [resC, resCl, resS, resH] = await Promise.allSettled([
-        axios.get(`http://127.0.0.1:8081/api/v1/virtualization/containers${demoParam}`, { timeout: 3500 }),
-        axios.get(`http://127.0.0.1:8081/api/v1/virtualization/cloud${demoParam}`, { timeout: 3500 }),
+        axios.get('http://127.0.0.1:8081/api/v1/virtualization/containers', { timeout: 3500 }),
+        axios.get('http://127.0.0.1:8081/api/v1/virtualization/cloud', { timeout: 3500 }),
         axios.get('http://127.0.0.1:8081/api/v1/virtualization/security', { timeout: 3500 }),
         axios.get('http://127.0.0.1:8081/api/v1/virtualization/hypervisors', { timeout: 3500 })
       ]);
@@ -88,14 +84,8 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
   };
 
   useEffect(() => {
-    fetchVirtualizationData(demoMode);
-  }, [demoMode]);
-
-  const handleToggleDemo = (newVal: boolean) => {
-    setDemoMode(newVal);
-    fetchVirtualizationData(newVal);
-    toast.info(newVal ? 'Demo Sandbox Mode: Showing sample telemetry' : 'Real Hardware Mode: Zero dummy data active');
-  };
+    fetchVirtualizationData();
+  }, []);
 
   // Add Cloud Service
   const handleAddCloudService = async (e: React.FormEvent) => {
@@ -136,17 +126,6 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
       toast.success(`Removed cloud service: ${name}`);
     } catch {
       toast.error('Failed to delete cloud service');
-    }
-  };
-
-  // Seed Demo Cloud
-  const handleSeedDemoCloud = async () => {
-    try {
-      await axios.post('http://127.0.0.1:8081/api/v1/virtualization/cloud/seed-demo');
-      handleToggleDemo(true);
-      toast.success('Sandbox demo cloud accounts created in database');
-    } catch {
-      toast.error('Failed to seed demo data');
     }
   };
 
@@ -234,8 +213,8 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
               Virtualization, Containers &amp; Cloud Management
             </h2>
-            <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '4px', background: demoMode ? '#fef3c7' : '#dcfce7', color: demoMode ? '#b45309' : '#15803d', fontWeight: 700 }}>
-              {demoMode ? 'Sandbox Demo Mode' : '● Live Monitored Mode'}
+            <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '4px', background: '#dcfce7', color: '#15803d', fontWeight: 700 }}>
+              ● Telemetry Poller Active
             </span>
           </div>
           <p style={{ fontSize: '0.80rem', color: '#64748b', margin: '4px 0 0 0' }}>
@@ -244,28 +223,6 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Demo Sandbox Mode Toggle */}
-          <button
-            type="button"
-            onClick={() => handleToggleDemo(!demoMode)}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              background: demoMode ? '#fffbeb' : '#f8fafc',
-              border: `1px solid ${demoMode ? '#fde68a' : '#cbd5e1'}`,
-              color: demoMode ? '#b45309' : '#475569',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '0.74rem',
-              fontWeight: 700
-            }}
-          >
-            {demoMode ? <ToggleRight size={16} color="#d97706" /> : <ToggleLeft size={16} color="#94a3b8" />}
-            <span>Demo Data: {demoMode ? 'ON' : 'OFF'}</span>
-          </button>
-
           <button
             onClick={() => fetchVirtualizationData()}
             style={{
@@ -411,10 +368,10 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
               </div>
               <div>
                 <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
-                  No Cloud Services Connected Yet
+                  No Cloud Services Configured
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#64748b', maxWidth: '480px', margin: 0 }}>
-                  Zero fake data mode is active. Connect your real AWS IAM credentials, Azure Subscription, or Google Cloud workloads to start tracking live telemetry.
+                  Connect an AWS IAM role, Azure Subscription, or Google Cloud Project to monitor compute instances, databases, and resource availability.
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
@@ -435,23 +392,7 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
                     gap: '6px'
                   }}
                 >
-                  <Plus size={16} /> Connect Real Cloud Service
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSeedDemoCloud}
-                  style={{
-                    padding: '8px 18px',
-                    borderRadius: '8px',
-                    background: '#f8fafc',
-                    color: '#475569',
-                    border: '1px solid #cbd5e1',
-                    fontWeight: 600,
-                    fontSize: '0.82rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Load Sandbox Demo Data (Optional)
+                  <Plus size={16} /> + Connect Cloud Service
                 </button>
               </div>
             </div>
@@ -612,10 +553,10 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
               </div>
               <div>
                 <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
-                  No Container Workloads Registered
+                  No Container Workloads Configured
                 </h4>
                 <p style={{ fontSize: '0.82rem', color: '#64748b', maxWidth: '480px', margin: 0 }}>
-                  Zero fake data mode is active. Connect your local Docker Daemon socket or Kubernetes cluster to monitor live microservices.
+                  Connect a Docker daemon socket or Kubernetes API endpoint to monitor container health, memory limits, and restart metrics.
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
@@ -636,7 +577,7 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
                     gap: '6px'
                   }}
                 >
-                  <Plus size={16} /> + Register Real Workload
+                  <Plus size={16} /> + Register Workload
                 </button>
               </div>
             </div>
@@ -960,7 +901,7 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
                 <th style={{ padding: '6px 10px' }}>RESPONSE TIME</th>
                 <th style={{ padding: '6px 10px' }}>EXPECTED RETURN</th>
                 <th style={{ padding: '6px 10px' }}>STATUS</th>
-                <th style={{ padding: '6px 10px' }}>LAST VERIFIED</th>
+                <th style={{ padding: '6px 10px' }}>LAST POLLED</th>
               </tr>
             </thead>
             <tbody>

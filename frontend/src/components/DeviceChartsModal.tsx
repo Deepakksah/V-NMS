@@ -821,7 +821,7 @@ export const DeviceChartsModal: React.FC<DeviceChartsModalProps> = ({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.70rem', color: '#1e293b', fontWeight: 600 }}>
             <ShieldCheck size={14} color="#16a34a" />
-            <span>Telemetry verified • Continuous live sampling active</span>
+            <span>Real-time Telemetry Poller • Continuous sampling active</span>
           </div>
 
           <button

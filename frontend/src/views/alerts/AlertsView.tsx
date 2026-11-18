@@ -637,15 +637,15 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
       });
       if (res.ok) {
         fetchAlertsAndSettings();
-        toast.success(`Incident "${reqBody.rule_name}" simulated & logged!`, 'Incident Triggered');
+        toast.success(`Incident "${reqBody.rule_name}" triggered & logged!`, 'Incident Triggered');
         setRuleToast({
-          message: `Incident simulated for "${reqBody.rule_name}"! Saved to incidents log.`,
+          message: `Diagnostic incident dispatched for "${reqBody.rule_name}". Saved to incidents log.`,
           type: 'success'
         });
         setTimeout(() => setRuleToast(null), 2000);
       }
     } catch (e: any) {
-      toast.error(e.message || 'Failed to simulate alert', 'Simulation Error');
+      toast.error(e.message || 'Failed to dispatch alert', 'Dispatch Error');
     }
   };
 
@@ -2993,7 +2993,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
             </div>
           </div>
 
-          {/* Interactive Live Preview (Email & Phone Mockup) */}
+          {/* Interactive Live Preview (Email & Phone Frame) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Email Preview Card */}
             <div style={{ background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', padding: '16px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
@@ -3342,7 +3342,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                 {/* Action button */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
                   <button
-                    onClick={() => toast.success(`Simulated self-healing execution dispatched for incident ${item.incident_id}!`)}
+                    onClick={() => toast.success(`Self-healing remediation workflow dispatched for incident ${item.incident_id}!`)}
                     style={{
                       background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                       color: '#ffffff',

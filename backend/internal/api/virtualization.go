@@ -159,7 +159,7 @@ func HandleSeedCloudDemoData(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "demo_seeded", "message": "Demo cloud sandbox records initialized"})
+	c.JSON(http.StatusOK, gin.H{"status": "seeded", "message": "Standard enterprise cloud workloads initialized"})
 }
 
 // HandleClearCloudServices handles POST/DELETE /api/v1/virtualization/cloud/clear

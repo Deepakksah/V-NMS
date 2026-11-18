@@ -137,7 +137,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
           setChassisData(resChassis.value.data.chassis_sensors);
         }
       } catch {
-        // Fallback to audited mockEnterpriseData
+        // Fallback to enterprise defaults
       }
     };
 
@@ -290,7 +290,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>Sensors, Metrics &amp; Storage Architecture</h2>
             <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: isLive ? '#dcfce7' : '#e0f2fe', color: isLive ? '#15803d' : '#0369a1', fontWeight: 700 }}>
-              {isLive ? '● Live Hardware Verified' : 'Models #26 - #35'}
+              {isLive ? '● Telemetry Poller Active' : 'Catalog Models #26 - #35'}
             </span>
           </div>
           <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>

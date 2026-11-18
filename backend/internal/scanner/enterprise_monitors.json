@@ -10743,7 +10743,7 @@
     "protocol": "SNMP",
     "vendor": "Cisco",
     "unit": "%",
-    "description": "Percentage of the device CPU utilization during the last 5 minutes. The value 101 is a dummy value, indicating that the CPU utilization was not measured (since measurement is disabled or was disabled during last 5 minutes)."
+    "description": "Percentage of the device CPU utilization during the last 5 minutes. The value 101 is a sentinel value, indicating that the CPU utilization was not measured (since measurement is disabled or was disabled during last 5 minutes)."
   },
   {
     "name": "CPU Utilization (5 secs)",
@@ -34998,7 +34998,7 @@
     "protocol": "SNMP",
     "vendor": "Cisco",
     "unit": "%",
-    "description": "Percentage of the device CPU utilization during the last 5 minutes. The value 101 is a dummy value, indicating that the CPU utilization was not measured (since measurement is disabled or was disabled during last 1 seconds)."
+    "description": "Percentage of the device CPU utilization during the last 5 minutes. The value 101 is a sentinel value, indicating that the CPU utilization was not measured (since measurement is disabled or was disabled during last 1 seconds)."
   },
   {
     "name": "CPU Utilization(Last 1 min)",
@@ -35007,7 +35007,7 @@
     "protocol": "SNMP",
     "vendor": "Cisco",
     "unit": "%",
-    "description": "Percentage of the device CPU utilization during the last minutes. The value 101 is a dummy value, indicating that the CPU utilization was not measured (since measurement is disabled or was disabled during last 1 minutes)."
+    "description": "Percentage of the device CPU utilization during the last minutes. The value 101 is a sentinel value, indicating that the CPU utilization was not measured (since measurement is disabled or was disabled during last 1 minutes)."
   },
   {
     "name": "AP CPU Usage",

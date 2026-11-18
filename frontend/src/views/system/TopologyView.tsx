@@ -1014,7 +1014,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                   No Discovered Nodes in Network Topology
                 </h3>
                 <p style={{ fontSize: '0.84rem', color: '#64748b', maxWidth: '440px', margin: 0, lineHeight: 1.5 }}>
-                  Topology dynamically visualizes real routers, switches, servers, and workstations from your inventory. No hardcoded or mock devices are loaded.
+                  Network topology maps physical nodes, switch uplinks, and connectivity dynamically from discovered inventory. Launch Network Discovery to populate nodes.
                 </p>
               </div>
               {onOpenDiscovery && (

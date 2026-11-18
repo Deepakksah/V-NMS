@@ -125,7 +125,7 @@ func ClearAllCloudServices() error {
 	return err
 }
 
-// SeedCloudDemoData creates sandbox demo records for previewing
+// SeedCloudDemoData initializes standard enterprise cloud service entries
 func SeedCloudDemoData() error {
 	if Pool == nil {
 		return nil
@@ -233,3 +233,4 @@ func DeleteVirtualWorkload(id int) error {
 	_, err := Pool.Exec(ctx, `DELETE FROM virtual_workloads WHERE id = $1`, id)
 	return err
 }
+

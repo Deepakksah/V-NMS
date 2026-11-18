@@ -538,7 +538,7 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/
               {specialized.http_regex_pattern}
             </div>
             <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 700 }}>
-              ✓ PATTERN VERIFIED MATCH
+              ✓ PATTERN MATCH CONFIRMED
             </span>
           </div>
 
@@ -557,7 +557,7 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/
               Resolved: <code>{specialized.dns_resolved_ip}</code> in <strong>{specialized.dns_resolution_ms} ms</strong>
             </div>
             <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '4px', fontSize: '0.70rem', fontWeight: 700 }}>
-              ✓ INTEGRITY VERIFIED
+              ✓ INTEGRITY CHECK PASS
             </span>
           </div>
 

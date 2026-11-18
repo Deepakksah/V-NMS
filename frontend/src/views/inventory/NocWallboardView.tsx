@@ -663,7 +663,7 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
               Print this QR badge and affix to cabinet rack. Technicians scanning with phone instantly view live node health.
             </p>
 
-            {/* Generated QR Mockup */}
+            {/* Generated QR Code Preview */}
             <div style={{ display: 'inline-block', padding: '16px', border: '2px solid #0f172a', borderRadius: '8px', background: '#f8fafc', marginBottom: '16px' }}>
               <QrCode size={160} color="#0f172a" />
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.68rem', fontWeight: 700, color: '#0f172a', marginTop: '8px' }}>
