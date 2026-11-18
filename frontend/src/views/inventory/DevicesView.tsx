@@ -24,6 +24,7 @@ import {
 } from '../../data/mockEnterpriseData';
 import { DeviceChartsModal } from '../../components/DeviceChartsModal';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
+import { OsBadge, OsIcon, detectOsInfo } from '../../components/OsBadge';
 import { ExportButtons } from '../../components/ExportButtons';
 import { PageHeader } from '../../components/PageHeader';
 
@@ -68,6 +69,7 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
     return 'ALL';
   });
   const [chartDevice, setChartDevice] = useState<Device | null>(null);
+  const [osFilter, setOsFilter] = useState<'ALL' | 'WINDOWS' | 'LINUX' | 'MACOS' | 'DOCKER'>('ALL');
 
   // Sync type filter when categoryFilter prop changes
   React.useEffect(() => {
@@ -126,7 +128,18 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
       if (categoryFilter === 'ntp' && devType !== 'NTP') return false;
 
       const matchType = typeFilter === 'ALL' || devType === typeFilter;
-      return matchSearch && matchType;
+      if (!matchType) return false;
+
+      // Apply OS platform filter if active
+      if (osFilter !== 'ALL') {
+        const osInfo = detectOsInfo(d.os, d.hostname, d.device_type);
+        if (osFilter === 'WINDOWS' && osInfo.type !== 'windows') return false;
+        if (osFilter === 'LINUX' && (osInfo.type !== 'linux' && osInfo.type !== 'ubuntu' && osInfo.type !== 'redhat')) return false;
+        if (osFilter === 'MACOS' && osInfo.type !== 'macos') return false;
+        if (osFilter === 'DOCKER' && osInfo.type !== 'docker') return false;
+      }
+
+      return matchSearch;
     }).sort((a, b) => {
       // Natural IPv4 numerical octet sorting
       const octA = (a.ip_address || '').split('.').map(Number);
@@ -369,6 +382,42 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                   );
                 })}
               </div>
+
+              {/* OS / Platform Filter Pills */}
+              <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap', marginLeft: '6px', paddingLeft: '8px', borderLeft: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '0.70rem', fontWeight: 700, color: '#64748b', marginRight: '2px' }}>OS:</span>
+                {[
+                  { id: 'ALL', label: 'All OS' },
+                  { id: 'WINDOWS', label: 'Windows', iconType: 'windows' as const },
+                  { id: 'LINUX', label: 'Linux', iconType: 'linux' as const },
+                  { id: 'MACOS', label: 'macOS', iconType: 'macos' as const },
+                  { id: 'DOCKER', label: 'Docker', iconType: 'docker' as const }
+                ].map(osChip => {
+                  const isOsActive = osFilter === osChip.id;
+                  return (
+                    <button
+                      key={osChip.id}
+                      onClick={() => setOsFilter(osChip.id as any)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 9px',
+                        borderRadius: '6px',
+                        border: isOsActive ? '1px solid #0284c7' : '1px solid #e2e8f0',
+                        background: isOsActive ? '#f0f9ff' : '#ffffff',
+                        color: isOsActive ? '#0284c7' : '#64748b',
+                        fontSize: '0.72rem',
+                        fontWeight: isOsActive ? 700 : 500,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {osChip.iconType && <OsIcon type={osChip.iconType} size={12} />}
+                      <span>{osChip.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -424,7 +473,12 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                     <td style={{ padding: '4px 8px' }}>
                       <VendorLogo vendor={dev.vendor || 'Generic'} size="xs" />
                     </td>
-                    <td style={{ padding: '4px 10px', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>{dev.hostname}</td>
+                    <td style={{ padding: '4px 10px', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <OsBadge os={dev.os} hostname={dev.hostname} deviceType={dev.device_type || devType} size="xs" variant="icon-only" />
+                        <span>{dev.hostname}</span>
+                      </div>
+                    </td>
                     <td style={{ padding: '4px 10px' }}>
                       <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', color: '#0284c7', fontWeight: 600 }}>
                         {dev.ip_address}
@@ -437,7 +491,9 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                     </td>
                     <td style={{ padding: '4px 10px' }}>
                       <div style={{ fontSize: '0.74rem', color: '#0f172a', fontWeight: 600 }}>{dev.hardware || 'Enterprise Hardware'}</div>
-                      <div style={{ fontSize: '0.65rem', color: '#64748b' }}>{dev.os || 'Enterprise OS'}</div>
+                      <div style={{ marginTop: '2px' }}>
+                        <OsBadge os={dev.os} hostname={dev.hostname} deviceType={dev.device_type || devType} size="xs" />
+                      </div>
                     </td>
                     <td style={{ padding: '4px 8px', fontSize: '0.72rem', color: '#64748b' }}>{dev.snmp_version.toUpperCase()}</td>
                     <td style={{ padding: '4px 8px', fontWeight: 600, color: dev.last_ping_ms < 10 ? '#16a34a' : '#d97706', fontSize: '0.74rem' }}>

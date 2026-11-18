@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import type { Device, AlertRecipient } from '../../types';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
+import { OsBadge } from '../../components/OsBadge';
 import { useToast } from '../../context/ToastContext';
 import { ExportButtons } from '../../components/ExportButtons';
 import { PageHeader } from '../../components/PageHeader';
@@ -967,11 +968,13 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                       <td style={{ padding: '4px 10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           {dev?.vendor && <VendorLogo vendor={dev.vendor} size="xs" showLabel={false} />}
+                          {dev && <OsBadge os={dev.os} hostname={dev.hostname} deviceType={dev.device_type} size="xs" variant="icon-only" />}
                           <div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
                                 {dev?.hostname || `Device #${inc.device_id}`}
                               </span>
+                              {dev && <OsBadge os={dev.os} hostname={dev.hostname} deviceType={dev.device_type} size="xs" short={true} />}
                               {dev?.device_type && <DeviceTypeBadge type={dev.device_type} size="xs" />}
                             </div>
                             <div style={{ fontSize: '0.66rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>
@@ -1928,11 +1931,13 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
                                     <td style={{ padding: '4px 10px' }}>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         {d.vendor && <VendorLogo vendor={d.vendor} size="xs" showLabel={false} />}
+                                        <OsBadge os={d.os} hostname={d.hostname} deviceType={d.device_type} size="xs" variant="icon-only" />
                                         <div>
                                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                             <span style={{ fontWeight: 700, color: '#0f172a', fontSize: '0.76rem' }}>
                                               {d.hostname}
                                             </span>
+                                            <OsBadge os={d.os} hostname={d.hostname} deviceType={d.device_type} size="xs" short={true} />
                                             {d.device_type && <DeviceTypeBadge type={d.device_type} size="xs" />}
                                           </div>
                                           <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#0284c7' }}>

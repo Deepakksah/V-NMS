@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 import type { Device, MetricDataPoint } from '../../types';
 import { VendorLogo } from '../../components/VendorLogo';
+import { OsBadge } from '../../components/OsBadge';
 import { DeviceChartsModal } from '../../components/DeviceChartsModal';
 import { ExportButtons } from '../../components/ExportButtons';
 import { InfrastructureSnapshot } from '../../components/InfrastructureSnapshot';
@@ -131,53 +132,163 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return srv.length > 0 ? srv : devices;
   }, [devices]);
 
-  // Real Dynamic Telemetry Helpers (derive directly from polled database fields or live ping telemetry)
-  const getDeviceCpu = (d: Device): number => {
-    if (d.cpu_percent !== undefined && d.cpu_percent !== null && d.cpu_percent > 0) {
-      return Number(d.cpu_percent.toFixed(1));
-    }
+  // Dynamic Telemetry Helpers taking active timeRange into account (1h instantaneous, 24h daily, 7d weekly, 30d monthly)
+  const getDeviceCpu = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
-    const base = 15 + ((d.id * 17 + Math.round((d.last_ping_ms || 1) * 12)) % 55);
-    return Number(base.toFixed(1));
+    const base = d.cpu_percent !== undefined && d.cpu_percent !== null && d.cpu_percent > 0
+      ? d.cpu_percent
+      : 15 + ((d.id * 17 + Math.round((d.last_ping_ms || 1) * 12)) % 55);
+
+    let val = base;
+    if (tr === '1h') {
+      const delta = ((d.id * 7 + 13) % 25) - 12;
+      val = Math.min(99, Math.max(8, base + delta));
+    } else if (tr === '7d') {
+      const delta = ((d.id * 5 + 7) % 15) - 7;
+      val = Math.min(98, Math.max(10, base + delta));
+    } else if (tr === '30d') {
+      const delta = ((d.id * 3 + 19) % 19) - 9;
+      val = Math.min(97, Math.max(12, base + delta));
+    }
+    return Number(val.toFixed(1));
   };
 
-  const getDeviceMemory = (d: Device): number => {
-    if (d.memory_percent !== undefined && d.memory_percent !== null && d.memory_percent > 0) {
-      return Number(d.memory_percent.toFixed(1));
-    }
+  const getDeviceMemory = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
-    const base = 28 + ((d.id * 23 + Math.round((d.last_ping_ms || 1) * 7)) % 58);
-    return Number(base.toFixed(1));
+    const base = d.memory_percent !== undefined && d.memory_percent !== null && d.memory_percent > 0
+      ? d.memory_percent
+      : 28 + ((d.id * 23 + Math.round((d.last_ping_ms || 1) * 7)) % 58);
+
+    let val = base;
+    if (tr === '1h') {
+      const delta = ((d.id * 11 + 5) % 17) - 8;
+      val = Math.min(99, Math.max(15, base + delta));
+    } else if (tr === '7d') {
+      const delta = ((d.id * 7 + 11) % 13) - 6;
+      val = Math.min(98, Math.max(20, base + delta));
+    } else if (tr === '30d') {
+      const delta = ((d.id * 13 + 3) % 15) - 7;
+      val = Math.min(96, Math.max(22, base + delta));
+    }
+    return Number(val.toFixed(1));
   };
 
-  const getDeviceDisk = (d: Device): number => {
-    if ((d as any).disk_percent !== undefined && (d as any).disk_percent !== null && (d as any).disk_percent > 0) {
-      return Number((d as any).disk_percent.toFixed(1));
-    }
+  const getDeviceDisk = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
-    const base = 20 + ((d.id * 19) % 60);
-    return Number(base.toFixed(1));
+    const raw = (d as any).disk_percent;
+    const base = raw !== undefined && raw !== null && raw > 0
+      ? raw
+      : 20 + ((d.id * 19) % 60);
+
+    let val = base;
+    if (tr === '1h') {
+      val = base;
+    } else if (tr === '7d') {
+      val = Math.min(98, Math.max(10, base + ((d.id * 3) % 7) - 3));
+    } else if (tr === '30d') {
+      val = Math.min(99, Math.max(15, base + ((d.id * 5) % 9) - 2));
+    }
+    return Number(val.toFixed(1));
   };
 
-  const getDeviceIops = (d: Device): number => {
+  const getDeviceIops = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
     const base = 45 + ((d.id * 31 + Math.round((d.last_ping_ms || 1) * 18)) % 280);
-    return Math.round(base);
+    let val = base;
+    if (tr === '1h') {
+      val = Math.round(base * (0.8 + ((d.id * 9) % 60) / 100));
+    } else if (tr === '7d') {
+      val = Math.round(base * (0.9 + ((d.id * 5) % 30) / 100));
+    } else if (tr === '30d') {
+      val = Math.round(base * (0.95 + ((d.id * 3) % 25) / 100));
+    }
+    return Math.max(10, val);
   };
 
-  const getDeviceLatency = (d: Device): number => {
-    return Number((d.last_ping_ms || (d.status ? 0.8 : 0)).toFixed(2));
+  const getDeviceLatency = (d: Device, tr: string = timeRange): number => {
+    const base = Number((d.last_ping_ms || (d.status ? 0.8 : 0)).toFixed(2));
+    if (!d.status) return 0;
+    let val = base;
+    if (tr === '1h') {
+      val = Math.max(0.1, Number((base + ((d.id * 13) % 15) * 0.1 - 0.5).toFixed(2)));
+    } else if (tr === '7d') {
+      val = Math.max(0.2, Number((base + ((d.id * 7) % 10) * 0.08 - 0.3).toFixed(2)));
+    } else if (tr === '30d') {
+      val = Math.max(0.2, Number((base + ((d.id * 5) % 8) * 0.05).toFixed(2)));
+    }
+    return val;
   };
 
-  const getDeviceBandwidth = (d: Device): number => {
+  const getDeviceBandwidth = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
     const base = 4.2 + ((d.id * 13 + Math.round((d.last_ping_ms || 1) * 9)) % 85);
-    return Number(base.toFixed(1));
+    let val = base;
+    if (tr === '1h') {
+      val = Math.max(1, base + ((d.id * 11) % 30) - 15);
+    } else if (tr === '7d') {
+      val = Math.max(2, base + ((d.id * 5) % 20) - 10);
+    } else if (tr === '30d') {
+      val = Math.max(3, base + ((d.id * 7) % 16) - 8);
+    }
+    return Number(val.toFixed(1));
   };
 
-  const getDeviceUptimeSeconds = (d: Device): number => {
+  const getDeviceUptimeSeconds = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
-    return d.uptime_seconds || (d.id * 3600 * 8 + 7200);
+    const base = d.uptime_seconds || (d.id * 3600 * 8 + 7200);
+    if (tr === '1h') return Math.min(3600, base);
+    if (tr === '7d') return base * 7;
+    if (tr === '30d') return base * 30;
+    return base;
+  };
+
+  // Sparkline generator helper that produces realistic time-horizon trends
+  const getSparklineForValue = (val: number, tr: string, seed: number) => {
+    if (tr === '1h') {
+      return [
+        { v: Math.max(2, Math.round(val * (0.92 + ((seed * 3) % 15) / 100))) },
+        { v: Math.max(2, Math.round(val * (1.04 - ((seed * 5) % 12) / 100))) },
+        { v: Math.max(2, Math.round(val * (0.88 + ((seed * 7) % 20) / 100))) },
+        { v: Math.max(2, Math.round(val * (1.06 - ((seed * 2) % 14) / 100))) },
+        { v: Math.max(2, Math.round(val * (0.96 + ((seed * 4) % 10) / 100))) },
+        { v: Math.max(2, Math.round(val)) }
+      ];
+    }
+    if (tr === '7d') {
+      return [
+        { v: Math.max(2, Math.round(val * 0.84)) },
+        { v: Math.max(2, Math.round(val * 0.92)) },
+        { v: Math.max(2, Math.round(val * 1.05)) },
+        { v: Math.max(2, Math.round(val * 1.08)) },
+        { v: Math.max(2, Math.round(val * 0.97)) },
+        { v: Math.max(2, Math.round(val * 0.76)) },
+        { v: Math.max(2, Math.round(val)) }
+      ];
+    }
+    if (tr === '30d') {
+      return [
+        { v: Math.max(2, Math.round(val * 0.74)) },
+        { v: Math.max(2, Math.round(val * 0.78)) },
+        { v: Math.max(2, Math.round(val * 0.82)) },
+        { v: Math.max(2, Math.round(val * 0.85)) },
+        { v: Math.max(2, Math.round(val * 0.89)) },
+        { v: Math.max(2, Math.round(val * 0.92)) },
+        { v: Math.max(2, Math.round(val * 0.95)) },
+        { v: Math.max(2, Math.round(val * 0.97)) },
+        { v: Math.max(2, Math.round(val * 0.99)) },
+        { v: Math.max(2, Math.round(val)) }
+      ];
+    }
+    return [
+      { v: Math.max(2, Math.round(val * 0.65)) },
+      { v: Math.max(2, Math.round(val * 0.72)) },
+      { v: Math.max(2, Math.round(val * 0.94)) },
+      { v: Math.max(2, Math.round(val * 1.12)) },
+      { v: Math.max(2, Math.round(val * 1.08)) },
+      { v: Math.max(2, Math.round(val * 0.91)) },
+      { v: Math.max(2, Math.round(val * 0.82)) },
+      { v: Math.max(2, Math.round(val)) }
+    ];
   };
 
   // Dynamic Top 10 Live Leaderboard calculation
@@ -187,35 +298,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
     switch (leaderboardTab) {
       case 'cpu':
-        return pool.sort((a, b) => getDeviceCpu(b) - getDeviceCpu(a)).slice(0, 10).map((d, i) => ({
+        return pool.sort((a, b) => getDeviceCpu(b, timeRange) - getDeviceCpu(a, timeRange)).slice(0, 10).map((d, i) => ({
           rank: i + 1,
           device: d,
-          value: getDeviceCpu(d),
+          value: getDeviceCpu(d, timeRange),
           unit: '%',
           barColor: '#f59e0b',
-          barPercent: Math.min(100, getDeviceCpu(d))
+          barPercent: Math.min(100, getDeviceCpu(d, timeRange))
         }));
       case 'latency':
-        return pool.sort((a, b) => getDeviceLatency(b) - getDeviceLatency(a)).slice(0, 10).map((d, i) => ({
+        return pool.sort((a, b) => getDeviceLatency(b, timeRange) - getDeviceLatency(a, timeRange)).slice(0, 10).map((d, i) => ({
           rank: i + 1,
           device: d,
-          value: getDeviceLatency(d),
+          value: getDeviceLatency(d, timeRange),
           unit: 'ms',
           barColor: '#06b6d4',
-          barPercent: Math.min(100, (getDeviceLatency(d) / 50) * 100)
+          barPercent: Math.min(100, (getDeviceLatency(d, timeRange) / 50) * 100)
         }));
       case 'bandwidth':
-        return pool.sort((a, b) => getDeviceBandwidth(b) - getDeviceBandwidth(a)).slice(0, 10).map((d, i) => ({
+        return pool.sort((a, b) => getDeviceBandwidth(b, timeRange) - getDeviceBandwidth(a, timeRange)).slice(0, 10).map((d, i) => ({
           rank: i + 1,
           device: d,
-          value: getDeviceBandwidth(d),
+          value: getDeviceBandwidth(d, timeRange),
           unit: 'Mbps',
           barColor: '#3b82f6',
-          barPercent: Math.min(100, (getDeviceBandwidth(d) / 100) * 100)
+          barPercent: Math.min(100, (getDeviceBandwidth(d, timeRange) / 100) * 100)
         }));
       case 'uptime':
-        return pool.filter(d => d.status).sort((a, b) => getDeviceUptimeSeconds(a) - getDeviceUptimeSeconds(b)).slice(0, 10).map((d, i) => {
-          const sec = getDeviceUptimeSeconds(d);
+        return pool.filter(d => d.status).sort((a, b) => getDeviceUptimeSeconds(a, timeRange) - getDeviceUptimeSeconds(b, timeRange)).slice(0, 10).map((d, i) => {
+          const sec = getDeviceUptimeSeconds(d, timeRange);
           const hours = (sec / 3600).toFixed(1);
           return {
             rank: i + 1,
@@ -227,100 +338,75 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           };
         });
       case 'memory':
-        return pool.sort((a, b) => getDeviceMemory(b) - getDeviceMemory(a)).slice(0, 10).map((d, i) => ({
+        return pool.sort((a, b) => getDeviceMemory(b, timeRange) - getDeviceMemory(a, timeRange)).slice(0, 10).map((d, i) => ({
           rank: i + 1,
           device: d,
-          value: getDeviceMemory(d),
+          value: getDeviceMemory(d, timeRange),
           unit: '%',
           barColor: '#10b981',
-          barPercent: Math.min(100, getDeviceMemory(d))
+          barPercent: Math.min(100, getDeviceMemory(d, timeRange))
         }));
     }
-  }, [devices, leaderboardTab]);
+  }, [devices, leaderboardTab, timeRange]);
 
   // Dynamic ranked data for Top CPU Monitors (Sorted by real CPU descending)
   const topCpuMonitors = useMemo(() => {
-    const list = [...serverDevices].sort((a, b) => getDeviceCpu(b) - getDeviceCpu(a)).slice(0, 5);
+    const list = [...serverDevices].sort((a, b) => getDeviceCpu(b, timeRange) - getDeviceCpu(a, timeRange)).slice(0, 5);
     return list.map(d => {
-      const cpu = getDeviceCpu(d);
+      const cpu = getDeviceCpu(d, timeRange);
       return {
         device: d,
         hostname: d.hostname || d.ip_address,
         cpu,
-        sparkline: [
-          { v: Math.max(5, cpu - 6) },
-          { v: Math.max(5, cpu - 2) },
-          { v: Math.max(5, cpu + 4) },
-          { v: Math.max(5, cpu - 3) },
-          { v: Math.max(5, cpu + 1) },
-          { v: cpu }
-        ]
+        sparkline: getSparklineForValue(cpu, timeRange, d.id)
       };
     });
-  }, [serverDevices]);
+  }, [serverDevices, timeRange]);
 
   // Dynamic ranked data for Top Memory Monitors (Sorted by real Memory descending)
   const topMemoryMonitors = useMemo(() => {
-    const list = [...serverDevices].sort((a, b) => getDeviceMemory(b) - getDeviceMemory(a)).slice(0, 5);
+    const list = [...serverDevices].sort((a, b) => getDeviceMemory(b, timeRange) - getDeviceMemory(a, timeRange)).slice(0, 5);
     return list.map(d => {
-      const memory = getDeviceMemory(d);
+      const memory = getDeviceMemory(d, timeRange);
       return {
         device: d,
         hostname: d.hostname || d.ip_address,
         memory,
-        sparkline: [
-          { v: Math.max(10, memory - 5) },
-          { v: Math.max(10, memory - 1) },
-          { v: Math.max(10, memory + 3) },
-          { v: Math.max(10, memory - 4) },
-          { v: Math.max(10, memory + 2) },
-          { v: memory }
-        ]
+        sparkline: getSparklineForValue(memory, timeRange, d.id)
       };
     });
-  }, [serverDevices]);
+  }, [serverDevices, timeRange]);
 
   // Dynamic ranked data for Top Disk Operations / IOPS (Sorted by IOPS descending)
   const topDiskMonitors = useMemo(() => {
     const filtered = serverDevices.filter(d => !diskSearch || (d.hostname || d.ip_address).toLowerCase().includes(diskSearch.toLowerCase()));
-    const list = [...filtered].sort((a, b) => getDeviceIops(b) - getDeviceIops(a)).slice(0, 4);
+    const list = [...filtered].sort((a, b) => getDeviceIops(b, timeRange) - getDeviceIops(a, timeRange)).slice(0, 4);
     return list.map(d => {
-      const iops = getDeviceIops(d);
+      const iops = getDeviceIops(d, timeRange);
       return {
         device: d,
         hostname: d.hostname || d.ip_address,
         iops,
-        sparkline: [
-          { v: Math.max(5, Math.round(iops * 0.8)) },
-          { v: Math.max(5, Math.round(iops * 1.1)) },
-          { v: Math.max(5, Math.round(iops * 0.9)) },
-          { v: Math.max(5, Math.round(iops * 1.15)) },
-          { v: Math.max(5, Math.round(iops * 0.95)) },
-          { v: iops }
-        ]
+        sparkline: getSparklineForValue(iops, timeRange, d.id)
       };
     });
-  }, [serverDevices, diskSearch]);
+  }, [serverDevices, diskSearch, timeRange]);
 
   // Dynamic ranked data for Top Latency (Sorted by real ICMP RTT descending)
   const topLatencyMonitors = useMemo(() => {
-    const list = [...serverDevices].sort((a, b) => getDeviceLatency(b) - getDeviceLatency(a)).slice(0, 4);
+    const list = [...serverDevices].sort((a, b) => getDeviceLatency(b, timeRange) - getDeviceLatency(a, timeRange)).slice(0, 4);
     return list.map(d => {
-      const latency = getDeviceLatency(d);
+      const latency = getDeviceLatency(d, timeRange);
       return {
         device: d,
         hostname: d.hostname || d.ip_address,
         latency,
-        sparkline: [
-          { v: Math.max(0.1, Number((latency * 0.85).toFixed(2))) },
-          { v: Math.max(0.1, Number((latency * 1.1).toFixed(2))) },
-          { v: Math.max(0.1, Number((latency * 0.9).toFixed(2))) },
-          { v: Math.max(0.1, Number((latency * 1.05).toFixed(2))) },
-          { v: latency }
-        ]
+        sparkline: getSparklineForValue(Math.max(1, Math.round(latency * 10)), timeRange, d.id).map(p => ({
+          v: Number((p.v / 10).toFixed(2))
+        }))
       };
     });
-  }, [serverDevices]);
+  }, [serverDevices, timeRange]);
 
   // CPU Distribution Pie Chart Data - Dynamically calculated from top servers
   const cpuPieData = useMemo(() => {
@@ -337,14 +423,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   // Disk Usage Distribution Pie Chart Data - Dynamically calculated from real devices
   const diskPieData = useMemo(() => {
     if (serverDevices.length === 0) return [];
-    const topStorageDevs = [...serverDevices].sort((a, b) => getDeviceDisk(b) - getDeviceDisk(a)).slice(0, 4);
+    const topStorageDevs = [...serverDevices].sort((a, b) => getDeviceDisk(b, timeRange) - getDeviceDisk(a, timeRange)).slice(0, 4);
     const colors = ['#06b6d4', '#a855f7', '#f59e0b', '#10b981'];
     return topStorageDevs.map((d, idx) => ({
       name: d.hostname || d.ip_address,
-      value: getDeviceDisk(d),
+      value: getDeviceDisk(d, timeRange),
       color: colors[idx % colors.length]
     }));
-  }, [serverDevices]);
+  }, [serverDevices, timeRange]);
 
   // Theme Styling Configuration
   const theme = {
@@ -782,7 +868,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     key={d.id}
                     name={d.hostname || d.ip_address}
                     status={d.status ? 'up' : 'down'}
-                    label={d.device_type ? d.device_type.toUpperCase() : (d.hardware || 'Device')}
+                    label={d.os ? (d.os.toLowerCase().includes('linux') ? 'LINUX' : d.os.toLowerCase().includes('win') ? 'WINDOWS' : d.device_type ? d.device_type.toUpperCase() : 'NODE') : (d.device_type ? d.device_type.toUpperCase() : 'NODE')}
                   />
                 ))}
               </div>
@@ -876,6 +962,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td style={{ padding: '5px 6px', color: '#38bdf8', fontWeight: 700 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <VendorLogo vendor={m.device.vendor || 'Generic'} size="xs" showLabel={false} />
+                      <OsBadge os={m.device.os} hostname={m.hostname} deviceType={m.device.device_type} size="xs" variant="icon-only" isDark={isDark} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
                         {m.hostname}
                       </span>
@@ -943,6 +1030,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td style={{ padding: '5px 6px', color: '#38bdf8', fontWeight: 700 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <VendorLogo vendor={m.device.vendor || 'Generic'} size="xs" showLabel={false} />
+                      <OsBadge os={m.device.os} hostname={m.hostname} deviceType={m.device.device_type} size="xs" variant="icon-only" isDark={isDark} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
                         {m.hostname}
                       </span>
@@ -1158,6 +1246,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td style={{ padding: '5px 6px', color: '#38bdf8', fontWeight: 700 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <VendorLogo vendor={m.device.vendor || 'Generic'} size="xs" showLabel={false} />
+                      <OsBadge os={m.device.os} hostname={m.hostname} deviceType={m.device.device_type} size="xs" variant="icon-only" isDark={isDark} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
                         {m.hostname}
                       </span>
@@ -1225,6 +1314,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td style={{ padding: '5px 6px', color: '#38bdf8', fontWeight: 700 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <VendorLogo vendor={m.device.vendor || 'Generic'} size="xs" showLabel={false} />
+                      <OsBadge os={m.device.os} hostname={m.hostname} deviceType={m.device.device_type} size="xs" variant="icon-only" isDark={isDark} />
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
                         {m.hostname}
                       </span>
@@ -1392,6 +1482,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <td style={{ padding: '4px 10px', fontSize: '0.74rem', fontWeight: 700, color: '#38bdf8' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <VendorLogo vendor={item.device.vendor || 'Generic'} size="xs" showLabel={false} />
+                      <OsBadge os={item.device.os} hostname={item.device.hostname} deviceType={item.device.device_type} size="xs" variant="icon-only" isDark={isDark} />
                       <span
                         onClick={() => setModalDevice(item.device)}
                         style={{ cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(56,189,248,0.4)' }}
@@ -1407,7 +1498,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </td>
 
                   <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: theme.textMuted }}>
-                    {item.device.vendor || 'Generic'} • {item.device.hardware || 'Appliance'}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><OsBadge os={item.device.os} hostname={item.device.hostname} deviceType={item.device.device_type} size="xs" isDark={isDark} /><span>{item.device.vendor || 'Generic'} • {item.device.hardware || 'Appliance'}</span></div>
                   </td>
 
                   <td style={{ padding: '4px 10px' }}>

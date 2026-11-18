@@ -29,6 +29,7 @@ import {
 import type { Device } from '../types';
 import { getDeviceTelemetryHistory, getDeviceInterfaces, type ChartTimeframe } from '../data/deviceTelemetryGenerator';
 import { VendorLogo, DeviceTypeBadge } from './VendorLogo';
+import { OsBadge } from './OsBadge';
 
 interface DeviceChartsModalProps {
   device: Device | null;
@@ -221,6 +222,7 @@ export const DeviceChartsModal: React.FC<DeviceChartsModalProps> = ({
                   {device.hostname}
                 </h3>
                 <VendorLogo vendor={device.vendor || 'Generic'} size="sm" />
+                <OsBadge os={device.os} hostname={device.hostname} deviceType={device.device_type} size="sm" />
                 <span className={`status-badge ${device.status ? 'status-up' : 'status-down'}`}>
                   <span className={`pulse-dot ${device.status ? 'up' : 'down'}`} />
                   {device.status ? 'ONLINE' : 'OFFLINE'}
@@ -228,7 +230,7 @@ export const DeviceChartsModal: React.FC<DeviceChartsModalProps> = ({
                 <DeviceTypeBadge type={device.device_type || 'server'} />
               </div>
               <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '4px 0 0 0' }}>
-                IP: <strong style={{ color: '#0284c7', fontFamily: 'var(--font-mono)' }}>{device.ip_address}</strong> • Model: <strong>{device.hardware || 'Enterprise Hardware'}</strong> • OS: {device.os || 'Enterprise OS'}
+                IP: <strong style={{ color: '#0284c7', fontFamily: 'var(--font-mono)' }}>{device.ip_address}</strong> • Model: <strong>{device.hardware || 'Enterprise Hardware'}</strong> • OS: <strong style={{ color: '#0f172a' }}>{device.os || 'Enterprise OS'}</strong>
               </p>
             </div>
           </div>

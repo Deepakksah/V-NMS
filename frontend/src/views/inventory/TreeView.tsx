@@ -39,6 +39,7 @@ import {
 import type { Device } from '../../types';
 import { DeviceChartsModal } from '../../components/DeviceChartsModal';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
+import { OsBadge } from '../../components/OsBadge';
 import { PageHeader } from '../../components/PageHeader';
 import { getDeviceTelemetryHistory, type ChartTimeframe } from '../../data/deviceTelemetryGenerator';
 
@@ -417,9 +418,12 @@ export const TreeView: React.FC<TreeViewProps> = ({
             <span style={{ width: '18px', height: '18px', display: 'inline-block', flexShrink: 0 }} />
           )}
 
-          {/* Node Icon / Vendor Logo */}
-          {isDeviceNode && node.vendor ? (
-            <VendorLogo vendor={node.vendor} size="xs" showLabel={false} />
+          {/* Node Icon / Vendor Logo & OS Logo */}
+          {isDeviceNode ? (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', flexShrink: 0 }}>
+              {node.vendor && <VendorLogo vendor={node.vendor} size="xs" showLabel={false} />}
+              <OsBadge os={node.os} hostname={node.name} deviceType={node.deviceType} size="xs" variant="icon-only" />
+            </div>
           ) : (
             <div style={{
               width: '22px',
@@ -467,9 +471,12 @@ export const TreeView: React.FC<TreeViewProps> = ({
             )}
           </div>
 
-          {/* Node Device Type Badge if device */}
-          {isDeviceNode && node.deviceType && (
-            <DeviceTypeBadge type={node.deviceType} size="xs" />
+          {/* Node OS & Device Type Badges if device */}
+          {isDeviceNode && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+              <OsBadge os={node.os} hostname={node.name} deviceType={node.deviceType} size="xs" short={true} />
+              {node.deviceType && <DeviceTypeBadge type={node.deviceType} size="xs" />}
+            </div>
           )}
 
           {/* Node Status Badge */}
@@ -973,27 +980,35 @@ export const TreeView: React.FC<TreeViewProps> = ({
               {/* Header with Brand Logo, Model and Status */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #f1f5f9', paddingBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {selectedNode.vendor ? (
-                    <VendorLogo vendor={selectedNode.vendor} size="md" showLabel={true} />
-                  ) : (
-                    <div style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '6px',
-                      background: '#e0f2fe',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      {getNodeIcon(selectedNode.type)}
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {selectedNode.vendor ? (
+                      <VendorLogo vendor={selectedNode.vendor} size="md" showLabel={true} />
+                    ) : (
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '6px',
+                        background: '#e0f2fe',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {getNodeIcon(selectedNode.type)}
+                      </div>
+                    )}
+                    {selectedNode.type !== 'tier' && selectedNode.type !== 'datacenter' && (
+                      <OsBadge os={selectedNode.os} hostname={selectedNode.name} deviceType={selectedNode.deviceType} size="md" />
+                    )}
+                  </div>
 
                   <div>
                     <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: 0, lineHeight: 1.2 }}>
                       {selectedNode.name}
                     </h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px', flexWrap: 'wrap' }}>
+                      {selectedNode.type !== 'tier' && selectedNode.type !== 'datacenter' && (
+                        <OsBadge os={selectedNode.os} hostname={selectedNode.name} deviceType={selectedNode.deviceType} size="xs" />
+                      )}
                       {selectedNode.deviceType && (
                         <DeviceTypeBadge type={selectedNode.deviceType} size="xs" />
                       )}
@@ -1057,7 +1072,13 @@ export const TreeView: React.FC<TreeViewProps> = ({
                 </div>
                 <div>
                   <span style={{ color: '#0f172a', fontWeight: 700 }}>{selectedNode.type === 'tier' ? 'Cluster Stack: ' : 'OS: '}</span>
-                  <strong style={{ color: '#0f172a' }}>{selectedNode.os || (selectedNode.type === 'tier' ? 'Clustered Infrastructure' : 'Enterprise OS')}</strong>
+                  {selectedNode.type === 'tier' ? (
+                    <strong style={{ color: '#0f172a' }}>Clustered Infrastructure</strong>
+                  ) : (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', verticalAlign: 'middle' }}>
+                      <OsBadge os={selectedNode.os} hostname={selectedNode.name} deviceType={selectedNode.deviceType} size="xs" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <span style={{ color: '#0f172a', fontWeight: 700 }}>{selectedNode.type === 'tier' ? 'Member Nodes: ' : 'MAC: '}</span>
