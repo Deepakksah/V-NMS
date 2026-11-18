@@ -491,60 +491,129 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                           </tr>
 
                           {/* Related Volumes / Partitions belonging to this Server (Shown ONLY if Expanded) */}
-                          {isExpanded && group.volumes.map(st => {
+                          {isExpanded && group.volumes.map((st, vIdx) => {
                             const percent = Math.round(st.percentUsed);
                             const isWarning = percent >= 80;
                             const isCritical = percent >= 90;
                             const freeGb = st.freeGb ?? (st.totalGb - st.usedGb);
+
+                            // Parse mount point and description (e.g. "C:\ (System OS (NVMe))")
+                            const rawMount = String(st.mountPoint || '');
+                            const spaceIdx = rawMount.indexOf(' ');
+                            const mountLetter = spaceIdx > 0 ? rawMount.substring(0, spaceIdx) : rawMount;
+                            const mountDesc = spaceIdx > 0 ? rawMount.substring(spaceIdx).trim() : '';
+
                             return (
-                              <tr key={st.id} style={{ borderBottom: '1px solid #f1f5f9', background: '#ffffff' }}>
-                                <td style={{ padding: '4px 10px 4px 34px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#0f172a', fontSize: '0.75rem' }}>
+                              <tr
+                                key={st.id || `${group.key}-vol-${vIdx}`}
+                                style={{
+                                  borderBottom: '1px solid #e2e8f0',
+                                  background: '#f0f7ff', // Distinct light-blue child background
+                                  transition: 'background-color 0.12s ease'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e0f2fe'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f0f7ff'}
+                              >
+                                <td style={{
+                                  padding: '5px 10px 5px 28px',
+                                  borderLeft: '4px solid #0284c7', // Distinct child tree connector accent
+                                  fontFamily: 'var(--font-mono)',
+                                  fontSize: '0.74rem'
+                                }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <HardDrive size={12} color="#0284c7" />
-                                    <span>{st.mountPoint}</span>
+                                    <span style={{ color: '#0284c7', fontSize: '0.80rem', fontWeight: 800, userSelect: 'none' }}>↳</span>
+                                    <span style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      background: '#ffffff',
+                                      color: '#0369a1',
+                                      border: '1px solid #bae6fd',
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      fontWeight: 800,
+                                      fontSize: '0.72rem',
+                                      boxShadow: '0 1px 2px rgba(2,132,199,0.08)'
+                                    }}>
+                                      <HardDrive size={11} color="#0284c7" />
+                                      <span>{mountLetter}</span>
+                                    </span>
+                                    {mountDesc && (
+                                      <span style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 500 }}>
+                                        {mountDesc}
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
-                                <td style={{ padding: '4px 10px', fontSize: '0.72rem', color: '#64748b' }}>
-                                  <span style={{ background: '#f1f5f9', padding: '1px 5px', borderRadius: '4px', fontWeight: 600 }}>
+
+                                <td style={{ padding: '5px 10px', fontSize: '0.70rem' }}>
+                                  <span style={{
+                                    background: st.fileSystem?.toLowerCase() === 'ntfs' ? '#ede9fe' : '#ecfdf5',
+                                    color: st.fileSystem?.toLowerCase() === 'ntfs' ? '#6d28d9' : '#047857',
+                                    border: `1px solid ${st.fileSystem?.toLowerCase() === 'ntfs' ? '#ddd6fe' : '#a7f3d0'}`,
+                                    padding: '1.5px 6px',
+                                    borderRadius: '4px',
+                                    fontWeight: 700,
+                                    fontFamily: 'var(--font-mono)'
+                                  }}>
                                     {st.fileSystem}
                                   </span>
                                 </td>
-                                <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#334155', fontWeight: 500 }}>
+
+                                <td style={{ padding: '5px 10px', fontSize: '0.74rem', color: '#1e293b', fontWeight: 600 }}>
                                   {st.usedGb} GB / {st.totalGb} GB
                                 </td>
-                                <td style={{ padding: '4px 10px', width: '200px' }}>
+
+                                <td style={{ padding: '5px 10px', width: '200px' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
-                                      <div style={{ 
-                                        width: `${percent}%`, 
-                                        height: '100%', 
-                                        background: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#16a34a' 
+                                    <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#cbd5e1', overflow: 'hidden' }}>
+                                      <div style={{
+                                        width: `${percent}%`,
+                                        height: '100%',
+                                        background: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#16a34a',
+                                        borderRadius: '4px',
+                                        transition: 'width 0.3s ease'
                                       }} />
                                     </div>
-                                    <span style={{ 
-                                      fontSize: '0.70rem', 
-                                      fontWeight: 700, 
-                                      color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a', 
-                                      width: '36px' 
+                                    <span style={{
+                                      fontSize: '0.70rem',
+                                      fontWeight: 700,
+                                      fontFamily: 'var(--font-mono)',
+                                      color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a',
+                                      width: '36px'
                                     }}>
                                       {percent}%
                                     </span>
                                   </div>
                                 </td>
-                                <td style={{ padding: '4px 10px', fontSize: '0.74rem', color: '#16a34a', fontWeight: 600 }}>
-                                  {Number(freeGb).toFixed(1)} GB Free
+
+                                <td style={{ padding: '5px 10px' }}>
+                                  <span style={{
+                                    background: '#f0fdf4',
+                                    color: '#15803d',
+                                    border: '1px solid #bbf7d0',
+                                    padding: '1.5px 7px',
+                                    borderRadius: '4px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    fontFamily: 'var(--font-mono)'
+                                  }}>
+                                    {Number(freeGb).toFixed(1)} GB Free
+                                  </span>
                                 </td>
-                                <td style={{ padding: '4px 10px' }}>
-                                  <span style={{ 
-                                    fontSize: '0.68rem', 
-                                    padding: '1.5px 6px', 
-                                    borderRadius: '4px', 
-                                    background: '#f0fdf4', 
-                                    color: '#16a34a', 
-                                    fontWeight: 700, 
-                                    display: 'inline-flex', 
-                                    alignItems: 'center', 
-                                    gap: '3px' 
+
+                                <td style={{ padding: '5px 10px' }}>
+                                  <span style={{
+                                    fontSize: '0.68rem',
+                                    padding: '1.5px 7px',
+                                    borderRadius: '4px',
+                                    background: '#dcfce7',
+                                    color: '#15803d',
+                                    border: '1px solid #bbf7d0',
+                                    fontWeight: 700,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px'
                                   }}>
                                     <CheckCircle2 size={11} />
                                     Healthy
