@@ -10,7 +10,8 @@ import {
   BarChart2,
   Network,
   Shield,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import type { Device } from '../../types';
 import {
@@ -33,6 +34,7 @@ interface DevicesViewProps {
   pingingId: number | null;
   pollingId: number | null;
   onOpenAddDevice: (defaultCategory?: string) => void;
+  onClearAllDevices?: () => void;
   categoryFilter?: CategoryFilterType;
 }
 
@@ -45,6 +47,7 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
   pingingId,
   pollingId,
   onOpenAddDevice,
+  onClearAllDevices,
   categoryFilter = 'all'
 }) => {
   const [subTab, setSubTab] = useState<'inventory' | 'groups' | 'outages' | 'locations' | 'ent_physical'>('inventory');
@@ -180,10 +183,35 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
           </p>
         </div>
 
-        <button onClick={() => onOpenAddDevice(headerInfo.typeDefault)} className="glow-btn">
-          <Plus size={16} />
-          <span>{headerInfo.addLabel}</span>
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {devices.length > 0 && onClearAllDevices && (
+            <button
+              onClick={onClearAllDevices}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                border: '1px solid #fecaca',
+                backgroundColor: '#fef2f2',
+                color: '#dc2626',
+                fontWeight: 600,
+                fontSize: '0.84rem',
+                cursor: 'pointer'
+              }}
+              title="Clear all old devices and reset inventory to 0"
+            >
+              <Trash2 size={15} />
+              <span>Reset Inventory</span>
+            </button>
+          )}
+
+          <button onClick={() => onOpenAddDevice(headerInfo.typeDefault)} className="glow-btn">
+            <Plus size={16} />
+            <span>{headerInfo.addLabel}</span>
+          </button>
+        </div>
       </div>
 
       {/* Sub-tab Navigation */}

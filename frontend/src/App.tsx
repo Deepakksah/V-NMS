@@ -249,6 +249,20 @@ export default function App() {
     }
   };
 
+  const handleClearAllDevices = async () => {
+    if (!window.confirm('Are you sure you want to clear all devices from database and start fresh with 0 devices?')) {
+      return;
+    }
+    try {
+      await axios.post(`${API_BASE}/devices/clear`);
+      setDevices([]);
+      setSelectedDevice(null);
+      toast.success('All old devices and telemetry have been cleared from database. Ready for fresh discovery!', 'Inventory Cleared');
+    } catch (err: any) {
+      toast.error('Failed to clear devices: ' + (err.response?.data?.error || err.message), 'Clear Error');
+    }
+  };
+
   const totalDevices = devices.length;
   const upDevices = devices.filter(d => d.status).length;
   const criticalAlertsCount = 3;
@@ -361,6 +375,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onClearAllDevices={handleClearAllDevices}
               categoryFilter="server"
             />
           )}
@@ -375,6 +390,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onClearAllDevices={handleClearAllDevices}
               categoryFilter="switch"
             />
           )}
@@ -389,6 +405,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onClearAllDevices={handleClearAllDevices}
               categoryFilter="firewall"
             />
           )}
@@ -403,6 +420,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onClearAllDevices={handleClearAllDevices}
               categoryFilter="workstation"
             />
           )}
@@ -417,6 +435,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onClearAllDevices={handleClearAllDevices}
               categoryFilter="ntp"
             />
           )}
@@ -431,6 +450,7 @@ export default function App() {
               pingingId={pingingId}
               pollingId={pollingId}
               onOpenAddDevice={handleOpenAddModal}
+              onClearAllDevices={handleClearAllDevices}
               categoryFilter="all"
             />
           )}
