@@ -378,7 +378,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
         if (resEsc.status === 'fulfilled' && resEsc.value?.escalations) setEscalations(resEsc.value.escalations);
         if (resTrig.status === 'fulfilled' && resTrig.value?.triggers) setAdvancedTriggers(resTrig.value.triggers);
         if (resDisp.status === 'fulfilled' && resDisp.value?.dispatches) setDispatches(resDisp.value.dispatches);
-      } catch {}
+      } catch { }
     } catch (e) {
       console.error('Failed to fetch alerts data:', e);
     } finally {
