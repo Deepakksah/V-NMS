@@ -18,6 +18,7 @@ import {
   Server
 } from 'lucide-react';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 
 interface ApplicationsViewProps {
   apiBase?: string;
@@ -84,23 +85,17 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              Enterprise Applications, Databases &amp; Synthetics
-            </h2>
-            <span style={{ fontSize: '0.70rem', padding: '2px 8px', borderRadius: '4px', background: isLive ? '#dcfce7' : '#e0f2fe', color: isLive ? '#15803d' : '#0369a1', fontWeight: 700 }}>
-              {isLive ? '● Live Telemetry Active' : 'Enterprise Modules Active'}
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px', marginBottom: 0 }}>
-            Buffer pools, custom SQL sensors, SAN/NAS storage fabric, TTFB web waterfalls, email round-trip SLAs, and IoT Modbus
-          </p>
-        </div>
-        <ExportButtons data={databases} filenamePrefix="vnms_enterprise_applications" title="Enterprise Applications" />
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Database}
+        title="Enterprise Applications, Databases & Synthetics"
+        subtitle="Buffer pools, custom SQL sensors, SAN/NAS storage fabric, TTFB web waterfalls, email round-trip SLAs, and IoT Modbus"
+        badge={isLive ? '● Live Telemetry Active' : 'Enterprise Modules Active'}
+        badgeColor={isLive ? 'emerald' : 'blue'}
+        actions={
+          <ExportButtons data={databases} filenamePrefix="vnms_enterprise_applications" title="Enterprise Applications" />
+        }
+      />
 
       {/* Navigation SubTabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', flexWrap: 'wrap' }}>

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { Device } from '../../types';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 
 export interface PortsViewProps {
   devices?: Device[];
@@ -100,21 +101,17 @@ export const PortsView: React.FC<PortsViewProps> = ({ devices = [] }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>Ports, Interfaces & Physical Layer</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              Live Interface Telemetry
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            Real-time interface traffic counters, bridge forwarding database (FDB), 802.1X security & STP topology states
-          </p>
-        </div>
-        <ExportButtons data={filteredPorts} filenamePrefix="vnms_interfaces" title="Network Interfaces" />
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Network}
+        title="Ports, Interfaces & Physical Layer"
+        subtitle="Real-time interface traffic counters, bridge forwarding database (FDB), 802.1X security & STP topology states"
+        badge="Live Interface Telemetry"
+        badgeColor="cyan"
+        actions={
+          <ExportButtons data={filteredPorts} filenamePrefix="vnms_interfaces" title="Network Interfaces" />
+        }
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>

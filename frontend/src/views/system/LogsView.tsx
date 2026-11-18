@@ -11,6 +11,7 @@ import {
   MOCK_MONITORED_APPS 
 } from '../../data/mockEnterpriseData';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 
 export const LogsView: React.FC = () => {
   const [subTab, setSubTab] = useState<'syslog' | 'events' | 'apps'>('syslog');
@@ -28,21 +29,17 @@ export const LogsView: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>Logs, Events, Syslog & Monitored Apps</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              Models #118 - #127
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            High-speed UDP port 514 Syslog receiver, kernel events, auth audit logs & application-specific telemetry
-          </p>
-        </div>
-        <ExportButtons data={filteredSyslog} filenamePrefix="vnms_syslog" title="System Logs" />
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Terminal}
+        title="Logs, Events, Syslog & Monitored Apps"
+        subtitle="High-speed UDP port 514 Syslog receiver, kernel events, auth audit logs & application-specific telemetry"
+        badge="Models #118 - #127"
+        badgeColor="blue"
+        actions={
+          <ExportButtons data={filteredSyslog} filenamePrefix="vnms_syslog" title="System Logs" />
+        }
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>

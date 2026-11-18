@@ -12,6 +12,7 @@ import {
 import type { Device, AlertRecipient } from '../../types';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
 import { useToast } from '../../context/ToastContext';
+import { PageHeader } from '../../components/PageHeader';
 
 interface AlertMatrixViewProps {
   devices?: Device[];
@@ -230,57 +231,37 @@ export const AlertMatrixView: React.FC<AlertMatrixViewProps> = ({
         </div>
       )}
 
-      {/* Page Title & Back to Persons Action */}
-      <div style={{
-        background: '#ffffff',
-        padding: '20px 24px',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ padding: '8px', borderRadius: '8px', background: '#dcfce7', color: '#15803d' }}>
-              <Link2 size={22} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                Device Alert Notification Linking Matrix
-              </h2>
-              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '3px 0 0 0' }}>
-                Dedicated page to link registered persons with monitored servers &amp; devices via Email and SMS checkboxes.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {onNavigateToContacts && (
-          <button
-            onClick={onNavigateToContacts}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            <ArrowLeft size={14} />
-            <span>&larr; Manage Persons / Add New Person</span>
-          </button>
-        )}
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Link2}
+        title="Device Alert Notification Linking Matrix"
+        subtitle="Dedicated page to link registered persons with monitored servers & devices via Email and SMS checkboxes."
+        badge="DEVICE SUBSCRIPTIONS"
+        badgeColor="green"
+        actions={
+          onNavigateToContacts && (
+            <button
+              onClick={onNavigateToContacts}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                background: '#1e293b',
+                border: '1px solid #334155',
+                color: '#f8fafc',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>← Manage Persons / Add New Person</span>
+            </button>
+          )
+        }
+      />
 
       {/* PERSON SELECTOR BAR (PICK WHICH PERSON TO CONFIGURE) */}
       <div style={{

@@ -470,49 +470,53 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       color: theme.textMain,
       transition: 'all 0.2s ease'
     }}>
-      {/* Top Motadata-Inspired Subheader & Horizon Time Bar */}
+      {/* Top Enterprise Dark NOC Control Header */}
       <div style={{
-        background: theme.cardBg,
-        borderRadius: '10px',
-        border: `1px solid ${theme.cardBorder}`,
-        padding: '12px 18px',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        borderRadius: '12px',
+        border: '1px solid #1e293b',
+        padding: '16px 20px',
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '12px'
+        gap: '14px',
+        color: '#ffffff',
+        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '6px',
+            width: '40px',
+            height: '40px',
+            borderRadius: '8px',
             background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.35)',
+            flexShrink: 0
           }}>
-            <Server size={18} color="#ffffff" />
+            <Server size={20} color="#ffffff" />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: theme.textMain, margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.01em' }}>
                 Server Overview
               </h2>
               <span style={{
-                fontSize: '0.62rem',
-                fontWeight: 800,
-                padding: '2px 6px',
-                borderRadius: '4px',
-                background: isDark ? '#1e3a8a' : '#dbeafe',
-                color: isDark ? '#93c5fd' : '#1d4ed8'
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '5px',
+                background: 'rgba(2, 132, 199, 0.22)',
+                color: '#38bdf8',
+                border: '1px solid rgba(56, 189, 248, 0.35)'
               }}>
                 NOC CORE
               </span>
             </div>
-            <p style={{ fontSize: '0.72rem', color: theme.textMuted, margin: '2px 0 0 0' }}>
-              High-Density Infrastructure Telemetry &bull; Real Network Nodes
+            <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '3px 0 0 0' }}>
+              High-Density Infrastructure Telemetry • Real Network Nodes
             </p>
           </div>
         </div>
@@ -522,10 +526,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* Timeframe Selectors */}
           <div style={{
             display: 'flex',
-            background: isDark ? '#0f172a' : '#f1f5f9',
+            background: '#0f172a',
             padding: '2px',
             borderRadius: '6px',
-            border: `1px solid ${theme.cardBorder}`
+            border: '1px solid #334155'
           }}>
             {[
               { id: '1h', label: '1H' },
@@ -538,11 +542,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onClick={() => setTimeRange(r.id as any)}
                 style={{
                   background: timeRange === r.id ? '#0284c7' : 'transparent',
-                  color: timeRange === r.id ? '#ffffff' : (isDark ? '#f8fafc' : '#0f172a'),
+                  color: timeRange === r.id ? '#ffffff' : '#94a3b8',
                   border: 'none',
-                  padding: '3px 8px',
-                  borderRadius: '3px',
-                  fontSize: '0.68rem',
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  fontSize: '0.72rem',
                   fontWeight: 700,
                   cursor: 'pointer'
                 }}
@@ -557,15 +561,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '5px',
-            background: isDark ? '#0f172a' : '#f8fafc',
-            border: `1px solid ${theme.cardBorder}`,
-            padding: '3px 8px',
-            borderRadius: '5px',
-            fontSize: '0.68rem',
-            fontWeight: 700,
-            color: theme.textMain
+            background: '#0f172a',
+            border: '1px solid #334155',
+            padding: '5px 10px',
+            borderRadius: '6px',
+            fontSize: '0.72rem',
+            fontWeight: 600,
+            color: '#f8fafc'
           }}>
-            <Calendar size={11} color="#0284c7" />
+            <Calendar size={12} color="#38bdf8" />
             <span>
               {timeRange === '1h' ? 'Past 60 Minutes (Live)' :
                 timeRange === '24h' ? 'Today, 12:00 AM - Now' :
@@ -581,12 +585,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '5px',
-              padding: '5px 10px',
+              padding: '6px 12px',
               borderRadius: '6px',
-              background: isDark ? '#334155' : '#ffffff',
-              border: `1px solid ${theme.cardBorder}`,
-              color: theme.textMain,
-              fontSize: '0.72rem',
+              background: '#1e293b',
+              border: '1px solid #334155',
+              color: '#f8fafc',
+              fontSize: '0.74rem',
               fontWeight: 700,
               cursor: 'pointer'
             }}

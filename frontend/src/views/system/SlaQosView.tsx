@@ -9,26 +9,21 @@ import {
   MOCK_QOS_CLASSES, 
   MOCK_CUSTOM_OIDS 
 } from '../../data/mockEnterpriseData';
+import { PageHeader } from '../../components/PageHeader';
 
 export const SlaQosView: React.FC = () => {
   const [subTab, setSubTab] = useState<'sla' | 'qos' | 'custom_oid'>('sla');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>SLA Probes, QoS Shaping & Custom SNMP OIDs</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              Models #128 - #131
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            Cisco IP SLA Voice MOS score, packet jitter, QoS class-map bandwidth policing & custom SNMP OID builder
-          </p>
-        </div>
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Activity}
+        title="SLA Probes, QoS Shaping & Custom SNMP OIDs"
+        subtitle="Cisco IP SLA Voice MOS score, packet jitter, QoS class-map bandwidth policing & custom SNMP OID builder"
+        badge="Models #128 - #131"
+        badgeColor="purple"
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>

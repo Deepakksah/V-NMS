@@ -23,6 +23,7 @@ import {
 import { DeviceChartsModal } from '../../components/DeviceChartsModal';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 
 export type CategoryFilterType = 'all' | 'server' | 'switch' | 'firewall' | 'workstation' | 'ntp';
 
@@ -178,52 +179,47 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>{headerInfo.title}</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              {filteredDevices.length} Monitored
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            {headerInfo.subtitle}
-          </p>
-        </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Server}
+        title={headerInfo.title}
+        subtitle={headerInfo.subtitle}
+        badge={`${filteredDevices.length} Monitored`}
+        badgeColor="blue"
+        actions={
+          <>
+            <ExportButtons data={filteredDevices} filenamePrefix="vnms_devices" title="Device Inventory" />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <ExportButtons data={filteredDevices} filenamePrefix="vnms_devices" title="Device Inventory" />
+            {devices.length > 0 && onClearAllDevices && (
+              <button
+                onClick={onClearAllDevices}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '7px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  color: '#f87171',
+                  fontWeight: 600,
+                  fontSize: '0.76rem',
+                  cursor: 'pointer'
+                }}
+                title="Clear all old devices and reset inventory to 0"
+              >
+                <Trash2 size={14} />
+                <span>Reset Inventory</span>
+              </button>
+            )}
 
-          {devices.length > 0 && onClearAllDevices && (
-            <button
-              onClick={onClearAllDevices}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '8px 14px',
-                borderRadius: '8px',
-                border: '1px solid #fecaca',
-                backgroundColor: '#fef2f2',
-                color: '#dc2626',
-                fontWeight: 600,
-                fontSize: '0.84rem',
-                cursor: 'pointer'
-              }}
-              title="Clear all old devices and reset inventory to 0"
-            >
-              <Trash2 size={15} />
-              <span>Reset Inventory</span>
+            <button onClick={() => onOpenAddDevice(headerInfo.typeDefault)} className="glow-btn">
+              <Plus size={15} />
+              <span>{headerInfo.addLabel}</span>
             </button>
-          )}
-
-          <button onClick={() => onOpenAddDevice(headerInfo.typeDefault)} className="glow-btn">
-            <Plus size={16} />
-            <span>{headerInfo.addLabel}</span>
-          </button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Sub-tab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>

@@ -32,6 +32,7 @@ import type { Device, AlertRecipient } from '../../types';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
 import { useToast } from '../../context/ToastContext';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 
 const API_BASE = 'http://127.0.0.1:8081/api/v1';
 
@@ -746,98 +747,79 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ realAlerts: _realAlerts 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Top Header */}
-      <div style={{
-        background: '#ffffff',
-        padding: '18px 24px',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              Enterprise Alert Incident &amp; Notification Center
-            </h2>
-            <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '5px', background: '#fee2e2', color: '#b91c1c', fontWeight: 800, border: '1px solid #fecaca' }}>
-              INCIDENT MONITOR
-            </span>
-          </div>
-          <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '3px 0 0 0' }}>
-            Automated Host DOWN/UP Triggers • SMTP Email Gateway • SMS Gateway • Alert Templates • Live Verification
-          </p>
-        </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Bell}
+        title="Enterprise Alert Incident & Notification Center"
+        subtitle="Automated Host DOWN/UP Triggers • SMTP Email Gateway • SMS Gateway • Alert Templates • Live Verification"
+        badge="INCIDENT MONITOR"
+        badgeColor="red"
+        actions={
+          <>
+            <ExportButtons data={alerts} filenamePrefix="vnms_alerts" title="Alerts & Incidents" />
 
-        {/* Header Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ExportButtons data={alerts} filenamePrefix="vnms_alerts" title="Alerts & Incidents" />
+            <button
+              onClick={() => handleSimulateAlert('down')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                borderRadius: '6px',
+                background: 'rgba(239, 68, 68, 0.18)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#f87171',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <Play size={12} fill="#f87171" />
+              <span>Trigger Host DOWN</span>
+            </button>
 
-          <button
-            onClick={() => handleSimulateAlert('down')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '6px',
-              background: '#fef2f2',
-              border: '1px solid #f87171',
-              color: '#dc2626',
-              fontSize: '0.76rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            <Play size={12} fill="#dc2626" />
-            <span>Simulate DOWN</span>
-          </button>
+            <button
+              onClick={() => handleSimulateAlert('storage')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                borderRadius: '6px',
+                background: 'rgba(245, 158, 11, 0.18)',
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+                color: '#fbbf24',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <Play size={12} fill="#fbbf24" />
+              <span>Trigger Storage Full (92%)</span>
+            </button>
 
-          <button
-            onClick={() => handleSimulateAlert('storage')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '6px',
-              background: '#fefce8',
-              border: '1px solid #fde047',
-              color: '#a16207',
-              fontSize: '0.76rem',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            <Play size={12} fill="#a16207" />
-            <span>Simulate Storage Full (92%)</span>
-          </button>
-
-          <button
-            onClick={fetchAlertsAndSettings}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '7px 12px',
-              borderRadius: '6px',
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              fontSize: '0.76rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <RefreshCw size={12} className={loading ? 'spin' : ''} />
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={fetchAlertsAndSettings}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 12px',
+                borderRadius: '6px',
+                background: '#1e293b',
+                border: '1px solid #334155',
+                color: '#f8fafc',
+                fontSize: '0.76rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <RefreshCw size={12} className={loading ? 'spin' : ''} />
+              <span>Refresh</span>
+            </button>
+          </>
+        }
+      />
 
       {/* Main Tabs Navigation */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', flexWrap: 'wrap' }}>

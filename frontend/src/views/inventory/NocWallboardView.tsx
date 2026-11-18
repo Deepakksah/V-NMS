@@ -93,7 +93,7 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Top Controls Bar */}
       <div style={{
-        background: '#0f172a',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
         padding: '16px 20px',
         borderRadius: '12px',
         display: 'flex',
@@ -102,7 +102,8 @@ export const NocWallboardView: React.FC<NocWallboardViewProps> = ({ devices, onN
         flexWrap: 'wrap',
         gap: '12px',
         color: '#ffffff',
-        border: '1px solid #1e293b'
+        border: '1px solid #1e293b',
+        boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ background: '#0284c7', padding: '8px', borderRadius: '8px', display: 'flex', alignItems: 'center' }}>

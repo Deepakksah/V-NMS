@@ -1,5 +1,7 @@
 import React from 'react';
+import { Cpu } from 'lucide-react';
 import type { Device } from '../../types';
+import { PageHeader } from '../../components/PageHeader';
 
 export interface PollersViewProps {
   devices?: Device[];
@@ -11,20 +13,14 @@ export const PollersView: React.FC<PollersViewProps> = ({ devices = [] }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>Distributed Poller Engine & Cluster</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              Live Telemetry Core
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            Multi-node distributed Go goroutine pollers, concurrent worker pools & regional VPC pinning
-          </p>
-        </div>
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Cpu}
+        title="Distributed Poller Engine & Cluster"
+        subtitle="Multi-node distributed Go goroutine pollers, concurrent worker pools & regional VPC pinning"
+        badge="Live Telemetry Core"
+        badgeColor="cyan"
+      />
 
       {/* Cluster Overview Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' }}>

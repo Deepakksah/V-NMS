@@ -8,7 +8,6 @@ import {
   ChevronUp,
   Table,
   Cpu,
-  Sparkles,
   Server,
   Network,
   Thermometer,
@@ -24,6 +23,7 @@ import {
   Lock
 } from 'lucide-react';
 import { ALL_145_FEATURES, CATEGORIES_LIST } from '../../data/featuresRegistry';
+import { PageHeader } from '../../components/PageHeader';
 import type { FeatureDefinition } from '../../types';
 
 interface FeaturesMasterViewProps {
@@ -86,129 +86,84 @@ export const FeaturesMasterView: React.FC<FeaturesMasterViewProps> = ({ onNaviga
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Executive Hero Banner - Clean Professional White Card with Subtle Slate Accent */}
-      <div style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '12px',
-        padding: '24px 28px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: '20px'
-      }}>
-        <div style={{ maxWidth: '650px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <span style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '3px 10px',
-              borderRadius: '9999px',
-              background: '#eff6ff',
-              color: '#0284c7',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              border: '1px solid #bfdbfe'
-            }}>
-              <Sparkles size={13} />
-              145 / 145 LIBRENMS ENTERPRISE MODELS
-            </span>
-            <span style={{
-              fontSize: '0.72rem',
-              color: '#16a34a',
-              background: '#dcfce7',
-              padding: '3px 8px',
-              borderRadius: '9999px',
-              fontWeight: 700
-            }}>
-              POSTGRESQL 18 + GO RUNTIME
-            </span>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Layers}
+        title="Enterprise Architecture & Solutions Matrix"
+        subtitle="Comprehensive architectural modernization of all 145 subsystems into 15 high-concurrency Go poller routines, unified PostgreSQL partitioned storage, and responsive reactive TypeScript views."
+        badge="145 ENTERPRISE MODELS"
+        badgeColor="cyan"
+        actions={
+          <div style={{
+            display: 'flex',
+            gap: '4px',
+            background: '#0f172a',
+            padding: '4px',
+            borderRadius: '8px',
+            border: '1px solid #334155'
+          }}>
+            <button
+              onClick={() => setViewMode('suites')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                background: viewMode === 'suites' ? '#0284c7' : 'transparent',
+                color: viewMode === 'suites' ? '#ffffff' : '#94a3b8',
+                fontWeight: viewMode === 'suites' ? 700 : 500,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              <Layers size={14} />
+              <span>15 Domain Suites</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('table')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                background: viewMode === 'table' ? '#0284c7' : 'transparent',
+                color: viewMode === 'table' ? '#ffffff' : '#94a3b8',
+                fontWeight: viewMode === 'table' ? 700 : 500,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              <Table size={14} />
+              <span>Model Directory Table</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('architecture')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: 'none',
+                background: viewMode === 'architecture' ? '#0284c7' : 'transparent',
+                color: viewMode === 'architecture' ? '#ffffff' : '#94a3b8',
+                fontWeight: viewMode === 'architecture' ? 700 : 500,
+                fontSize: '0.78rem',
+                cursor: 'pointer'
+              }}
+            >
+              <Cpu size={14} />
+              <span>Engine Architecture</span>
+            </button>
           </div>
-
-          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: 0 }}>
-            Enterprise Architecture & Solutions Matrix
-          </h2>
-          <p style={{ color: '#475569', fontSize: '0.88rem', marginTop: '6px', lineHeight: 1.5 }}>
-            Comprehensive architectural modernization of all 145 LibreNMS subsystems into 15 high-concurrency Go poller routines, unified PostgreSQL partitioned storage, and responsive reactive TypeScript views.
-          </p>
-        </div>
-
-        {/* View Mode Switcher Pills */}
-        <div style={{
-          display: 'flex',
-          gap: '4px',
-          background: '#f1f5f9',
-          padding: '4px',
-          borderRadius: '10px',
-          border: '1px solid #e2e8f0'
-        }}>
-          <button
-            onClick={() => setViewMode('suites')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: viewMode === 'suites' ? '#ffffff' : 'transparent',
-              color: viewMode === 'suites' ? '#0284c7' : '#64748b',
-              fontWeight: viewMode === 'suites' ? 700 : 500,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-              boxShadow: viewMode === 'suites' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
-            }}
-          >
-            <Layers size={15} />
-            <span>15 Domain Suites</span>
-          </button>
-
-          <button
-            onClick={() => setViewMode('table')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: viewMode === 'table' ? '#ffffff' : 'transparent',
-              color: viewMode === 'table' ? '#0284c7' : '#64748b',
-              fontWeight: viewMode === 'table' ? 700 : 500,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-              boxShadow: viewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
-            }}
-          >
-            <Table size={15} />
-            <span>Model Directory Table</span>
-          </button>
-
-          <button
-            onClick={() => setViewMode('architecture')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: viewMode === 'architecture' ? '#ffffff' : 'transparent',
-              color: viewMode === 'architecture' ? '#0284c7' : '#64748b',
-              fontWeight: viewMode === 'architecture' ? 700 : 500,
-              fontSize: '0.82rem',
-              cursor: 'pointer',
-              boxShadow: viewMode === 'architecture' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
-            }}
-          >
-            <Cpu size={15} />
-            <span>Engine Architecture</span>
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Quick Executive Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>

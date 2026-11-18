@@ -23,6 +23,7 @@ import {
   MOCK_SYSTEM_CONFIGS,
   MOCK_PEERING_IXPS
 } from '../../data/mockEnterpriseData';
+import { PageHeader } from '../../components/PageHeader';
 import { useToast } from '../../context/ToastContext';
 
 interface SystemUser {
@@ -171,20 +172,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       )}
 
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>Users, Secret Vault &amp; System Foundations</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              RBAC &amp; System Core
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            Role-Based Access Control (RBAC), AES-256-GCM Secret Vault, System Configs &amp; PeeringDB IXP Integrations
-          </p>
-        </div>
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={ShieldCheck}
+        title="Users, Secret Vault & System Foundations"
+        subtitle="Role-Based Access Control (RBAC), AES-256-GCM Secret Vault, System Configs & PeeringDB IXP Integrations"
+        badge="RBAC & System Core"
+        badgeColor="emerald"
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>

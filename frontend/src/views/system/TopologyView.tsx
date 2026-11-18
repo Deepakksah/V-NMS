@@ -642,15 +642,15 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
         overflow: 'hidden'
       }}
     >
-      {/* 1. Compact Enterprise NOC Control Header */}
+      {/* 1. Enterprise NOC Dark Control Header */}
       <div style={{
-        backgroundColor: isFullScreen ? '#0f172a' : '#ffffff',
-        borderColor: isFullScreen ? '#1e293b' : '#e2e8f0',
-        color: isFullScreen ? '#f8fafc' : '#0f172a',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+        borderColor: '#1e293b',
+        color: '#f8fafc',
         borderRadius: '12px',
-        border: '1px solid',
-        padding: '8px 16px',
-        boxShadow: isFullScreen ? '0 4px 20px rgba(0, 0, 0, 0.5)' : '0 2px 6px rgba(0, 0, 0, 0.03)',
+        border: '1px solid #1e293b',
+        padding: '10px 18px',
+        boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -661,38 +661,38 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
         {/* Left: Title & Live Summary Badges */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '32px',
-            height: '32px',
+            width: '36px',
+            height: '36px',
             borderRadius: '8px',
-            background: '#0284c7',
+            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#ffffff',
-            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)'
           }}>
             <Network size={18} />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: isFullScreen ? '#f8fafc' : '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+              <h2 style={{ fontSize: '1.10rem', fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.01em' }}>
                 Autonomous Network Topology
               </h2>
-              <span style={{ fontSize: '0.66rem', padding: '1px 6px', borderRadius: '4px', background: isFullScreen ? '#1e293b' : '#e0f2fe', color: '#0284c7', fontWeight: 700 }}>
+              <span style={{ fontSize: '0.66rem', padding: '2px 7px', borderRadius: '4px', background: 'rgba(2, 132, 199, 0.25)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.35)', fontWeight: 700 }}>
                 {detectedSubnet}
               </span>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '6px' }}>
-            <span style={{ fontSize: '0.72rem', background: isFullScreen ? '#1e293b' : '#f8fafc', border: `1px solid ${isFullScreen ? '#334155' : '#e2e8f0'}`, padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: isFullScreen ? '#94a3b8' : '#334155' }}>
+            <span style={{ fontSize: '0.72rem', background: '#1e293b', border: '1px solid #334155', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#94a3b8' }}>
               {devices.length} {devices.length === 1 ? 'Active Host' : 'Active Hosts'}
             </span>
-            <span style={{ fontSize: '0.72rem', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#16a34a' }}>
+            <span style={{ fontSize: '0.72rem', background: 'rgba(34, 197, 94, 0.15)', border: '1px solid rgba(74, 222, 128, 0.35)', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#4ade80' }}>
               {filteredLinks.length} / {topologyLinks.length} Active Links
             </span>
             {totalFabricCapacity > 0 && (
-              <span style={{ fontSize: '0.72rem', background: '#eff6ff', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#1d4ed8' }}>
+              <span style={{ fontSize: '0.72rem', background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.35)', padding: '2px 8px', borderRadius: '6px', fontWeight: 700, color: '#38bdf8' }}>
                 {totalFabricCapacity} Gbps Fabric
               </span>
             )}
@@ -720,9 +720,9 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                 fontSize: '0.74rem',
                 fontWeight: selectedTier === t.id ? 700 : 500,
                 border: '1px solid',
-                borderColor: selectedTier === t.id ? '#0284c7' : isFullScreen ? '#334155' : '#cbd5e1',
-                backgroundColor: selectedTier === t.id ? '#0284c7' : isFullScreen ? '#1e293b' : '#ffffff',
-                color: selectedTier === t.id ? '#ffffff' : isFullScreen ? '#94a3b8' : '#475569',
+                borderColor: selectedTier === t.id ? '#0284c7' : '#334155',
+                backgroundColor: selectedTier === t.id ? '#0284c7' : '#1e293b',
+                color: selectedTier === t.id ? '#ffffff' : '#94a3b8',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease'
               }}
@@ -739,12 +739,12 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: isFullScreen ? '#1e293b' : '#f8fafc',
+            backgroundColor: '#1e293b',
             borderRadius: '6px',
-            border: `1px solid ${isFullScreen ? '#334155' : '#cbd5e1'}`,
+            border: '1px solid #334155',
             padding: '0 8px'
           }}>
-            <Search size={13} color="#64748b" />
+            <Search size={13} color="#94a3b8" />
             <input
               type="text"
               placeholder="Search Node / IP..."
@@ -757,7 +757,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
                 fontSize: '0.76rem',
                 width: '140px',
                 backgroundColor: 'transparent',
-                color: isFullScreen ? '#f8fafc' : '#0f172a'
+                color: '#f8fafc'
               }}
             />
           </div>

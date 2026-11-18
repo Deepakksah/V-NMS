@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { Device } from '../../types';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 
 export interface RoutingViewProps {
   devices?: Device[];
@@ -96,60 +97,53 @@ export const RoutingView: React.FC<RoutingViewProps> = ({ devices = [] }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Title & Toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              IP Routing, NetFlow, VoIP MOS &amp; Telecom Telemetry
-            </h2>
-            <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              V-NMS Deep Network Flow Engine
-            </span>
-          </div>
-          <p style={{ fontSize: '0.80rem', color: '#64748b', margin: '4px 0 0 0' }}>
-            NetFlow UDP port 2055/6343, VoIP MOS Quality scoring, SNMP trap receiver &amp; BGP peer routing tables
-          </p>
-        </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Zap}
+        title="IP Routing, NetFlow, VoIP MOS & Telecom Telemetry"
+        subtitle="NetFlow UDP port 2055/6343, VoIP MOS Quality scoring, SNMP trap receiver & BGP peer routing tables"
+        badge="V-NMS Deep Network Flow Engine"
+        badgeColor="cyan"
+        actions={
+          <>
+            <button
+              onClick={fetchTelecomData}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: '#1e293b',
+                border: '1px solid #334155',
+                color: '#f8fafc',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.74rem',
+                fontWeight: 600
+              }}
+            >
+              <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+              <span>Refresh Flow</span>
+            </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={fetchTelecomData}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '0.74rem',
-              fontWeight: 600
-            }}
-          >
-            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-            <span>Refresh Flow</span>
-          </button>
-
-          {subTab === 'flows' && (
-            <ExportButtons data={flows} filenamePrefix="vnms_netflows" title="NetFlow Records" />
-          )}
-          {subTab === 'voip' && (
-            <ExportButtons data={voip} filenamePrefix="vnms_voip_mos" title="VoIP MOS Quality" />
-          )}
-          {subTab === 'traps' && (
-            <ExportButtons data={traps} filenamePrefix="vnms_snmp_traps" title="SNMP Traps" />
-          )}
-          {subTab === 'bgp' && (
-            <ExportButtons data={bgpPeers} filenamePrefix="vnms_bgp_peers" title="BGP Sessions" />
-          )}
-          {subTab === 'rogue_dhcp' && (
-            <ExportButtons data={rogueAudit} filenamePrefix="vnms_rogue_dhcp_audit" title="Rogue DHCP Audit" />
-          )}
-        </div>
-      </div>
+            {subTab === 'flows' && (
+              <ExportButtons data={flows} filenamePrefix="vnms_netflows" title="NetFlow Records" />
+            )}
+            {subTab === 'voip' && (
+              <ExportButtons data={voip} filenamePrefix="vnms_voip_mos" title="VoIP MOS Quality" />
+            )}
+            {subTab === 'traps' && (
+              <ExportButtons data={traps} filenamePrefix="vnms_snmp_traps" title="SNMP Traps" />
+            )}
+            {subTab === 'bgp' && (
+              <ExportButtons data={bgpPeers} filenamePrefix="vnms_bgp_peers" title="BGP Sessions" />
+            )}
+            {subTab === 'rogue_dhcp' && (
+              <ExportButtons data={rogueAudit} filenamePrefix="vnms_rogue_dhcp_audit" title="Rogue DHCP Audit" />
+            )}
+          </>
+        }
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', flexWrap: 'wrap' }}>

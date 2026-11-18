@@ -17,6 +17,7 @@ import {
   MOCK_IPSEC_TUNNELS, 
   MOCK_SSL_CERTS 
 } from '../../data/mockEnterpriseData';
+import { PageHeader } from '../../components/PageHeader';
 
 export interface WirelessViewProps {
   devices?: Device[];
@@ -135,22 +136,14 @@ export const WirelessView: React.FC<WirelessViewProps> = ({ devices = [] }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              Wireless, Telecom &amp; Network Specialized Hardware
-            </h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              Live Telemetry
-            </span>
-          </div>
-          <p style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '4px', margin: 0 }}>
-            Wi-Fi 6 Access Points, Active Connected Wireless Clients, Optical Transceivers (DOM), IPsec VPN &amp; Certificates
-          </p>
-        </div>
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Wifi}
+        title="Wireless, Telecom & Network Specialized Hardware"
+        subtitle="Wi-Fi 6 Access Points, Active Connected Wireless Clients, Optical Transceivers (DOM), IPsec VPN & Certificates"
+        badge="Live Telemetry"
+        badgeColor="cyan"
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>

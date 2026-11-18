@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import type { AlertRecipient } from '../../types';
 import { useToast } from '../../context/ToastContext';
+import { PageHeader } from '../../components/PageHeader';
 
 interface AlertContactsViewProps {
   onNavigateToMatrix?: (recipientId?: number) => void;
@@ -201,60 +202,39 @@ export const AlertContactsView: React.FC<AlertContactsViewProps> = ({
         </div>
       )}
 
-      {/* Page Title & Navigation Banner */}
-      <div style={{
-        background: '#ffffff',
-        padding: '20px 24px',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '16px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-      }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ padding: '8px', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7' }}>
-              <Users size={22} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                Alert Recipients &amp; On-Call Persons Directory
-              </h2>
-              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '3px 0 0 0' }}>
-                Dedicated management page to add and maintain on-call contacts. Server and device alert subscriptions are configured on the separate Linking Page.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Action: Jump to Separate Linking Matrix */}
-        {onNavigateToMatrix && (
-          <button
-            onClick={() => onNavigateToMatrix()}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '9px 18px',
-              borderRadius: '8px',
-              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-              color: '#ffffff',
-              border: 'none',
-              fontSize: '0.84rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.3)'
-            }}
-          >
-            <Link2 size={16} />
-            <span>Open Device Alert Linking Page</span>
-            <ArrowRight size={15} />
-          </button>
-        )}
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Users}
+        title="Alert Recipients & On-Call Persons Directory"
+        subtitle="Dedicated management page to add and maintain on-call contacts. Server and device alert subscriptions are configured on the separate Linking Page."
+        badge="ON-CALL ROSTER"
+        badgeColor="blue"
+        actions={
+          onNavigateToMatrix && (
+            <button
+              onClick={() => onNavigateToMatrix()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '9px 18px',
+                borderRadius: '8px',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                color: '#ffffff',
+                border: 'none',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.3)'
+              }}
+            >
+              <Link2 size={16} />
+              <span>Open Device Alert Linking Page</span>
+              <ArrowRight size={15} />
+            </button>
+          )
+        }
+      />
 
       {/* Metric Stat Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>

@@ -9,26 +9,21 @@ import {
   MOCK_PSEUDOWIRES, 
   MOCK_BILLS 
 } from '../../data/mockEnterpriseData';
+import { PageHeader } from '../../components/PageHeader';
 
 export const MplsBillingView: React.FC = () => {
   const [subTab, setSubTab] = useState<'billing' | 'mpls' | 'pseudowires'>('billing');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>MPLS, Carrier WAN & 95th% Bandwidth Billing</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: '#e0f2fe', color: '#0369a1', fontWeight: 700 }}>
-              Models #81 - #99 (19 Models)
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            MPLS Label Switched Paths (LSP), Layer 2 Pseudowires (EoMPLS), CDR quotas & 95th Percentile ISP Billing Contracts
-          </p>
-        </div>
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={CreditCard}
+        title="MPLS, Carrier WAN & 95th% Bandwidth Billing"
+        subtitle="MPLS Label Switched Paths (LSP), Layer 2 Pseudowires (EoMPLS), CDR quotas & 95th Percentile ISP Billing Contracts"
+        badge="Models #81 - #99"
+        badgeColor="purple"
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>

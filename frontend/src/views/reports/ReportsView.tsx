@@ -259,9 +259,10 @@ export const ReportsView: React.FC<ReportsViewProps> = ({ devices }) => {
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '12px',
-        padding: '12px 18px',
+        padding: '16px 20px',
         background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        borderRadius: '10px',
+        borderRadius: '12px',
+        border: '1px solid #1e293b',
         color: '#ffffff',
         boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)'
       }}>

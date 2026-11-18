@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { 
-  Thermometer, 
-  Cpu, 
-  Database, 
-  HardDrive, 
-  TrendingUp, 
-  CheckCircle2, 
+import {
+  Thermometer,
+  Cpu,
+  Database,
+  HardDrive,
+  TrendingUp,
+  CheckCircle2,
   AlertTriangle,
   Server,
   Search,
@@ -21,14 +21,15 @@ import {
   FileCode,
   Layers
 } from 'lucide-react';
-import { 
-  MOCK_SENSORS, 
-  MOCK_PROCESSORS, 
-  MOCK_MEMPOOLS, 
-  MOCK_STORAGE, 
-  MOCK_DISK_IO 
+import {
+  MOCK_SENSORS,
+  MOCK_PROCESSORS,
+  MOCK_MEMPOOLS,
+  MOCK_STORAGE,
+  MOCK_DISK_IO
 } from '../../data/mockEnterpriseData';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 
 interface SensorsViewProps {
   apiBase?: string;
@@ -148,10 +149,10 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
     if (subTab === 'mibs_catalog') {
       axios.get(`${apiBase}/mibs/catalog`)
         .then(res => { if (res.data?.mibs) setMibsCatalog(res.data.mibs); })
-        .catch(() => {});
+        .catch(() => { });
       axios.get(`${apiBase}/discovery/monitors?limit=60`)
         .then(res => { if (res.data?.monitors) setMonitorsCatalog(res.data.monitors); })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [subTab, apiBase]);
 
@@ -159,7 +160,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
     setMonitorsSearch(q);
     axios.get(`${apiBase}/discovery/monitors?q=${encodeURIComponent(q)}&limit=60`)
       .then(res => { if (res.data?.monitors) setMonitorsCatalog(res.data.monitors); })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   const handleViewMib = (name: string) => {
@@ -174,18 +175,20 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
 
   // Group storage records by Server so server name appears ONCE with all its drives underneath
   const groupedStorage = useMemo(() => {
-    const groups: { [key: string]: {
-      key: string;
-      deviceId?: number;
-      rawHostname: string;
-      ipAddress: string;
-      deviceHostname: string;
-      isLinux: boolean;
-      totalCapacityGb: number;
-      totalUsedGb: number;
-      overallPercent: number;
-      volumes: any[];
-    } } = {};
+    const groups: {
+      [key: string]: {
+        key: string;
+        deviceId?: number;
+        rawHostname: string;
+        ipAddress: string;
+        deviceHostname: string;
+        isLinux: boolean;
+        totalCapacityGb: number;
+        totalUsedGb: number;
+        overallPercent: number;
+        volumes: any[];
+      }
+    } = {};
 
     storageData.forEach(item => {
       let rawHost = item.rawHostname || '';
@@ -204,10 +207,10 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
 
       const key = item.deviceId ? `dev-${item.deviceId}` : rawHost;
       if (!groups[key]) {
-        const isLinux = rawHost.toLowerCase().includes('linux') || 
-                        item.fileSystem === 'ext4' || 
-                        item.fileSystem === 'xfs' ||
-                        (item.mountPoint && String(item.mountPoint).startsWith('/'));
+        const isLinux = rawHost.toLowerCase().includes('linux') ||
+          item.fileSystem === 'ext4' ||
+          item.fileSystem === 'xfs' ||
+          (item.mountPoint && String(item.mountPoint).startsWith('/'));
 
         groups[key] = {
           key,
@@ -238,11 +241,11 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   const filteredGroups = useMemo(() => {
     if (!searchQuery.trim()) return groupedStorage;
     const q = searchQuery.toLowerCase();
-    return groupedStorage.filter(g => 
+    return groupedStorage.filter(g =>
       g.rawHostname.toLowerCase().includes(q) ||
       g.ipAddress.toLowerCase().includes(q) ||
-      g.volumes.some(v => 
-        (v.mountPoint || '').toLowerCase().includes(q) || 
+      g.volumes.some(v =>
+        (v.mountPoint || '').toLowerCase().includes(q) ||
         (v.fileSystem || '').toLowerCase().includes(q)
       )
     );
@@ -252,7 +255,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
   const filteredFlatStorage = useMemo(() => {
     if (!searchQuery.trim()) return storageData;
     const q = searchQuery.toLowerCase();
-    return storageData.filter(st => 
+    return storageData.filter(st =>
       (st.deviceHostname || '').toLowerCase().includes(q) ||
       (st.mountPoint || '').toLowerCase().includes(q) ||
       (st.fileSystem || '').toLowerCase().includes(q)
@@ -284,21 +287,17 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a' }}>Sensors, Metrics &amp; Storage Architecture</h2>
-            <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '4px', background: isLive ? '#dcfce7' : '#e0f2fe', color: isLive ? '#15803d' : '#0369a1', fontWeight: 700 }}>
-              {isLive ? '● Telemetry Poller Active' : 'Catalog Models #26 - #35'}
-            </span>
-          </div>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
-            Physical drive health (HDD/SSD/RAID), logical volumes, filesystem mount points, and environmental telemetry
-          </p>
-        </div>
-        <ExportButtons data={storageData} filenamePrefix="vnms_storage_sensors" title="Storage & Sensors" />
-      </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Cpu}
+        title="Sensors, Metrics & Storage Architecture"
+        subtitle="Physical drive health (HDD/SSD/RAID), logical volumes, filesystem mount points, and environmental telemetry"
+        badge={isLive ? '● Telemetry Poller Active' : 'Catalog Models #26 - #35'}
+        badgeColor={isLive ? 'emerald' : 'blue'}
+        actions={
+          <ExportButtons data={storageData} filenamePrefix="vnms_storage_sensors" title="Storage & Sensors" />
+        }
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', flexWrap: 'wrap' }}>
@@ -763,33 +762,33 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                         <td style={{ padding: '4px 10px', width: '200px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div style={{ flex: 1, height: '6px', borderRadius: '4px', background: '#e2e8f0', overflow: 'hidden' }}>
-                              <div style={{ 
-                                width: `${percent}%`, 
-                                height: '100%', 
-                                background: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#16a34a' 
+                              <div style={{
+                                width: `${percent}%`,
+                                height: '100%',
+                                background: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#16a34a'
                               }} />
                             </div>
-                            <span style={{ 
-                              fontSize: '0.70rem', 
-                              fontWeight: 700, 
-                              color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a', 
-                              width: '36px' 
+                            <span style={{
+                              fontSize: '0.70rem',
+                              fontWeight: 700,
+                              color: isCritical ? '#dc2626' : isWarning ? '#d97706' : '#0f172a',
+                              width: '36px'
                             }}>
                               {percent}%
                             </span>
                           </div>
                         </td>
                         <td style={{ padding: '4px 10px' }}>
-                          <span style={{ 
-                            fontSize: '0.68rem', 
-                            padding: '1.5px 6px', 
-                            borderRadius: '4px', 
-                            background: '#f0fdf4', 
-                            color: '#16a34a', 
-                            fontWeight: 700, 
-                            display: 'inline-flex', 
-                            alignItems: 'center', 
-                            gap: '3px' 
+                          <span style={{
+                            fontSize: '0.68rem',
+                            padding: '1.5px 6px',
+                            borderRadius: '4px',
+                            background: '#f0fdf4',
+                            color: '#16a34a',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '3px'
                           }}>
                             <CheckCircle2 size={11} />
                             Healthy
@@ -1650,7 +1649,7 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                 Native embedded enterprise MIB definitions and indexed telemetry OIDs for Cisco, Dell, HP, Fortinet, Palo Alto, Aruba, and RFC standards.
               </p>
             </div>
-            
+
             {/* View Selector Tabs */}
             <div style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.08)', padding: '4px', borderRadius: '8px' }}>
               <button
@@ -1767,62 +1766,62 @@ export const SensorsView: React.FC<SensorsViewProps> = ({ apiBase = '/api/v1' })
                   { name: 'IF-MIB', size: 84000, category: 'Core Networking', vendor: 'Standard / IETF' },
                   { name: 'RFC1213-MIB', size: 79200, category: 'Core Networking', vendor: 'Standard / IETF' }
                 ])
-                .filter((m: any) => !mibsSearch || m.name.toLowerCase().includes(mibsSearch.toLowerCase()) || m.vendor.toLowerCase().includes(mibsSearch.toLowerCase()))
-                .map((mib: any, idx: number) => (
-                  <div
-                    key={idx}
-                    style={{
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '8px',
-                      padding: '12px 14px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: '#eff6ff', color: '#1d4ed8' }}>
-                          {mib.vendor}
-                        </span>
-                        <span style={{ fontSize: '0.68rem', color: '#64748b', fontFamily: 'monospace' }}>
-                          {(mib.size / 1024).toFixed(1)} KB
-                        </span>
-                      </div>
-                      <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.82rem', color: '#0f172a', wordBreak: 'break-all' }}>
-                        {mib.name}
-                      </div>
-                      <div style={{ fontSize: '0.70rem', color: '#64748b', marginTop: '3px' }}>
-                        {mib.category}
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleViewMib(mib.name)}
+                  .filter((m: any) => !mibsSearch || m.name.toLowerCase().includes(mibsSearch.toLowerCase()) || m.vendor.toLowerCase().includes(mibsSearch.toLowerCase()))
+                  .map((mib: any, idx: number) => (
+                    <div
+                      key={idx}
                       style={{
-                        marginTop: '10px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        padding: '6px 10px',
-                        borderRadius: '6px',
-                        border: '1px solid #cbd5e1',
-                        background: '#f8fafc',
-                        color: '#0f172a',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        cursor: 'pointer'
+                        background: '#ffffff',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
                       }}
                     >
-                      <Eye size={13} />
-                      <span>Inspect MIB</span>
-                    </button>
-                  </div>
-                ))}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', background: '#eff6ff', color: '#1d4ed8' }}>
+                            {mib.vendor}
+                          </span>
+                          <span style={{ fontSize: '0.68rem', color: '#64748b', fontFamily: 'monospace' }}>
+                            {(mib.size / 1024).toFixed(1)} KB
+                          </span>
+                        </div>
+                        <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.82rem', color: '#0f172a', wordBreak: 'break-all' }}>
+                          {mib.name}
+                        </div>
+                        <div style={{ fontSize: '0.70rem', color: '#64748b', marginTop: '3px' }}>
+                          {mib.category}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleViewMib(mib.name)}
+                        style={{
+                          marginTop: '10px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          padding: '6px 10px',
+                          borderRadius: '6px',
+                          border: '1px solid #cbd5e1',
+                          background: '#f8fafc',
+                          color: '#0f172a',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Eye size={13} />
+                        <span>Inspect MIB</span>
+                      </button>
+                    </div>
+                  ))}
               </div>
             </div>
           )}

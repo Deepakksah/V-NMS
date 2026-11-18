@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { 
-  Layers, 
-  Activity, 
+import {
+  Layers,
+  Activity,
   Terminal,
   Cloud,
   Box,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import type { Device } from '../../types';
 import { ExportButtons } from '../../components/ExportButtons';
+import { PageHeader } from '../../components/PageHeader';
 import { useToast } from '../../context/ToastContext';
 
 export interface VirtualizationViewProps {
@@ -206,98 +207,91 @@ export const VirtualizationView: React.FC<VirtualizationViewProps> = ({ devices 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Title & Toolbar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              Virtualization, Containers &amp; Cloud Management
-            </h2>
-            <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '4px', background: '#dcfce7', color: '#15803d', fontWeight: 700 }}>
-              ● Telemetry Poller Active
-            </span>
-          </div>
-          <p style={{ fontSize: '0.80rem', color: '#64748b', margin: '4px 0 0 0' }}>
-            Multi-cloud infrastructure (AWS, Azure, GCP), Docker/Kubernetes workloads, and Hypervisor monitoring
-          </p>
-        </div>
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={Cloud}
+        title="Virtualization, Containers & Cloud Management"
+        subtitle="Multi-cloud infrastructure (AWS, Azure, GCP), Docker/Kubernetes workloads, and Hypervisor monitoring"
+        badge="● Telemetry Poller Active"
+        badgeColor="emerald"
+        actions={
+          <>
+            <button
+              onClick={() => fetchVirtualizationData()}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: '#1e293b',
+                border: '1px solid #334155',
+                color: '#f8fafc',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.74rem',
+                fontWeight: 600
+              }}
+            >
+              <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={() => fetchVirtualizationData()}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 12px',
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontSize: '0.74rem',
-              fontWeight: 600
-            }}
-          >
-            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-            <span>Refresh</span>
-          </button>
+            {subTab === 'cloud' && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsCloudModalOpen(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                    border: 'none',
+                    color: '#ffffff',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+                  }}
+                >
+                  <Plus size={14} />
+                  <span>+ Connect Cloud Service</span>
+                </button>
+                <ExportButtons data={clouds} filenamePrefix="vnms_cloud_services" title="Cloud Services" />
+              </>
+            )}
 
-          {subTab === 'cloud' && (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsCloudModalOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 14px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
-                  border: 'none',
-                  color: '#ffffff',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
-                }}
-              >
-                <Plus size={14} />
-                <span>+ Connect Cloud Service</span>
-              </button>
-              <ExportButtons data={clouds} filenamePrefix="vnms_cloud_services" title="Cloud Services" />
-            </>
-          )}
-
-          {subTab === 'containers' && (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsWorkloadModalOpen(true)}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 14px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
-                  border: 'none',
-                  color: '#ffffff',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
-                }}
-              >
-                <Plus size={14} />
-                <span>+ Register Workload</span>
-              </button>
-              <ExportButtons data={containers} filenamePrefix="vnms_containers_k8s" title="Containers & K8s" />
-            </>
-          )}
-        </div>
-      </div>
+            {subTab === 'containers' && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsWorkloadModalOpen(true)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                    border: 'none',
+                    color: '#ffffff',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+                  }}
+                >
+                  <Plus size={14} />
+                  <span>+ Register Workload</span>
+                </button>
+                <ExportButtons data={containers} filenamePrefix="vnms_containers_k8s" title="Containers & K8s" />
+              </>
+            )}
+          </>
+        }
+      />
 
       {/* SubTab Navigation */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', flexWrap: 'wrap' }}>

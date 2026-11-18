@@ -39,6 +39,7 @@ import {
 import type { Device } from '../../types';
 import { DeviceChartsModal } from '../../components/DeviceChartsModal';
 import { VendorLogo, DeviceTypeBadge } from '../../components/VendorLogo';
+import { PageHeader } from '../../components/PageHeader';
 import { getDeviceTelemetryHistory, type ChartTimeframe } from '../../data/deviceTelemetryGenerator';
 
 interface TreeViewProps {
@@ -723,122 +724,81 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {/* Top Header Card */}
-      <div style={{
-        background: '#ffffff',
-        padding: '16px 20px',
-        borderRadius: '10px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '14px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 3px 8px rgba(2, 132, 199, 0.25)'
-          }}>
-            <FolderTree size={20} color="#ffffff" />
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                Enterprise Infrastructure Tree View
-              </h2>
-              <span style={{
-                fontSize: '0.64rem',
-                fontWeight: 700,
-                padding: '2px 7px',
-                borderRadius: '5px',
-                background: '#e0f2fe',
-                color: '#0369a1',
-                border: '1px solid #bae6fd'
-              }}>
-                NETWORK TOPOLOGY &amp; TELEMETRY
-              </span>
-            </div>
-            <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '2px 0 0 0' }}>
-              Perimeter Firewalls &rarr; Core Switches &rarr; Servers &rarr; Workstations &rarr; NTP Clocks with Live Telemetry Charts
-            </p>
-          </div>
-        </div>
-
-        {/* Global Expand / Collapse All Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={handleExpandAll}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <Maximize2 size={13} color="#0284c7" />
-            <span>Expand All</span>
-          </button>
-
-          <button
-            onClick={handleCollapseAll}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <Minimize2 size={13} color="#dc2626" />
-            <span>Collapse All</span>
-          </button>
-
-          {onOpenAddDevice && (
+      {/* Enterprise Dark NOC Header */}
+      <PageHeader
+        icon={FolderTree}
+        title="Enterprise Infrastructure Tree View"
+        subtitle="Perimeter Firewalls → Core Switches → Servers → Workstations → NTP Clocks with Live Telemetry Charts"
+        badge="NETWORK TOPOLOGY & TELEMETRY"
+        badgeColor="cyan"
+        actions={
+          <>
             <button
-              onClick={() => onOpenAddDevice('server')}
+              onClick={handleExpandAll}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
-                padding: '6px 14px',
+                padding: '6px 12px',
                 borderRadius: '6px',
-                background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
-                border: 'none',
-                color: '#ffffff',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)'
+                background: '#1e293b',
+                border: '1px solid #334155',
+                color: '#f8fafc',
+                fontSize: '0.76rem',
+                fontWeight: 600,
+                cursor: 'pointer'
               }}
-              title="Register new hardware node into tree topology"
             >
-              <Plus size={13} />
-              <span>Add Node</span>
+              <Maximize2 size={13} color="#38bdf8" />
+              <span>Expand All</span>
             </button>
-          )}
-        </div>
-      </div>
+
+            <button
+              onClick={handleCollapseAll}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                background: '#1e293b',
+                border: '1px solid #334155',
+                color: '#f8fafc',
+                fontSize: '0.76rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <Minimize2 size={13} color="#f87171" />
+              <span>Collapse All</span>
+            </button>
+
+            {onOpenAddDevice && (
+              <button
+                onClick={() => onOpenAddDevice('server')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontSize: '0.76rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.35)'
+                }}
+                title="Register new hardware node into tree topology"
+              >
+                <Plus size={13} />
+                <span>Add Node</span>
+              </button>
+            )}
+          </>
+        }
+      />
 
       {/* Filter and Search Bar */}
       <div style={{
