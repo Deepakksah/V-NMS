@@ -38,6 +38,14 @@
                                      Protocol="tcp"
                                      Scope="any"
                                      IgnoreFailure="yes" />
+
+          <firewall:FirewallException Id="FW80"
+                                     Name="V-NMS HTTP Web Gateway"
+                                     Description="Allow inbound TCP port 80 for V-NMS direct browser access"
+                                     Port="80"
+                                     Protocol="tcp"
+                                     Scope="any"
+                                     IgnoreFailure="yes" />
         </Component>
 
         <Component Id="ConfigFile" Guid="A736F521-1249-418E-A961-0CD3D8F4E9A2">

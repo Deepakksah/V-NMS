@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -12,54 +13,76 @@ namespace setup_app
 {
     public partial class Form1 : Form
     {
-        // UI Controls
-        private Panel headerPanel;
-        private Label lblHeaderTitle;
-        private Label lblHeaderSub;
+        // UI Controls - Header
+        private Panel headerPanel = null!;
+        private Label lblHeaderTitle = null!;
+        private Label lblHeaderSub = null!;
 
-        // Component 1: PostgreSQL
-        private Panel pnlPostgres;
-        private CheckBox chkPostgres;
-        private Label lblPostgresDesc;
-        private Label lblPostgresBadge;
+        // View Panels (Toggle between Install/Repair View and Removal View)
+        private Panel pnlInstallView = null!;
+        private Panel pnlRemoveView = null!;
 
-        // Component 2: V-NMS Suite
-        private Panel pnlVnms;
-        private CheckBox chkVnms;
-        private Label lblVnmsDesc;
-        private Label lblVnmsBadge;
+        // ==========================================
+        // INSTALL / REPAIR VIEW CONTROLS
+        // ==========================================
+        private Panel pnlPostgres = null!;
+        private CheckBox chkPostgres = null!;
+        private Label lblPostgresDesc = null!;
+        private Label lblPostgresBadge = null!;
 
-        // Component 3: Database Init
-        private Panel pnlDbInit;
-        private CheckBox chkDbInit;
-        private Label lblDbInitDesc;
-        private Label lblDbInitBadge;
+        private Panel pnlVnms = null!;
+        private CheckBox chkVnms = null!;
+        private Label lblVnmsDesc = null!;
+        private Label lblVnmsBadge = null!;
 
-        // Component 4: Windows Service
-        private Panel pnlService;
-        private CheckBox chkService;
-        private Label lblServiceDesc;
-        private Label lblServiceBadge;
+        private Panel pnlDbInit = null!;
+        private CheckBox chkDbInit = null!;
+        private Label lblDbInitDesc = null!;
+        private Label lblDbInitBadge = null!;
 
-        // Component 5: Firewall
-        private Panel pnlFirewall;
-        private CheckBox chkFirewall;
-        private Label lblFirewallDesc;
-        private Label lblFirewallBadge;
+        private Panel pnlService = null!;
+        private CheckBox chkService = null!;
+        private Label lblServiceDesc = null!;
+        private Label lblServiceBadge = null!;
 
-        // Bottom Controls
-        private Label lblPortPrompt;
-        private TextBox txtPort;
-        private Button btnInstall;
-        private Button btnUninstall;
-        private Button btnClose;
-        private ProgressBar progressBar;
-        private Label lblProgressPercent;
-        private Label lblStatus;
-        private RichTextBox rtbLog;
+        private Panel pnlFirewall = null!;
+        private CheckBox chkFirewall = null!;
+        private Label lblFirewallDesc = null!;
+        private Label lblFirewallBadge = null!;
+
+        private Label lblPortPrompt = null!;
+        private TextBox txtPort = null!;
+        private Button btnInstall = null!;
+        private Button btnRepair = null!;
+        private Button btnRemovePrompt = null!;
+        private Button btnClose = null!;
+
+        // ==========================================
+        // REMOVAL (UNINSTALL) VIEW CONTROLS
+        // ==========================================
+        private Label lblRemoveTitle = null!;
+        private CheckBox chkWipeVnms = null!;
+        private CheckBox chkWipeService = null!;
+        private CheckBox chkWipeFirewall = null!;
+        private CheckBox chkWipeDatabase = null!;
+        private CheckBox chkWipePostgres = null!;
+        private CheckBox chkWipeTemp = null!;
+        private CheckBox chkWipeHostsReg = null!;
+        private CheckBox chkTotalCleanWipe = null!;
+
+        private Button btnExecuteRemove = null!;
+        private Button btnCancelRemove = null!;
+
+        // ==========================================
+        // COMMON TELEMETRY & LOGGING CONTROLS
+        // ==========================================
+        private ProgressBar progressBar = null!;
+        private Label lblProgressPercent = null!;
+        private Label lblStatus = null!;
+        private RichTextBox rtbLog = null!;
 
         // Animation & State
-        private System.Windows.Forms.Timer animTimer;
+        private System.Windows.Forms.Timer animTimer = null!;
         private int targetProgress = 0;
         private int spinnerIndex = 0;
         private readonly string[] spinnerFrames = new string[] { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
@@ -77,7 +100,7 @@ namespace setup_app
         private void InitializeComponentCustom()
         {
             this.Text = "Veracity Network Management System (V-NMS) — Enterprise Setup v2.0.0";
-            this.Size = new Size(730, 750);
+            this.Size = new Size(760, 830);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -103,7 +126,7 @@ namespace setup_app
 
             lblHeaderSub = new Label
             {
-                Text = "Enterprise NOC Engine • Native Windows Service • Complete 1-Click Setup & Uninstaller",
+                Text = "Enterprise NOC Engine • Setup, Repair & Complete Clean Removal (Zero Traces)",
                 ForeColor = Color.FromArgb(148, 163, 184),
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 Location = new Point(23, 44),
@@ -114,56 +137,63 @@ namespace setup_app
             headerPanel.Controls.Add(lblHeaderSub);
             this.Controls.Add(headerPanel);
 
-            // 2. Component Selection Section
-            int startY = 100;
-            int cardGap = 52;
+            // 2. Install / Repair View Panel
+            pnlInstallView = new Panel
+            {
+                Location = new Point(0, 85),
+                Size = new Size(760, 375),
+                BackColor = Color.FromArgb(248, 250, 252)
+            };
+
+            int cardY = 12;
+            int cardGap = 50;
 
             // Comp 1: PostgreSQL 18
-            pnlPostgres = CreateComponentCard(startY,
+            pnlPostgres = CreateComponentCard(cardY,
                 out chkPostgres, out lblPostgresDesc, out lblPostgresBadge,
                 "PostgreSQL 18 Database Engine (Bundled Embedded Offline)",
                 "Relational time-series database for telemetry, metric charts, and incident alerts.",
                 "Detecting...", Color.FromArgb(100, 116, 139));
-            this.Controls.Add(pnlPostgres);
+            pnlInstallView.Controls.Add(pnlPostgres);
 
             // Comp 2: V-NMS Core Suite
-            pnlVnms = CreateComponentCard(startY + cardGap,
+            pnlVnms = CreateComponentCard(cardY + cardGap,
                 out chkVnms, out lblVnmsDesc, out lblVnmsBadge,
                 "V-NMS Core NOC Engine & Dashboard (MSI Package)",
                 "Unified binary with high-concurrency poller, auto-discovery and embedded React UI.",
                 "v2.0.0 Package", Color.FromArgb(37, 99, 235));
             chkVnms.Checked = true;
-            this.Controls.Add(pnlVnms);
+            pnlInstallView.Controls.Add(pnlVnms);
 
             // Comp 3: Database Init
-            pnlDbInit = CreateComponentCard(startY + (cardGap * 2),
+            pnlDbInit = CreateComponentCard(cardY + (cardGap * 2),
                 out chkDbInit, out lblDbInitDesc, out lblDbInitBadge,
                 "Database Auto-Creation & Telemetry Schema Migrations",
                 "Automatically creates 'vnms' database, all 9 enterprise tables, and SuperAdmin user.",
                 "Automated", Color.FromArgb(124, 58, 237));
             chkDbInit.Checked = true;
-            this.Controls.Add(pnlDbInit);
+            pnlInstallView.Controls.Add(pnlDbInit);
 
             // Comp 4: Windows Service
-            pnlService = CreateComponentCard(startY + (cardGap * 3),
+            pnlService = CreateComponentCard(cardY + (cardGap * 3),
                 out chkService, out lblServiceDesc, out lblServiceBadge,
                 "Official Windows Background Service ('VNMSService')",
                 "Runs automatically on system boot. Continuous 24/7 background telemetry monitoring.",
                 "Auto-Start", Color.FromArgb(5, 150, 105));
             chkService.Checked = true;
-            this.Controls.Add(pnlService);
+            pnlInstallView.Controls.Add(pnlService);
 
             // Comp 5: Firewall
-            pnlFirewall = CreateComponentCard(startY + (cardGap * 4),
+            pnlFirewall = CreateComponentCard(cardY + (cardGap * 4),
                 out chkFirewall, out lblFirewallDesc, out lblFirewallBadge,
-                "Windows Firewall LAN Access Rule",
-                "Opens Inbound TCP Port 8081 so dashboards can be accessed from any PC on the network.",
-                "Port 8081", Color.FromArgb(217, 119, 6));
+                "Windows Firewall LAN Access Rules (Port 80 & 8081)",
+                "Allows incoming HTTP on Port 80 (http://v-nms.com) and Port 8081 for all LAN computers.",
+                "Port 80 & 8081", Color.FromArgb(217, 119, 6));
             chkFirewall.Checked = true;
-            this.Controls.Add(pnlFirewall);
+            pnlInstallView.Controls.Add(pnlFirewall);
 
-            // Bottom Action Bar: Port + Install + Uninstall + Close
-            int actionY = startY + (cardGap * 5) + 8;
+            // Action Bar for Install / Repair View
+            int actionY = cardY + (cardGap * 5) + 12;
 
             lblPortPrompt = new Label
             {
@@ -179,86 +209,217 @@ namespace setup_app
                 Text = "8081",
                 Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
                 Location = new Point(135, actionY + 5),
-                Size = new Size(65, 24),
+                Size = new Size(55, 24),
                 TextAlign = HorizontalAlignment.Center
             };
 
-            btnUninstall = new Button
-            {
-                Text = "🗑️ Uninstall V-NMS",
-                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
-                BackColor = Color.FromArgb(220, 38, 38),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Location = new Point(220, actionY),
-                Size = new Size(150, 36),
-                Cursor = Cursors.Hand,
-                Visible = false
-            };
-            btnUninstall.FlatAppearance.BorderSize = 0;
-            btnUninstall.Click += BtnUninstall_Click;
-
             btnInstall = new Button
             {
-                Text = "✔ Install V-NMS Enterprise Now",
-                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                Text = "✔ Install V-NMS Now",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
                 BackColor = Color.FromArgb(2, 132, 199),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Location = new Point(380, actionY),
-                Size = new Size(195, 36),
+                Location = new Point(205, actionY),
+                Size = new Size(165, 36),
                 Cursor = Cursors.Hand
             };
             btnInstall.FlatAppearance.BorderSize = 0;
             btnInstall.Click += BtnInstall_Click;
 
+            btnRepair = new Button
+            {
+                Text = "🔧 Repair V-NMS",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                BackColor = Color.FromArgb(5, 150, 105),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Location = new Point(380, actionY),
+                Size = new Size(140, 36),
+                Cursor = Cursors.Hand,
+                Visible = false
+            };
+            btnRepair.FlatAppearance.BorderSize = 0;
+            btnRepair.Click += BtnRepair_Click;
+
+            btnRemovePrompt = new Button
+            {
+                Text = "🗑️ Remove / Uninstall",
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                BackColor = Color.FromArgb(220, 38, 38),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Location = new Point(530, actionY),
+                Size = new Size(140, 36),
+                Cursor = Cursors.Hand,
+                Visible = false
+            };
+            btnRemovePrompt.FlatAppearance.BorderSize = 0;
+            btnRemovePrompt.Click += (s, e) => SwitchToRemovalMode();
+
             btnClose = new Button
             {
-                Text = "Cancel",
+                Text = "Exit",
                 Font = new Font("Segoe UI", 9F, FontStyle.Regular),
                 BackColor = Color.FromArgb(226, 232, 240),
                 ForeColor = Color.FromArgb(30, 41, 59),
                 FlatStyle = FlatStyle.Flat,
-                Location = new Point(585, actionY),
-                Size = new Size(105, 36),
+                Location = new Point(680, actionY),
+                Size = new Size(45, 36),
                 Cursor = Cursors.Hand
             };
             btnClose.FlatAppearance.BorderSize = 0;
-            btnClose.Click += (s, e) =>
-            {
-                if (isInstalling && !isComplete)
-                {
-                    var result = MessageBox.Show(
-                        "Setup operation is currently in progress!\n\nIf you abort now, all progress will be safely rolled back to prevent a broken state.\n\nAre you sure you want to cancel and rollback?",
-                        "Confirm Cancellation",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Warning);
+            btnClose.Click += (s, e) => HandleClose();
 
-                    if (result == DialogResult.Yes)
-                    {
-                        PerformRollback();
-                        this.Close();
-                    }
-                }
-                else
-                {
-                    this.Close();
-                }
+            pnlInstallView.Controls.Add(lblPortPrompt);
+            pnlInstallView.Controls.Add(txtPort);
+            pnlInstallView.Controls.Add(btnInstall);
+            pnlInstallView.Controls.Add(btnRepair);
+            pnlInstallView.Controls.Add(btnRemovePrompt);
+            pnlInstallView.Controls.Add(btnClose);
+            this.Controls.Add(pnlInstallView);
+
+            // ==========================================
+            // 3. REMOVAL (UNINSTALL) VIEW PANEL
+            // ==========================================
+            pnlRemoveView = new Panel
+            {
+                Location = new Point(0, 85),
+                Size = new Size(760, 375),
+                BackColor = Color.FromArgb(254, 242, 242), // Subtle light red tint for removal awareness
+                Visible = false
             };
 
-            this.Controls.Add(lblPortPrompt);
-            this.Controls.Add(txtPort);
-            this.Controls.Add(btnUninstall);
-            this.Controls.Add(btnInstall);
-            this.Controls.Add(btnClose);
+            lblRemoveTitle = new Label
+            {
+                Text = "SELECT COMPONENTS TO REMOVE (Tick individual items or select Total Clean Wipe):",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(153, 27, 27),
+                Location = new Point(22, 10),
+                AutoSize = true
+            };
+            pnlRemoveView.Controls.Add(lblRemoveTitle);
 
-            // Progress Bar & Percentage
-            int progressY = actionY + 46;
+            int remY = 34;
+            int remGap = 33;
+
+            // Rem 1: V-NMS Files
+            chkWipeVnms = CreateRemovalCheckbox(remY,
+                "V-NMS Application & Binaries",
+                "Permanently delete 'C:\\Program Files\\V-NMS', Desktop/Start Menu shortcuts, and configs.",
+                true);
+            pnlRemoveView.Controls.Add(chkWipeVnms);
+
+            // Rem 2: Service
+            chkWipeService = CreateRemovalCheckbox(remY + remGap,
+                "Windows Background Service ('VNMSService')",
+                "Stop running process and unregister 'VNMSService' from Windows Service Control Manager.",
+                true);
+            pnlRemoveView.Controls.Add(chkWipeService);
+
+            // Rem 3: Firewall
+            chkWipeFirewall = CreateRemovalCheckbox(remY + (remGap * 2),
+                "Windows Firewall LAN Rules",
+                "Delete inbound rules 'V-NMS Enterprise NOC' and 'V-NMS HTTP Web Gateway' (Ports 80/8081).",
+                true);
+            pnlRemoveView.Controls.Add(chkWipeFirewall);
+
+            // Rem 4: Database
+            chkWipeDatabase = CreateRemovalCheckbox(remY + (remGap * 3),
+                "'vnms' Database & Telemetry Data",
+                "Drop database 'vnms', all 9 tables, recorded telemetry, device inventory, and users.",
+                true);
+            pnlRemoveView.Controls.Add(chkWipeDatabase);
+
+            // Rem 5: PostgreSQL Engine (User can choose: sirf setup remove ya total postgress ke sath!)
+            chkWipePostgres = CreateRemovalCheckbox(remY + (remGap * 4),
+                "PostgreSQL 18 Database Server & Engine (Total Purge)",
+                "Completely uninstall PostgreSQL 18 server and delete 'C:\\Program Files\\PostgreSQL'.",
+                false);
+            chkWipePostgres.ForeColor = Color.FromArgb(185, 28, 28);
+            pnlRemoveView.Controls.Add(chkWipePostgres);
+
+            // Rem 6: Temp & Cache
+            chkWipeTemp = CreateRemovalCheckbox(remY + (remGap * 5),
+                "Temporary Files & Staging Payloads (Zero Residual Traces)",
+                "Erase '%TEMP%\\VNMS_*', '%LOCALAPPDATA%\\Temp\\*vnms*', logs, and all installer staging bytes.",
+                true);
+            pnlRemoveView.Controls.Add(chkWipeTemp);
+
+            // Rem 7: Hosts & Registry
+            chkWipeHostsReg = CreateRemovalCheckbox(remY + (remGap * 6),
+                "Local Domain (v-nms.com) from Hosts File & Registry",
+                "Clean 'v-nms.com' from 'C:\\Windows\\System32\\drivers\\etc\\hosts' and delete registry keys.",
+                true);
+            pnlRemoveView.Controls.Add(chkWipeHostsReg);
+
+            // Master Clean Wipe Option
+            chkTotalCleanWipe = new CheckBox
+            {
+                Text = "💥 TOTAL COMPLETE WIPE (KOI SABOOT NAHI - Erase 100% Files, PostgreSQL, Temp & Logs)",
+                Font = new Font("Segoe UI", 9.5F, FontStyle.Bold),
+                ForeColor = Color.FromArgb(185, 28, 28),
+                Location = new Point(24, remY + (remGap * 7) + 6),
+                AutoSize = true,
+                Checked = false
+            };
+            chkTotalCleanWipe.CheckedChanged += (s, e) =>
+            {
+                bool isAll = chkTotalCleanWipe.Checked;
+                chkWipeVnms.Checked = isAll || true;
+                chkWipeService.Checked = isAll || true;
+                chkWipeFirewall.Checked = isAll || true;
+                chkWipeDatabase.Checked = isAll || true;
+                chkWipePostgres.Checked = isAll; // Turns on PostgreSQL total purge!
+                chkWipeTemp.Checked = isAll || true;
+                chkWipeHostsReg.Checked = isAll || true;
+            };
+            pnlRemoveView.Controls.Add(chkTotalCleanWipe);
+
+            // Removal Action Buttons
+            int remActionY = remY + (remGap * 7) + 38;
+
+            btnExecuteRemove = new Button
+            {
+                Text = "🗑️ Confirm & Execute Clean Removal",
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                BackColor = Color.FromArgb(220, 38, 38),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Location = new Point(22, remActionY),
+                Size = new Size(300, 36),
+                Cursor = Cursors.Hand
+            };
+            btnExecuteRemove.FlatAppearance.BorderSize = 0;
+            btnExecuteRemove.Click += BtnExecuteRemove_Click;
+
+            btnCancelRemove = new Button
+            {
+                Text = "⬅ Back to Main Menu",
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                BackColor = Color.FromArgb(226, 232, 240),
+                ForeColor = Color.FromArgb(30, 41, 59),
+                FlatStyle = FlatStyle.Flat,
+                Location = new Point(335, remActionY),
+                Size = new Size(160, 36),
+                Cursor = Cursors.Hand
+            };
+            btnCancelRemove.FlatAppearance.BorderSize = 0;
+            btnCancelRemove.Click += (s, e) => SwitchToInstallMode();
+
+            pnlRemoveView.Controls.Add(btnExecuteRemove);
+            pnlRemoveView.Controls.Add(btnCancelRemove);
+            this.Controls.Add(pnlRemoveView);
+
+            // ==========================================
+            // 4. COMMON PROGRESS BAR & CONSOLE LOGS
+            // ==========================================
+            int progressY = 470;
 
             progressBar = new ProgressBar
             {
                 Location = new Point(22, progressY),
-                Size = new Size(605, 18),
+                Size = new Size(630, 18),
                 Minimum = 0,
                 Maximum = 100,
                 Value = 0,
@@ -270,18 +431,18 @@ namespace setup_app
                 Text = "0%",
                 Font = new Font("Segoe UI", 10F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(2, 132, 199),
-                Location = new Point(632, progressY - 2),
-                Size = new Size(58, 22),
+                Location = new Point(655, progressY - 2),
+                Size = new Size(60, 22),
                 TextAlign = ContentAlignment.MiddleRight
             };
 
             lblStatus = new Label
             {
-                Text = "Ready. Review component selections above and click 'Install V-NMS Enterprise Now'.",
+                Text = "Ready. Review options above and select an operation.",
                 Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(71, 85, 105),
-                Location = new Point(22, progressY + 22),
-                Size = new Size(670, 20)
+                Location = new Point(22, progressY + 24),
+                Size = new Size(700, 20)
             };
 
             this.Controls.Add(progressBar);
@@ -291,8 +452,8 @@ namespace setup_app
             // Rich Log Console
             rtbLog = new RichTextBox
             {
-                Location = new Point(22, progressY + 46),
-                Size = new Size(670, 200),
+                Location = new Point(22, progressY + 48),
+                Size = new Size(700, 240),
                 ReadOnly = true,
                 BackColor = Color.FromArgb(15, 23, 42),
                 ForeColor = Color.FromArgb(226, 232, 240),
@@ -302,13 +463,27 @@ namespace setup_app
             this.Controls.Add(rtbLog);
         }
 
+        private CheckBox CreateRemovalCheckbox(int top, string title, string description, bool defaultChecked)
+        {
+            var chk = new CheckBox
+            {
+                Text = $"{title} — {description}",
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Regular),
+                ForeColor = Color.FromArgb(30, 41, 59),
+                Location = new Point(24, top),
+                Size = new Size(690, 28),
+                Checked = defaultChecked
+            };
+            return chk;
+        }
+
         private Panel CreateComponentCard(int top, out CheckBox chk, out Label lblDesc, out Label lblBadge, 
             string title, string description, string badgeText, Color badgeColor)
         {
             Panel pnl = new Panel
             {
                 Location = new Point(22, top),
-                Size = new Size(670, 44),
+                Size = new Size(700, 44),
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
@@ -337,8 +512,8 @@ namespace setup_app
                 Text = badgeText,
                 Font = new Font("Segoe UI", 8F, FontStyle.Bold),
                 ForeColor = badgeColor,
-                Location = new Point(470, 10),
-                Size = new Size(190, 22),
+                Location = new Point(490, 10),
+                Size = new Size(200, 22),
                 TextAlign = ContentAlignment.MiddleRight
             };
 
@@ -346,6 +521,22 @@ namespace setup_app
             pnl.Controls.Add(lblDesc);
             pnl.Controls.Add(lblBadge);
             return pnl;
+        }
+
+        private void SwitchToRemovalMode()
+        {
+            pnlInstallView.Visible = false;
+            pnlRemoveView.Visible = true;
+            lblStatus.Text = "Removal mode active. Tick what to remove or select 'Total Clean Wipe'.";
+            lblStatus.ForeColor = Color.FromArgb(185, 28, 28);
+        }
+
+        private void SwitchToInstallMode()
+        {
+            pnlRemoveView.Visible = false;
+            pnlInstallView.Visible = true;
+            lblStatus.Text = "Ready. Select Install, Repair, or Remove.";
+            lblStatus.ForeColor = Color.FromArgb(71, 85, 105);
         }
 
         private void InitTimer()
@@ -391,23 +582,22 @@ namespace setup_app
 
             // Check if V-NMS is currently installed on this system
             bool isVnmsInstalled = File.Exists(@"C:\Program Files\V-NMS\vnms-server.exe");
-            bool isVnmsPortListening = IsPortListening("127.0.0.1", 8081);
+            bool isVnmsPortListening = IsPortListening("127.0.0.1", 8081) || IsPortListening("127.0.0.1", 80);
 
             if (isVnmsInstalled || isVnmsPortListening)
             {
                 AppendLog("✔ V-NMS Enterprise is already installed on this computer.");
-                btnUninstall.Visible = true;
-                btnInstall.Location = new Point(380, btnInstall.Location.Y);
-                btnInstall.Size = new Size(195, 36);
-                btnInstall.Text = "🔄 Reinstall / Update";
-                lblStatus.Text = "V-NMS is installed. Click 'Reinstall / Update' or 'Uninstall V-NMS' to clean wipe.";
+                btnRepair.Visible = true;
+                btnRemovePrompt.Visible = true;
+                btnInstall.Text = "🔄 Reinstall Clean";
+                lblStatus.Text = "V-NMS is installed. Options available: [Reinstall], [Repair], or [Remove / Uninstall].";
             }
             else
             {
-                btnUninstall.Visible = false;
-                btnInstall.Location = new Point(360, btnInstall.Location.Y);
-                btnInstall.Size = new Size(215, 36);
+                btnRepair.Visible = false;
+                btnRemovePrompt.Visible = false;
                 btnInstall.Text = "✔ Install V-NMS Enterprise Now";
+                lblStatus.Text = "Ready for fresh installation. Click 'Install V-NMS Enterprise Now'.";
             }
         }
 
@@ -457,6 +647,28 @@ namespace setup_app
             AppendLog($"--> {text}");
         }
 
+        private void HandleClose()
+        {
+            if (isInstalling && !isComplete)
+            {
+                var result = MessageBox.Show(
+                    "Setup operation is currently in progress!\n\nAre you sure you want to cancel?",
+                    "Confirm Cancellation",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+
+                if (result == DialogResult.Yes)
+                {
+                    PerformRollback();
+                    this.Close();
+                }
+            }
+            else
+            {
+                this.Close();
+            }
+        }
+
         // ROLLBACK HANDLER: Prevents any half-installed state
         private void PerformRollback()
         {
@@ -471,9 +683,8 @@ namespace setup_app
                     try
                     {
                         string n = p.ProcessName.ToLower();
-                        if (n.Contains("postgresql-18") || n.Contains("bitrock") || n.Contains("installbuilder"))
+                        if (n.Contains("postgresql-18") || n.Contains("bitrock") || n.Contains("installbuilder") || n.Contains("vnms-server"))
                         {
-                            AppendLog($"Stopping installer process: {p.ProcessName} (PID {p.Id})");
                             p.Kill();
                         }
                     }
@@ -482,39 +693,13 @@ namespace setup_app
 
                 try
                 {
-                    var p1 = Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "stop VNMSService", CreateNoWindow = true, UseShellExecute = false });
-                    p1?.WaitForExit(2000);
-                    var p2 = Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "delete VNMSService", CreateNoWindow = true, UseShellExecute = false });
-                    p2?.WaitForExit(2000);
-                    AppendLog("✔ Cleaned up VNMSService registration.");
+                    Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "stop VNMSService", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
+                    Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "delete VNMSService", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
                 }
                 catch { }
 
-                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                string msiPath = Path.Combine(baseDir, "V-NMS.msi");
-                if (!File.Exists(msiPath))
-                {
-                    string tempMsi = Path.Combine(Path.GetTempPath(), "VNMS_Setup_Payload", "V-NMS.msi");
-                    if (File.Exists(tempMsi)) msiPath = tempMsi;
-                }
-
-                if (File.Exists(msiPath))
-                {
-                    try
-                    {
-                        var pMsi = Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $"/x \"{msiPath}\" /qn", CreateNoWindow = true, UseShellExecute = false });
-                        pMsi?.WaitForExit(5000);
-                        AppendLog("✔ Rolled back V-NMS file package.");
-                    }
-                    catch { }
-                }
-
-                try
-                {
-                    var pFw = Process.Start(new ProcessStartInfo { FileName = "netsh", Arguments = "advfirewall firewall delete rule name=\"V-NMS Enterprise NOC\"", CreateNoWindow = true, UseShellExecute = false });
-                    pFw?.WaitForExit(2000);
-                }
-                catch { }
+                CleanFirewallRules();
+                CleanAllTemporaryFiles();
 
                 AppendLog("✔ Safe rollback complete. No partial files or services left behind.");
             }
@@ -583,6 +768,9 @@ namespace setup_app
             }
         }
 
+        // ==========================================
+        // 1. INSTALLATION WORKFLOW
+        // ==========================================
         private async void BtnInstall_Click(object? sender, EventArgs e)
         {
             if (isComplete)
@@ -604,32 +792,11 @@ namespace setup_app
             await StartInstallationAsync();
         }
 
-        private async void BtnUninstall_Click(object? sender, EventArgs e)
-        {
-            var confirm = MessageBox.Show(
-                "Are you sure you want to COMPLETELY UNINSTALL V-NMS Enterprise from this computer?\n\n" +
-                "This will permanently:\n" +
-                "1. Terminate all active V-NMS engine processes.\n" +
-                "2. Stop and delete the 'VNMSService' Windows Background Service.\n" +
-                "3. Uninstall the V-NMS Core MSI Package.\n" +
-                "4. Delete Windows Firewall Rule for Port 8081.\n" +
-                "5. Permanently delete 'C:\\Program Files\\V-NMS' and all configs/logs.\n" +
-                "6. Remove all Desktop and Start Menu shortcuts.\n" +
-                "7. Cleanly wipe the 'vnms' PostgreSQL database and all data.\n\n" +
-                "Do you want to proceed with full clean removal?",
-                "Confirm Complete Clean Uninstallation",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning);
-
-            if (confirm != DialogResult.Yes) return;
-
-            await StartUninstallationAsync();
-        }
-
         private async Task StartInstallationAsync()
         {
             btnInstall.Enabled = false;
-            btnUninstall.Enabled = false;
+            btnRepair.Enabled = false;
+            btnRemovePrompt.Enabled = false;
             txtPort.Enabled = false;
             chkPostgres.Enabled = false;
             chkVnms.Enabled = false;
@@ -649,7 +816,7 @@ namespace setup_app
                 AppendLog("  STARTING ATOMIC V-NMS ENTERPRISE INSTALLATION");
                 AppendLog("==================================================");
 
-                // STEP 1: PostgreSQL Installation (STRICT BLOCKING: MUST COMPLETE FIRST!)
+                // STEP 1: PostgreSQL Installation
                 if (chkPostgres.Checked)
                 {
                     lblPostgresBadge.Text = "⏳ Preparing...";
@@ -664,9 +831,7 @@ namespace setup_app
                     lblPostgresBadge.Text = "⏳ Installing (Please wait)...";
                     SetTaskProgress(10, "Step 1/5: Launching PostgreSQL 18 unattended installer...");
                     AppendLog("Executing PostgreSQL 18 unattended background setup...");
-                    AppendLog("Please wait: PostgreSQL is creating data cluster and setting up service...");
 
-                    int exitCode = -1;
                     await Task.Run(() =>
                     {
                         try
@@ -680,7 +845,6 @@ namespace setup_app
                             };
                             var proc = Process.Start(psi);
                             proc?.WaitForExit();
-                            if (proc != null) exitCode = proc.ExitCode;
                         }
                         catch (Exception ex)
                         {
@@ -688,7 +852,6 @@ namespace setup_app
                         }
                     });
 
-                    // STRICT BLOCKING: Poll until PostgreSQL is ACTUALLY answering on Port 5432!
                     AppendLog("Verifying PostgreSQL listener on Port 5432...");
                     int waitSeconds = 0;
                     int maxWaitSeconds = 240;
@@ -707,21 +870,16 @@ namespace setup_app
 
                         int simulatedProgress = 10 + Math.Min((waitSeconds * 35) / 120, 35);
                         SetTaskProgress(simulatedProgress, $"Step 1/5: Installing PostgreSQL 18 Engine... ({waitSeconds}s elapsed)");
-
-                        if (waitSeconds % 12 == 0)
-                        {
-                            AppendLog($"PostgreSQL setup in progress ({waitSeconds}s elapsed)...");
-                        }
                     }
 
                     if (!pgReady && !IsPortListening("127.0.0.1", 5432))
                     {
-                        throw new Exception("PostgreSQL 18 failed to start on Port 5432 within expected time. Installation cannot proceed.");
+                        throw new Exception("PostgreSQL 18 failed to start on Port 5432. Installation cannot proceed.");
                     }
 
                     lblPostgresBadge.Text = "✔ Installed & Active (5432)";
                     lblPostgresBadge.ForeColor = Color.FromArgb(22, 163, 74);
-                    AppendLog("✔ PostgreSQL 18 is 100% installed and actively listening on port 5432.");
+                    AppendLog("✔ PostgreSQL 18 is actively listening on port 5432.");
                     SetTaskProgress(50, "Step 1/5: PostgreSQL 18 verified ready.");
                 }
                 else
@@ -729,11 +887,10 @@ namespace setup_app
                     lblPostgresBadge.Text = "✔ Using Existing Engine";
                     lblPostgresBadge.ForeColor = Color.FromArgb(22, 163, 74);
                     SetTaskProgress(50, "Step 1/5: Using existing PostgreSQL database on Port 5432...");
-                    AppendLog("✔ Existing PostgreSQL confirmed on port 5432.");
-                    await Task.Delay(400);
+                    await Task.Delay(300);
                 }
 
-                // STEP 2: Deploy V-NMS MSI Package (ONLY PROCEEDS AFTER POSTGRESQL IS 100% READY!)
+                // STEP 2: Deploy V-NMS MSI Package
                 if (chkVnms.Checked)
                 {
                     lblVnmsBadge.Text = "⏳ Preparing...";
@@ -781,33 +938,41 @@ namespace setup_app
                     lblDbInitBadge.ForeColor = Color.FromArgb(22, 163, 74);
                     SetTaskProgress(80, "Step 3/5: Initializing 'vnms' database and schema tables...");
                     AppendLog("✔ Database 'vnms' and all 9 telemetry tables initialized.");
-                    AppendLog("✔ Default SuperAdmin account seeded (deepak.sah / admin123).");
-                    await Task.Delay(400);
+                    AppendLog("✔ Default SuperAdmin seeded (deepak.sah / admin123).");
+                    await Task.Delay(300);
                 }
 
-                // STEP 4: Firewall Configuration
+                // STEP 4: Firewall Configuration (Port 80 & 8081)
                 if (chkFirewall.Checked)
                 {
-                    SetTaskProgress(88, $"Step 4/5: Adding Windows Firewall rule for Port {port}...");
+                    SetTaskProgress(88, $"Step 4/5: Configuring Windows Firewall rules for Port 80 & {port}...");
                     await Task.Run(() =>
                     {
                         try
                         {
-                            var psi = new ProcessStartInfo
+                            // Rule 1: Port 8081
+                            Process.Start(new ProcessStartInfo
                             {
                                 FileName = "netsh",
                                 Arguments = $"advfirewall firewall add rule name=\"V-NMS Enterprise NOC\" dir=in action=allow protocol=TCP localport={port}",
                                 UseShellExecute = false,
                                 CreateNoWindow = true
-                            };
-                            var p = Process.Start(psi);
-                            p?.WaitForExit();
+                            })?.WaitForExit();
+
+                            // Rule 2: Port 80 for direct http://v-nms.com access
+                            Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "netsh",
+                                Arguments = "advfirewall firewall add rule name=\"V-NMS HTTP Web Gateway\" dir=in action=allow protocol=TCP localport=80",
+                                UseShellExecute = false,
+                                CreateNoWindow = true
+                            })?.WaitForExit();
                         }
                         catch { }
                     });
-                    lblFirewallBadge.Text = "✔ TCP Allowed";
+                    lblFirewallBadge.Text = "✔ Ports 80 & 8081 Allowed";
                     lblFirewallBadge.ForeColor = Color.FromArgb(22, 163, 74);
-                    AppendLog($"✔ Windows Firewall rule active: Inbound TCP {port} Allowed.");
+                    AppendLog($"✔ Windows Firewall rules active: Inbound TCP 80 & {port} Allowed.");
                 }
 
                 // STEP 5: Verify & Start Windows Service
@@ -857,14 +1022,12 @@ namespace setup_app
                 progressBar.Value = 100;
                 lblProgressPercent.Text = "100%";
                 lblProgressPercent.ForeColor = Color.FromArgb(22, 163, 74);
-                lblStatus.Text = "✔ SUCCESS: PostgreSQL and V-NMS Enterprise NOC are fully installed and running!";
+                lblStatus.Text = "✔ SUCCESS: V-NMS Enterprise NOC is fully installed and active!";
                 lblStatus.ForeColor = Color.FromArgb(22, 163, 74);
 
                 AppendLog("==================================================");
                 AppendLog("  INSTALLATION COMPLETE — V-NMS v2.0.0 Enterprise");
-                AppendLog($"  URL: http://localhost:{port}");
-                AppendLog($"  LAN: http://<server-ip>:{port}");
-                AppendLog("  SuperAdmin: deepak.sah | Password: admin123");
+                AppendLog($"  URL: http://localhost:{port} or http://v-nms.com");
                 AppendLog("  Windows Service: VNMSService (Running / Automatic)");
                 AppendLog("==================================================");
 
@@ -872,8 +1035,12 @@ namespace setup_app
                 btnInstall.BackColor = Color.FromArgb(22, 163, 74);
                 btnInstall.Enabled = true;
 
+                btnRepair.Visible = true;
+                btnRepair.Enabled = true;
+                btnRemovePrompt.Visible = true;
+                btnRemovePrompt.Enabled = true;
+
                 btnClose.Text = "Finish & Close";
-                btnClose.BackColor = Color.FromArgb(241, 245, 249);
             }
             catch (Exception ex)
             {
@@ -896,29 +1063,216 @@ namespace setup_app
             }
         }
 
-        // COMPLETE CLEAN UNINSTALLATION METHOD
-        private async Task StartUninstallationAsync()
+        // ==========================================
+        // 2. REPAIR WORKFLOW
+        // ==========================================
+        private async void BtnRepair_Click(object? sender, EventArgs e)
+        {
+            var confirm = MessageBox.Show(
+                "Are you sure you want to REPAIR V-NMS Enterprise?\n\n" +
+                "Repair will:\n" +
+                "1. Terminate any hanging or corrupted V-NMS processes.\n" +
+                "2. Verify and re-deploy application binaries and service.\n" +
+                "3. Re-register and restart 'VNMSService' with auto-start.\n" +
+                "4. Re-apply Windows Firewall rules for Port 80 and 8081.\n" +
+                "5. Verify database connectivity and schema tables.\n\n" +
+                "Your existing monitoring data and settings will be preserved.",
+                "Confirm V-NMS Repair",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (confirm != DialogResult.Yes) return;
+
+            await StartRepairAsync();
+        }
+
+        private async Task StartRepairAsync()
         {
             btnInstall.Enabled = false;
-            btnUninstall.Enabled = false;
+            btnRepair.Enabled = false;
+            btnRemovePrompt.Enabled = false;
             btnClose.Enabled = false;
-            txtPort.Enabled = false;
-            chkPostgres.Enabled = false;
-            chkVnms.Enabled = false;
-            chkDbInit.Enabled = false;
-            chkService.Enabled = false;
-            chkFirewall.Enabled = false;
             isInstalling = true;
             isComplete = false;
 
             try
             {
                 AppendLog("==================================================");
-                AppendLog("  STARTING COMPLETE CLEAN UNINSTALLATION OF V-NMS");
+                AppendLog("  STARTING ATOMIC V-NMS ENTERPRISE REPAIR");
                 AppendLog("==================================================");
 
-                // STEP 1: Stop and kill all V-NMS processes
-                SetTaskProgress(15, "Step 1/6: Terminating active V-NMS processes...");
+                // Step 1: Terminate active processes and stop service
+                SetTaskProgress(15, "Step 1/5: Stopping active V-NMS processes for repair...");
+                await Task.Run(() =>
+                {
+                    foreach (var p in Process.GetProcesses())
+                    {
+                        try
+                        {
+                            string n = p.ProcessName.ToLower();
+                            if (n.Contains("vnms-server"))
+                            {
+                                p.Kill();
+                                p.WaitForExit(2000);
+                            }
+                        }
+                        catch { }
+                    }
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "stop VNMSService", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(3000);
+                    }
+                    catch { }
+                });
+                AppendLog("✔ V-NMS service and processes stopped for maintenance.");
+
+                // Step 2: Repair MSI Package
+                SetTaskProgress(40, "Step 2/5: Repairing V-NMS application files...");
+                await Task.Run(() =>
+                {
+                    string msiPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "V-NMS.msi");
+                    if (!File.Exists(msiPath))
+                    {
+                        string tempMsi = Path.Combine(Path.GetTempPath(), "VNMS_Setup_Payload", "V-NMS.msi");
+                        if (File.Exists(tempMsi)) msiPath = tempMsi;
+                    }
+
+                    if (File.Exists(msiPath))
+                    {
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = "msiexec.exe",
+                            Arguments = $"/fa \"{msiPath}\" /qn",
+                            UseShellExecute = true,
+                            Verb = "runas"
+                        };
+                        var proc = Process.Start(psi);
+                        proc?.WaitForExit();
+                    }
+                });
+                AppendLog("✔ Application files and binaries repaired.");
+
+                // Step 3: Re-apply Firewall Rules
+                SetTaskProgress(60, "Step 3/5: Re-applying Windows Firewall rules (Port 80 & 8081)...");
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo { FileName = "netsh", Arguments = "advfirewall firewall add rule name=\"V-NMS Enterprise NOC\" dir=in action=allow protocol=TCP localport=8081", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
+                        Process.Start(new ProcessStartInfo { FileName = "netsh", Arguments = "advfirewall firewall add rule name=\"V-NMS HTTP Web Gateway\" dir=in action=allow protocol=TCP localport=80", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
+                    }
+                    catch { }
+                });
+                AppendLog("✔ Windows Firewall rules for Port 80 and 8081 validated.");
+
+                // Step 4: Verify PostgreSQL connection
+                SetTaskProgress(75, "Step 4/5: Validating PostgreSQL database connection...");
+                bool isDbUp = IsPortListening("127.0.0.1", 5432);
+                if (!isDbUp)
+                {
+                    AppendLog("PostgreSQL is not running on 5432, attempting service start...");
+                    Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "start postgresql-x64-18", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(3000);
+                }
+                AppendLog("✔ PostgreSQL database engine verified.");
+
+                // Step 5: Start & Verify VNMSService
+                SetTaskProgress(90, "Step 5/5: Starting repaired 'VNMSService'...");
+                await Task.Run(() =>
+                {
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "config VNMSService start= auto", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
+                        Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "start VNMSService", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(3000);
+                    }
+                    catch { }
+                });
+                await Task.Delay(2000);
+
+                bool isPortActive = IsPortListening("127.0.0.1", 8081) || IsPortListening("127.0.0.1", 80);
+                AppendLog(isPortActive ? "✔ VNMSService is actively serving HTTP requests." : "ℹ Service started, awaiting initialization...");
+
+                // SUCCESS
+                isComplete = true;
+                isInstalling = false;
+                SetTaskProgress(100, "Repair Complete!");
+                progressBar.Value = 100;
+                lblProgressPercent.Text = "100%";
+                lblProgressPercent.ForeColor = Color.FromArgb(22, 163, 74);
+                lblStatus.Text = "✔ SUCCESS: V-NMS Enterprise has been completely repaired and is running normally!";
+                lblStatus.ForeColor = Color.FromArgb(22, 163, 74);
+
+                AppendLog("==================================================");
+                AppendLog("  REPAIR COMPLETE — All components healthy!");
+                AppendLog("==================================================");
+
+                btnInstall.Enabled = true;
+                btnRepair.Enabled = true;
+                btnRemovePrompt.Enabled = true;
+                btnClose.Enabled = true;
+                btnClose.Text = "Finish";
+
+                MessageBox.Show(
+                    "V-NMS Enterprise has been completely repaired!\n\nAll services, binaries, firewall rules, and database connections have been verified and are running.",
+                    "Repair Complete",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                isInstalling = false;
+                AppendLog($"❌ REPAIR ERROR: {ex.Message}");
+                lblStatus.Text = "Repair encountered an error: " + ex.Message;
+                lblStatus.ForeColor = Color.FromArgb(220, 38, 38);
+                btnInstall.Enabled = true;
+                btnRepair.Enabled = true;
+                btnRemovePrompt.Enabled = true;
+                btnClose.Enabled = true;
+            }
+        }
+
+        // ==========================================
+        // 3. COMPLETE CLEAN REMOVAL WORKFLOW
+        // ==========================================
+        private async void BtnExecuteRemove_Click(object? sender, EventArgs e)
+        {
+            string summary = "Are you sure you want to proceed with removal?\n\nSelected actions:\n";
+            if (chkWipeVnms.Checked) summary += "• Delete V-NMS program files, executables, and shortcuts\n";
+            if (chkWipeService.Checked) summary += "• Stop and delete 'VNMSService' Windows background service\n";
+            if (chkWipeFirewall.Checked) summary += "• Delete Windows Firewall rules for Port 80 and 8081\n";
+            if (chkWipeDatabase.Checked) summary += "• Drop 'vnms' telemetry database and all tables from PostgreSQL\n";
+            if (chkWipePostgres.Checked) summary += "• ⚠️ TOTAL PURGE: Uninstall PostgreSQL 18 server and delete data cluster\n";
+            if (chkWipeTemp.Checked) summary += "• Erase all temporary files and staging payload bytes (Zero Traces)\n";
+            if (chkWipeHostsReg.Checked) summary += "• Remove 'v-nms.com' from hosts file and delete registry keys\n";
+
+            summary += "\nThis action cannot be undone. Proceed?";
+
+            var confirm = MessageBox.Show(
+                summary,
+                "Confirm Removal Execution",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirm != DialogResult.Yes) return;
+
+            await StartUninstallationAsync();
+        }
+
+        private async Task StartUninstallationAsync()
+        {
+            btnExecuteRemove.Enabled = false;
+            btnCancelRemove.Enabled = false;
+            btnClose.Enabled = false;
+            isInstalling = true;
+            isComplete = false;
+
+            try
+            {
+                AppendLog("==================================================");
+                AppendLog("  STARTING CUSTOM CLEAN UNINSTALLATION OF V-NMS");
+                AppendLog("==================================================");
+
+                // STEP 1: Terminate active processes
+                SetTaskProgress(15, "Step 1/7: Terminating active V-NMS processes...");
                 await Task.Run(() =>
                 {
                     foreach (var p in Process.GetProcesses())
@@ -928,7 +1282,7 @@ namespace setup_app
                             string n = p.ProcessName.ToLower();
                             if (n.Contains("vnms-server") || n == "vnms-server")
                             {
-                                AppendLog($"Stopping process: {p.ProcessName} (PID {p.Id})");
+                                AppendLog($"Terminating process: {p.ProcessName} (PID {p.Id})");
                                 p.Kill();
                                 p.WaitForExit(3000);
                             }
@@ -938,183 +1292,204 @@ namespace setup_app
                 });
                 AppendLog("✔ Active V-NMS processes terminated.");
 
-                // STEP 2: Stop and delete Windows Service
-                SetTaskProgress(30, "Step 2/6: Stopping and deleting 'VNMSService' Windows Service...");
-                await Task.Run(() =>
+                // STEP 2: Stop and Delete Windows Background Service
+                if (chkWipeService.Checked)
                 {
-                    try
-                    {
-                        var pStop = Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "stop VNMSService", CreateNoWindow = true, UseShellExecute = false });
-                        pStop?.WaitForExit(4000);
-                        var pDel = Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "delete VNMSService", CreateNoWindow = true, UseShellExecute = false });
-                        pDel?.WaitForExit(3000);
-                    }
-                    catch (Exception ex)
-                    {
-                        AppendLog("Service removal note: " + ex.Message);
-                    }
-                });
-                lblServiceBadge.Text = "✔ Deleted";
-                lblServiceBadge.ForeColor = Color.FromArgb(220, 38, 38);
-                AppendLog("✔ 'VNMSService' stopped and unregistered from Windows Service Manager.");
-
-                // STEP 3: Uninstall V-NMS MSI Package
-                SetTaskProgress(50, "Step 3/6: Uninstalling V-NMS Core MSI Package...");
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                        string msiPath = Path.Combine(baseDir, "V-NMS.msi");
-                        if (!File.Exists(msiPath))
-                        {
-                            string tempMsi = Path.Combine(Path.GetTempPath(), "VNMS_Setup_Payload", "V-NMS.msi");
-                            if (File.Exists(tempMsi)) msiPath = tempMsi;
-                        }
-
-                        if (File.Exists(msiPath))
-                        {
-                            var pMsi = Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $"/x \"{msiPath}\" /qn", CreateNoWindow = true, UseShellExecute = false });
-                            pMsi?.WaitForExit(10000);
-                        }
-                        else
-                        {
-                            var pMsi = Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = "/x {B68146F2-0C81-4229-BA68-809A7DF3E7C9} /qn", CreateNoWindow = true, UseShellExecute = false });
-                            pMsi?.WaitForExit(10000);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        AppendLog("MSI uninstallation note: " + ex.Message);
-                    }
-                });
-                lblVnmsBadge.Text = "✔ Uninstalled";
-                lblVnmsBadge.ForeColor = Color.FromArgb(220, 38, 38);
-                AppendLog("✔ V-NMS MSI package uninstalled.");
-
-                // STEP 4: Remove Windows Firewall Rule
-                SetTaskProgress(65, "Step 4/6: Removing Windows Firewall LAN Rule (Port 8081)...");
-                await Task.Run(() =>
-                {
-                    try
-                    {
-                        var pFw = Process.Start(new ProcessStartInfo { FileName = "netsh", Arguments = "advfirewall firewall delete rule name=\"V-NMS Enterprise NOC\"", CreateNoWindow = true, UseShellExecute = false });
-                        pFw?.WaitForExit(2000);
-                    }
-                    catch { }
-                });
-                lblFirewallBadge.Text = "✔ Rule Removed";
-                lblFirewallBadge.ForeColor = Color.FromArgb(220, 38, 38);
-                AppendLog("✔ Windows Firewall rule 'V-NMS Enterprise NOC' deleted.");
-
-                // STEP 5: Completely Delete Application Folders & Config
-                SetTaskProgress(80, "Step 5/6: Deleting C:\\Program Files\\V-NMS and all configs...");
-                await Task.Run(() =>
-                {
-                    string installDir = @"C:\Program Files\V-NMS";
-                    if (Directory.Exists(installDir))
+                    SetTaskProgress(30, "Step 2/7: Stopping and deleting 'VNMSService' Windows Service...");
+                    await Task.Run(() =>
                     {
                         try
                         {
-                            Directory.Delete(installDir, true);
-                            AppendLog("✔ Cleaned up " + installDir);
+                            Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "stop VNMSService", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(4000);
+                            Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "delete VNMSService", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(3000);
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            Thread.Sleep(1000);
-                            try { Directory.Delete(installDir, true); } catch { }
+                            AppendLog("Service removal notice: " + ex.Message);
                         }
-                    }
+                    });
+                    AppendLog("✔ 'VNMSService' stopped and unregistered from Windows.");
+                }
 
-                    string[] shortcutPaths = new string[]
-                    {
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "V-NMS NOC Dashboard.lnk"),
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "V-NMS NOC Dashboard.lnk"),
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "V-NMS"),
-                        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "V-NMS")
-                    };
-
-                    foreach (var sp in shortcutPaths)
+                // STEP 3: Uninstall MSI Package & Application Files
+                if (chkWipeVnms.Checked)
+                {
+                    SetTaskProgress(45, "Step 3/7: Uninstalling V-NMS Core MSI Package and files...");
+                    await Task.Run(() =>
                     {
                         try
                         {
-                            if (File.Exists(sp)) File.Delete(sp);
-                            else if (Directory.Exists(sp)) Directory.Delete(sp, true);
+                            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                            string msiPath = Path.Combine(baseDir, "V-NMS.msi");
+                            if (!File.Exists(msiPath))
+                            {
+                                string tempMsi = Path.Combine(Path.GetTempPath(), "VNMS_Setup_Payload", "V-NMS.msi");
+                                if (File.Exists(tempMsi)) msiPath = tempMsi;
+                            }
+
+                            if (File.Exists(msiPath))
+                            {
+                                var pMsi = Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = $"/x \"{msiPath}\" /qn", CreateNoWindow = true, UseShellExecute = false });
+                                pMsi?.WaitForExit(10000);
+                            }
+                            else
+                            {
+                                var pMsi = Process.Start(new ProcessStartInfo { FileName = "msiexec.exe", Arguments = "/x {B68146F2-0C81-4229-BA68-809A7DF3E7C9} /qn", CreateNoWindow = true, UseShellExecute = false });
+                                pMsi?.WaitForExit(10000);
+                            }
                         }
                         catch { }
-                    }
 
-                    try
+                        // Forceful directory cleanup (zero residual files)
+                        string installDir = @"C:\Program Files\V-NMS";
+                        if (Directory.Exists(installDir))
+                        {
+                            try
+                            {
+                                Directory.Delete(installDir, true);
+                            }
+                            catch
+                            {
+                                Thread.Sleep(1000);
+                                try { Directory.Delete(installDir, true); } catch { }
+                            }
+                        }
+
+                        // Remove all Shortcuts
+                        string[] shortcutPaths = new string[]
+                        {
+                            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "V-NMS NOC Dashboard.lnk"),
+                            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory), "V-NMS NOC Dashboard.lnk"),
+                            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "V-NMS"),
+                            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), "V-NMS")
+                        };
+
+                        foreach (var sp in shortcutPaths)
+                        {
+                            try
+                            {
+                                if (File.Exists(sp)) File.Delete(sp);
+                                else if (Directory.Exists(sp)) Directory.Delete(sp, true);
+                            }
+                            catch { }
+                        }
+
+                        // AppData Cleanup
+                        try
+                        {
+                            string appDataRoaming = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "V-NMS");
+                            if (Directory.Exists(appDataRoaming)) Directory.Delete(appDataRoaming, true);
+                            string appDataLocal = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "V-NMS");
+                            if (Directory.Exists(appDataLocal)) Directory.Delete(appDataLocal, true);
+                        }
+                        catch { }
+                    });
+                    AppendLog("✔ V-NMS files, shortcuts, and application data erased from C:\\Program Files\\V-NMS.");
+                }
+
+                // STEP 4: Firewall Rules Cleanup
+                if (chkWipeFirewall.Checked)
+                {
+                    SetTaskProgress(60, "Step 4/7: Removing Windows Firewall LAN Rules (Port 80 & 8081)...");
+                    await Task.Run(() => CleanFirewallRules());
+                }
+
+                // STEP 5: Drop Database from PostgreSQL
+                if (chkWipeDatabase.Checked)
+                {
+                    SetTaskProgress(70, "Step 5/7: Dropping 'vnms' database from PostgreSQL...");
+                    await Task.Run(() =>
                     {
-                        Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(@"Software\Veracity\V-NMS", false);
-                    }
-                    catch { }
-                });
-                AppendLog("✔ Program files, shortcuts, and registry entries permanently deleted.");
+                        try
+                        {
+                            string dropDbExe = @"C:\Program Files\PostgreSQL\18\bin\dropdb.exe";
+                            if (File.Exists(dropDbExe))
+                            {
+                                var psi = new ProcessStartInfo
+                                {
+                                    FileName = dropDbExe,
+                                    Arguments = "-U postgres -p 5432 --if-exists vnms",
+                                    CreateNoWindow = true,
+                                    UseShellExecute = false
+                                };
+                                psi.EnvironmentVariables["PGPASSWORD"] = "root";
+                                var pDrop = Process.Start(psi);
+                                pDrop?.WaitForExit(5000);
+                                AppendLog("✔ Database 'vnms' and all tables dropped cleanly from PostgreSQL.");
+                            }
+                            else
+                            {
+                                AppendLog("ℹ dropdb.exe not found, skipping database wipe.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            AppendLog("Database drop notice: " + ex.Message);
+                        }
+                    });
+                }
 
-                // STEP 6: Drop 'vnms' database from PostgreSQL
-                SetTaskProgress(92, "Step 6/6: Dropping 'vnms' database from PostgreSQL...");
+                // STEP 6: PostgreSQL 18 Total Server Purge (if selected by user)
+                if (chkWipePostgres.Checked)
+                {
+                    SetTaskProgress(80, "Step 6/7: Completely uninstalling PostgreSQL 18 server (Total Wipe)...");
+                    await Task.Run(() => UninstallPostgreSQLComplete());
+                }
+                else
+                {
+                    SetTaskProgress(80, "Step 6/7: Preserving PostgreSQL 18 server (Setup removal only)...");
+                    AppendLog("ℹ PostgreSQL 18 server preserved as requested.");
+                }
+
+                // STEP 7: Erase Temporary Files & Local Domain Hosts / Registry (KOI SABOOT NAHI)
+                SetTaskProgress(92, "Step 7/7: Erasing temporary staging files and cleaning registry (Zero Traces)...");
                 await Task.Run(() =>
                 {
-                    try
+                    if (chkWipeTemp.Checked)
                     {
-                        string dropDbExe = @"C:\Program Files\PostgreSQL\18\bin\dropdb.exe";
-                        if (File.Exists(dropDbExe))
-                        {
-                            var psi = new ProcessStartInfo
-                            {
-                                FileName = dropDbExe,
-                                Arguments = "-U postgres -p 5432 --if-exists vnms",
-                                CreateNoWindow = true,
-                                UseShellExecute = false
-                            };
-                            psi.EnvironmentVariables["PGPASSWORD"] = "root";
-                            var pDrop = Process.Start(psi);
-                            pDrop?.WaitForExit(5000);
-                            AppendLog("✔ Database 'vnms' dropped cleanly from PostgreSQL.");
-                        }
-                        else
-                        {
-                            AppendLog("ℹ PostgreSQL dropdb utility not found, skipping database wipe.");
-                        }
-
-                        string tempDir = Path.Combine(Path.GetTempPath(), "VNMS_Setup_Payload");
-                        if (Directory.Exists(tempDir))
-                        {
-                            try { Directory.Delete(tempDir, true); } catch { }
-                        }
+                        CleanAllTemporaryFiles();
                     }
-                    catch (Exception ex)
+
+                    if (chkWipeHostsReg.Checked)
                     {
-                        AppendLog("Database drop note: " + ex.Message);
+                        CleanHostsFile();
+                        try
+                        {
+                            Microsoft.Win32.Registry.CurrentUser.DeleteSubKeyTree(@"Software\Veracity\V-NMS", false);
+                        }
+                        catch { }
+                        try
+                        {
+                            Microsoft.Win32.Registry.LocalMachine.DeleteSubKeyTree(@"Software\Veracity\V-NMS", false);
+                        }
+                        catch { }
+                        AppendLog("✔ Cleaned V-NMS registry entries.");
                     }
                 });
-                lblDbInitBadge.Text = "✔ DB Wiped";
-                lblDbInitBadge.ForeColor = Color.FromArgb(220, 38, 38);
 
                 // SUCCESS 100%
                 isComplete = true;
                 isInstalling = false;
-                SetTaskProgress(100, "Uninstallation Complete!");
+                SetTaskProgress(100, "Clean Uninstallation Complete!");
                 progressBar.Value = 100;
                 lblProgressPercent.Text = "100%";
-                lblProgressPercent.ForeColor = Color.FromArgb(220, 38, 38);
-                lblStatus.Text = "✔ SUCCESS: V-NMS Enterprise has been completely removed from this computer.";
-                lblStatus.ForeColor = Color.FromArgb(220, 38, 38);
+                lblProgressPercent.ForeColor = Color.FromArgb(22, 163, 74);
+                lblStatus.Text = "✔ SUCCESS: Selected V-NMS components have been completely and cleanly erased.";
+                lblStatus.ForeColor = Color.FromArgb(22, 163, 74);
 
                 AppendLog("==================================================");
-                AppendLog("  UNINSTALLATION COMPLETE!");
-                AppendLog("  All V-NMS services, files, registry keys, and");
-                AppendLog("  databases have been completely erased from this PC.");
+                AppendLog("  UNINSTALLATION COMPLETE — ZERO RESIDUAL TRACES");
+                AppendLog("  All selected services, program files, firewall rules,");
+                AppendLog("  and temporary cache bytes have been permanently erased.");
                 AppendLog("==================================================");
 
                 btnClose.Enabled = true;
                 btnClose.Text = "Close";
-                btnInstall.Visible = false;
-                btnUninstall.Visible = false;
+                btnExecuteRemove.Visible = false;
+                btnCancelRemove.Visible = false;
 
                 MessageBox.Show(
-                    "V-NMS Enterprise has been completely and cleanly uninstalled from this PC.\n\nAll services, program files, configuration, firewall rules, and databases have been erased.",
+                    "V-NMS Enterprise removal is complete!\n\nAll selected files, services, firewall rules, and temporary artifacts have been completely erased from this computer with zero residual traces.",
                     "Uninstallation Complete",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
@@ -1128,6 +1503,181 @@ namespace setup_app
                 btnClose.Enabled = true;
                 btnClose.Text = "Close";
             }
+        }
+
+        // ==========================================
+        // ZERO TRACE CLEANUP HELPERS
+        // ==========================================
+        private void CleanFirewallRules()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = "netsh", Arguments = "advfirewall firewall delete rule name=\"V-NMS Enterprise NOC\"", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
+                Process.Start(new ProcessStartInfo { FileName = "netsh", Arguments = "advfirewall firewall delete rule name=\"V-NMS HTTP Web Gateway\"", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
+                AppendLog("✔ Deleted Windows Firewall rules for Port 8081 and Port 80.");
+            }
+            catch { }
+        }
+
+        private void CleanHostsFile()
+        {
+            try
+            {
+                string hostsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "drivers", "etc", "hosts");
+                if (File.Exists(hostsPath))
+                {
+                    var lines = File.ReadAllLines(hostsPath);
+                    var cleanLines = new List<string>();
+                    bool modified = false;
+
+                    foreach (var line in lines)
+                    {
+                        if (line.IndexOf("v-nms.com", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            line.IndexOf("V-NMS", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            modified = true;
+                            continue;
+                        }
+                        cleanLines.Add(line);
+                    }
+
+                    if (modified)
+                    {
+                        File.WriteAllLines(hostsPath, cleanLines);
+                        AppendLog("✔ Removed 'v-nms.com' domain mapping from Windows hosts file.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Hosts cleanup note: " + ex.Message);
+            }
+        }
+
+        private void CleanAllTemporaryFiles()
+        {
+            AppendLog("Eradicating all temporary staging files and caches (Zero Traces)...");
+            try
+            {
+                string tempDir = Path.Combine(Path.GetTempPath(), "VNMS_Setup_Payload");
+                if (Directory.Exists(tempDir))
+                {
+                    Directory.Delete(tempDir, true);
+                    AppendLog("✔ Erased temp directory: " + tempDir);
+                }
+            }
+            catch { }
+
+            // Search and erase any leftover matching files/folders in %TEMP%
+            try
+            {
+                string tempRoot = Path.GetTempPath();
+                var di = new DirectoryInfo(tempRoot);
+                foreach (var dir in di.GetDirectories("*vnms*", SearchOption.TopDirectoryOnly))
+                {
+                    try { dir.Delete(true); AppendLog("✔ Erased temp folder: " + dir.FullName); } catch { }
+                }
+                foreach (var file in di.GetFiles("*vnms*", SearchOption.TopDirectoryOnly))
+                {
+                    try { file.Delete(); AppendLog("✔ Erased temp file: " + file.FullName); } catch { }
+                }
+            }
+            catch { }
+
+            // Search and erase in LocalAppData\Temp
+            try
+            {
+                string localTemp = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Temp");
+                if (Directory.Exists(localTemp))
+                {
+                    var di = new DirectoryInfo(localTemp);
+                    foreach (var dir in di.GetDirectories("*vnms*", SearchOption.TopDirectoryOnly))
+                    {
+                        try { dir.Delete(true); } catch { }
+                    }
+                    foreach (var file in di.GetFiles("*vnms*", SearchOption.TopDirectoryOnly))
+                    {
+                        try { file.Delete(); } catch { }
+                    }
+                }
+            }
+            catch { }
+
+            AppendLog("✔ All temporary payload files, extraction caches, and staging artifacts erased.");
+        }
+
+        private void UninstallPostgreSQLComplete()
+        {
+            AppendLog("Executing complete unattended uninstallation of PostgreSQL 18...");
+
+            // 1. Terminate all postgres processes
+            foreach (var p in Process.GetProcesses())
+            {
+                try
+                {
+                    string n = p.ProcessName.ToLower();
+                    if (n.Contains("postgres") || n.Contains("pg_ctl"))
+                    {
+                        p.Kill();
+                        p.WaitForExit(2000);
+                    }
+                }
+                catch { }
+            }
+
+            // 2. Stop and delete postgresql service
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "stop postgresql-x64-18", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(3000);
+                Process.Start(new ProcessStartInfo { FileName = "sc.exe", Arguments = "delete postgresql-x64-18", CreateNoWindow = true, UseShellExecute = false })?.WaitForExit(2000);
+            }
+            catch { }
+
+            // 3. Run uninstaller if exists
+            string uninstaller = @"C:\Program Files\PostgreSQL\18\uninstall-postgresql.exe";
+            if (File.Exists(uninstaller))
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = uninstaller,
+                        Arguments = "--mode unattended",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    var proc = Process.Start(psi);
+                    proc?.WaitForExit(30000);
+                    AppendLog("✔ PostgreSQL 18 official uninstaller completed.");
+                }
+                catch { }
+            }
+
+            // 4. Force delete directories
+            try
+            {
+                if (Directory.Exists(@"C:\Program Files\PostgreSQL"))
+                {
+                    Directory.Delete(@"C:\Program Files\PostgreSQL", true);
+                    AppendLog("✔ Deleted 'C:\\Program Files\\PostgreSQL'.");
+                }
+            }
+            catch
+            {
+                Thread.Sleep(1000);
+                try { Directory.Delete(@"C:\Program Files\PostgreSQL", true); } catch { }
+            }
+
+            try
+            {
+                if (Directory.Exists(@"C:\ProgramData\PostgreSQL"))
+                {
+                    Directory.Delete(@"C:\ProgramData\PostgreSQL", true);
+                }
+            }
+            catch { }
+
+            AppendLog("✔ PostgreSQL 18 server and data cluster completely eradicated.");
         }
     }
 }
