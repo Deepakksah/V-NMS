@@ -21,7 +21,7 @@
     <EmbeddedResource Include="C:\Users\Administrator\Downloads\postgresql-18.7-1-windows-x64.exe">
       <LogicalName>postgresql-18.7-1-windows-x64.exe</LogicalName>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\production\V-NMS.msi">
+    <EmbeddedResource Include="..\..\V-NMS.msi">
       <LogicalName>V-NMS.msi</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
