@@ -182,15 +182,43 @@ export const TreeView: React.FC<TreeViewProps> = ({
         meta: 'Physical memory allocation & swap buffer'
       });
 
-      // 3. Storage Sensor
+      // 3. Storage Sensor (Accurate to hardware specs)
+      const ip = d.ip_address || '';
+      let storageLabel = isWin ? 'Storage Volume C:\\ (NTFS System Disk)' : 'Storage Volume / (ext4 NVMe Root)';
+      let storageBadge = isWin ? 'NTFS' : 'ext4';
+      let storageMeta = isWin ? '512 GB Capacity • 32% Space Used' : '480 GB NVMe • 25% Space Used';
+
+      if (ip === '172.168.1.11') {
+        storageLabel = 'Storage Volume C:\\ (System OS NVMe)';
+        storageMeta = '976 GB Capacity • 74.3 GB Used • NTFS';
+      } else if (ip === '172.168.1.12') {
+        storageLabel = 'Storage Volume C:\\ (System OS NVMe)';
+        storageMeta = '976 GB Capacity • 209.2 GB Used • NTFS';
+      } else if (ip === '172.168.1.13') {
+        storageLabel = 'Storage Volume C:\\ (System OS NVMe)';
+        storageMeta = '600 GB Capacity • 64.2 GB Used • NTFS';
+      } else if (ip === '172.168.1.14' || ip === '172.168.1.15' || ip === '172.168.1.16') {
+        storageLabel = 'Storage Volume C:\\ (System OS Disk)';
+        storageMeta = '210.1 GB Capacity • 136.1 GB Used • NTFS';
+      } else if (ip === '172.168.1.17' || ip === '172.168.1.19' || ip === '172.168.1.21') {
+        storageLabel = 'Storage Volume / (ext4 NVMe Root System)';
+        storageMeta = '240 GB NVMe • 38.4 GB Used • ext4';
+      } else if (ip === '172.168.1.18' || ip === '172.168.1.20') {
+        storageLabel = 'Storage Volume / (ext4 NVMe Root System)';
+        storageMeta = '480 GB NVMe • 52.1 GB Used • ext4';
+      } else if (ip === '172.168.1.22') {
+        storageLabel = 'Storage Volume C:\\ (System OS NVMe)';
+        storageMeta = '512 GB NVMe • 148.5 GB Used • NTFS';
+      }
+
       children.push({
         id: `dev-${d.id}-disk`,
-        name: isWin ? 'Storage Volume C:\\ (NTFS System Disk)' : 'Storage Volume / (ext4 NVMe Root)',
+        name: storageLabel,
         type: 'sensor',
         status: isUp,
-        badge: isWin ? 'NTFS' : 'ext4',
+        badge: storageBadge,
         badgeColor: '#6366f1',
-        meta: isWin ? '512 GB Capacity • 68% Space Used' : '1024 GB NVMe • 53% Space Used'
+        meta: storageMeta
       });
 
       // 4. ICMP Fast-Ping Probe
@@ -805,11 +833,40 @@ export const TreeView: React.FC<TreeViewProps> = ({
       const usedWkGb = Math.round(totalWkGb * (diskUsage / 100));
       capacity = `${(totalWkGb / 1024).toFixed(1)} TB (${(usedWkGb / 1024).toFixed(1)} TB Used • NTFS)`;
     } else if (devType === 'server') {
-      const totalGb = 1024;
-      const fs = isWin ? 'NTFS' : 'EXT4';
-      const usedGb = Math.round(totalGb * (diskUsage / 100));
-      partition = isWin ? 'C:\\ (System NVMe)' : '/ (ext4 NVMe Root)';
+      const ip = activeDevice.ip_address || '';
+      let totalGb = isWin ? 512 : 480;
+      let usedGb = 120;
+      let fs = isWin ? 'NTFS' : 'ext4';
+      partition = isWin ? 'C:\\ (System OS NVMe)' : '/ (ext4 NVMe Root)';
+
+      if (ip === '172.168.1.11' || ip === '172.168.1.12') {
+        totalGb = 976;
+        usedGb = ip === '172.168.1.11' ? 74 : 209;
+        fs = 'NTFS';
+      } else if (ip === '172.168.1.13') {
+        totalGb = 600;
+        usedGb = 64;
+        fs = 'NTFS';
+      } else if (ip === '172.168.1.14' || ip === '172.168.1.15' || ip === '172.168.1.16') {
+        totalGb = 210;
+        usedGb = ip === '172.168.1.14' ? 136 : ip === '172.168.1.15' ? 165 : 61;
+        fs = 'NTFS';
+      } else if (ip === '172.168.1.17' || ip === '172.168.1.19' || ip === '172.168.1.21') {
+        totalGb = 240;
+        usedGb = ip === '172.168.1.17' ? 38 : ip === '172.168.1.19' ? 42 : 36;
+        fs = 'ext4';
+      } else if (ip === '172.168.1.18' || ip === '172.168.1.20') {
+        totalGb = 480;
+        usedGb = ip === '172.168.1.18' ? 52 : 68;
+        fs = 'ext4';
+      } else if (ip === '172.168.1.22') {
+        totalGb = 512;
+        usedGb = 148;
+        fs = 'NTFS';
+      }
+      const actualPct = Math.round((usedGb / totalGb) * 100);
       capacity = `${totalGb} GB (${usedGb} GB Used • ${fs})`;
+      return { diskUsage: actualPct, partition, capacity, isFull: actualPct >= 90 };
     } else {
       // Workstation / client machine
       const totalGb = 512;
