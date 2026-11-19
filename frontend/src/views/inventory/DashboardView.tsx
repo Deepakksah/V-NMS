@@ -157,22 +157,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return Number(val.toFixed(1));
   };
 
-  const getDeviceDisk = (d: Device, tr: string = timeRange): number => {
+  const getDeviceDisk = (d: Device, _tr: string = timeRange): number => {
     if (!d.status) return 0;
-    const raw = (d as any).disk_percent;
-    const base = raw !== undefined && raw !== null && raw > 0
-      ? raw
-      : 20 + ((d.id * 19) % 60);
-
-    let val = base;
-    if (tr === '1h') {
-      val = base;
-    } else if (tr === '7d') {
-      val = Math.min(98, Math.max(10, base + ((d.id * 3) % 7) - 3));
-    } else if (tr === '30d') {
-      val = Math.min(99, Math.max(15, base + ((d.id * 5) % 9) - 2));
-    }
-    return Number(val.toFixed(1));
+    const base = d.disk_percent !== undefined && d.disk_percent !== null && d.disk_percent > 0
+      ? d.disk_percent
+      : 15.0;
+    return Number(base.toFixed(1));
   };
 
   const getDeviceIops = (d: Device, tr: string = timeRange): number => {

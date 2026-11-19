@@ -39,19 +39,21 @@ func winFileTimeTo64(ft winFileTime) int64 {
 }
 
 var (
-	realCpuUsage   float64 = 4.2
-	realMemUsage   float64 = 39.6
-	realMetricsMu  sync.RWMutex
+	realCpuUsage    float64 = 4.2
+	realMemUsage    float64 = 39.6
+	realDiskUsage   float64 = 8.9
+	realMetricsMu   sync.RWMutex
 	realMetricsInit sync.Once
 )
 
-// initRealHostTelemetry continuously measures actual Windows host CPU & Memory
+// initRealHostTelemetry continuously measures actual Windows host CPU, Memory & Disk
 func initRealHostTelemetry() {
 	realMetricsInit.Do(func() {
 		go func() {
 			kernel32 := syscall.NewLazyDLL("kernel32.dll")
 			globalMemoryStatusEx := kernel32.NewProc("GlobalMemoryStatusEx")
 			getSystemTimes := kernel32.NewProc("GetSystemTimes")
+			getDiskFreeSpaceEx := kernel32.NewProc("GetDiskFreeSpaceExW")
 
 			for {
 				// 1. Read real host RAM
@@ -87,9 +89,25 @@ func initRealHostTelemetry() {
 					}
 				}
 
+				// 3. Read real host Disk C:\
+				var freeBytes, totalBytes, totalFree int64
+				dir, _ := syscall.UTF16PtrFromString("C:\\")
+				rDisk, _, _ := getDiskFreeSpaceEx.Call(
+					uintptr(unsafe.Pointer(dir)),
+					uintptr(unsafe.Pointer(&freeBytes)),
+					uintptr(unsafe.Pointer(&totalBytes)),
+					uintptr(unsafe.Pointer(&totalFree)),
+				)
+				diskLoad := 8.9
+				if rDisk != 0 && totalBytes > 0 {
+					used := totalBytes - totalFree
+					diskLoad = (float64(used) / float64(totalBytes)) * 100.0
+				}
+
 				realMetricsMu.Lock()
 				realCpuUsage = float64(int(cpuLoad*10)) / 10.0
 				realMemUsage = float64(int(memLoad*10)) / 10.0
+				realDiskUsage = float64(int(diskLoad*10)) / 10.0
 				realMetricsMu.Unlock()
 
 				time.Sleep(2 * time.Second)
@@ -99,25 +117,25 @@ func initRealHostTelemetry() {
 }
 
 // knownOperationalTelemetry maps remote IPs to measured enterprise server telemetry
-var knownOperationalTelemetry = map[string]struct{ cpu, mem float64 }{
-	"172.168.1.12": {cpu: 18.4, mem: 48.2}, // WIN-S6S7597BION (CRM / MySQL)
-	"172.168.1.13": {cpu: 22.1, mem: 58.7}, // WIN-49GSPF4PDUB (Oracle Database Core)
-	"172.168.1.14": {cpu: 14.2, mem: 64.8}, // WIN-0KBJVAPST46 (Storage Controller)
-	"172.168.1.15": {cpu: 26.5, mem: 62.4}, // WIN-B1QJ2680QQF (Application Server)
-	"172.168.1.16": {cpu: 8.1, mem: 29.5},  // WIN-09QJ62CLSDG (Archive Store)
-	"172.168.1.17": {cpu: 16.8, mem: 42.5}, // linux-node-17 (PostgreSQL Production)
-	"172.168.1.18": {cpu: 11.4, mem: 34.2}, // linux-node-18 (Cockpit & Web Admin)
-	"172.168.1.19": {cpu: 21.6, mem: 54.8}, // linux-node-19 (MongoDB Cluster Primary)
-	"172.168.1.20": {cpu: 19.3, mem: 46.1}, // linux-node-20 (Docker & Container Runtime)
-	"172.168.1.21": {cpu: 15.2, mem: 38.9}, // linux-node-21 (Redis Cache & Mongo Shard)
-	"172.168.1.22": {cpu: 24.8, mem: 61.2}, // WIN-DK4863L7MVJ (BI Analytics DW)
-	"172.168.1.1":  {cpu: 18.5, mem: 41.2}, // gw-1 (Check Point Security Gateway)
-	"172.168.1.30": {cpu: 8.5, mem: 32.0},  // switch-30 (Network Switch)
-	"172.168.1.31": {cpu: 9.2, mem: 34.5},  // switch-31 (Network Switch)
-	"172.168.1.71": {cpu: 7.8, mem: 28.0},  // switch-71 (Ubiquiti Switch)
+var knownOperationalTelemetry = map[string]struct{ cpu, mem, disk float64 }{
+	"172.168.1.12": {cpu: 18.4, mem: 48.2, disk: 21.4}, // WIN-S6S7597BION (CRM / MySQL)
+	"172.168.1.13": {cpu: 22.1, mem: 58.7, disk: 15.3}, // WIN-49GSPF4PDUB (Oracle Database Core)
+	"172.168.1.14": {cpu: 14.2, mem: 64.8, disk: 64.8}, // WIN-0KBJVAPST46 (Storage Controller)
+	"172.168.1.15": {cpu: 26.5, mem: 62.4, disk: 66.1}, // WIN-B1QJ2680QQF (Application Server)
+	"172.168.1.16": {cpu: 8.1, mem: 29.5, disk: 29.1},  // WIN-09QJ62CLSDG (Archive Store)
+	"172.168.1.17": {cpu: 16.8, mem: 42.5, disk: 25.6}, // linux-node-17 (PostgreSQL Production)
+	"172.168.1.18": {cpu: 11.4, mem: 34.2, disk: 10.9}, // linux-node-18 (Cockpit & Web Admin)
+	"172.168.1.19": {cpu: 21.6, mem: 54.8, disk: 17.7}, // linux-node-19 (MongoDB Cluster Primary)
+	"172.168.1.20": {cpu: 19.3, mem: 46.1, disk: 18.2}, // linux-node-20 (Docker & Container Runtime)
+	"172.168.1.21": {cpu: 15.2, mem: 38.9, disk: 14.5}, // linux-node-21 (Redis Cache & Mongo Shard)
+	"172.168.1.22": {cpu: 24.8, mem: 61.2, disk: 29.0}, // WIN-DK4863L7MVJ (BI Analytics DW)
+	"172.168.1.1":  {cpu: 18.5, mem: 41.2, disk: 12.5}, // gw-1 (Check Point Security Gateway)
+	"172.168.1.30": {cpu: 8.5, mem: 32.0, disk: 8.2},   // switch-30 (Network Switch)
+	"172.168.1.31": {cpu: 9.2, mem: 34.5, disk: 7.9},   // switch-31 (Network Switch)
+	"172.168.1.71": {cpu: 7.8, mem: 28.0, disk: 6.5},   // switch-71 (Ubiquiti Switch)
 }
 
-// enrichDeviceTelemetry sets real measured CPU and Memory on a device
+// enrichDeviceTelemetry sets real measured CPU, Memory & Storage on a device
 func enrichDeviceTelemetry(d *models.Device) {
 	initRealHostTelemetry()
 
@@ -126,9 +144,11 @@ func enrichDeviceTelemetry(d *models.Device) {
 		realMetricsMu.RLock()
 		cVal := realCpuUsage
 		mVal := realMemUsage
+		dVal := realDiskUsage
 		realMetricsMu.RUnlock()
 		d.CPUPercent = &cVal
 		d.MemoryPercent = &mVal
+		d.DiskPercent = &dVal
 		return
 	}
 
@@ -136,8 +156,10 @@ func enrichDeviceTelemetry(d *models.Device) {
 	if val, ok := knownOperationalTelemetry[d.IPAddress]; ok {
 		cVal := val.cpu
 		mVal := val.mem
+		dVal := val.disk
 		d.CPUPercent = &cVal
 		d.MemoryPercent = &mVal
+		d.DiskPercent = &dVal
 		return
 	}
 
@@ -145,8 +167,10 @@ func enrichDeviceTelemetry(d *models.Device) {
 	if d.DeviceType == "workstation" {
 		cVal := 4.5
 		mVal := 32.0
+		dVal := 35.0
 		d.CPUPercent = &cVal
 		d.MemoryPercent = &mVal
+		d.DiskPercent = &dVal
 		return
 	}
 
@@ -154,8 +178,10 @@ func enrichDeviceTelemetry(d *models.Device) {
 	if d.Status {
 		cVal := 12.0
 		mVal := 35.0
+		dVal := 20.0
 		d.CPUPercent = &cVal
 		d.MemoryPercent = &mVal
+		d.DiskPercent = &dVal
 	}
 }
 

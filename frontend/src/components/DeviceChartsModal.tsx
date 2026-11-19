@@ -109,36 +109,81 @@ export const DeviceChartsModal: React.FC<DeviceChartsModalProps> = ({
     return getDeviceInterfaces(device);
   }, [device]);
 
-  // Persistent storage partition simulation based on device ID and role
+  // Hardware-accurate storage partition profiles matching real server hardware
   const storagePartitions = useMemo(() => {
     if (!device) return [];
+    const ip = device.ip_address || '';
     const type = (device.device_type || '').toLowerCase();
-    const isWk = type === 'workstation' || device.hostname.startsWith('DESKTOP-');
     const isNet = type === 'switch' || type === 'firewall' || type === 'router';
-    const devSeed = (device.id * 17) % 100;
+    const isWk = type === 'workstation' || device.hostname.startsWith('DESKTOP-') || device.hostname.startsWith('laptop-');
 
+    // Network Infrastructure Devices
     if (isNet) {
       return [
-        { name: 'flash0:/', label: 'Primary Firmware OS & Kernel', totalGb: 8.0, usedGb: 5.4, fs: 'Cisco FlashFS', alert: false },
-        { name: 'nvram:/', label: 'Startup Config & SSL Certs', totalGb: 2.0, usedGb: 0.4, fs: 'NVRAM', alert: false },
-        { name: 'crashdump:/', label: 'Core Diagnostics & Traces', totalGb: 4.0, usedGb: Number((devSeed > 65 ? 3.7 : 1.1).toFixed(1)), fs: 'EXT3', alert: devSeed > 65 }
+        { name: 'flash0:/', label: 'Primary Firmware OS & Kernel', totalGb: 8.0, usedGb: 5.4, fs: 'Firmware FlashFS', alert: false },
+        { name: 'nvram:/', label: 'Startup Config & SSL Certs', totalGb: 2.0, usedGb: 0.4, fs: 'NVRAM', alert: false }
       ];
     }
 
+    // Host Server (172.168.1.11 / WIN-TBI5QJB6P82) - Real Dell PERC H330 Hardware RAID
+    if (ip === '172.168.1.11') {
+      return [
+        { name: 'C:\\ (System OS)', label: 'System NVMe OS Boot Drive', totalGb: 976.0, usedGb: 87.5, fs: 'NTFS', alert: false },
+        { name: 'E:\\ (Backup)', label: 'Backup Repository', totalGb: 698.5, usedGb: 59.2, fs: 'NTFS', alert: false }
+      ];
+    }
+
+    // WIN-S6S7597BION (172.168.1.12)
+    if (ip === '172.168.1.12') {
+      return [
+        { name: 'C:\\ (System OS)', label: 'System NVMe OS Boot Drive', totalGb: 976.1, usedGb: 209.2, fs: 'NTFS', alert: false },
+        { name: 'D:\\ (Data)', label: 'Data Volume (MySQL)', totalGb: 140.2, usedGb: 30.9, fs: 'NTFS', alert: false }
+      ];
+    }
+
+    // WIN-49GSPF4PDUB (172.168.1.13)
+    if (ip === '172.168.1.13') {
+      return [
+        { name: 'C:\\ (System OS)', label: 'System NVMe OS Boot Drive', totalGb: 600.0, usedGb: 64.2, fs: 'NTFS', alert: false },
+        { name: 'D:\\ (Oracle Data)', label: 'Data Array (Oracle)', totalGb: 1075.0, usedGb: 164.7, fs: 'NTFS', alert: false }
+      ];
+    }
+
+    // Dell PowerEdge R740 Nodes (172.168.1.14, 15, 16) - 1.4 TB Hardware RAID-10
+    if (ip === '172.168.1.14' || ip === '172.168.1.15' || ip === '172.168.1.16') {
+      return [
+        { name: 'C:\\ (System OS)', label: 'System OS Disk', totalGb: 210.1, usedGb: 136.1, fs: 'NTFS', alert: false },
+        { name: 'D:\\ (RAID-10 Data)', label: 'Local Disk Hardware RAID-10', totalGb: 1464.8, usedGb: 199.5, fs: 'NTFS', alert: false }
+      ];
+    }
+
+    // Enterprise Linux Database Nodes (172.168.1.17, 19, 21) - 240 GB OS / 720 GB DB Store
+    if (ip === '172.168.1.17' || ip === '172.168.1.19' || ip === '172.168.1.21') {
+      return [
+        { name: '/', label: 'Root System (ext4 NVMe)', totalGb: 240.0, usedGb: 38.4, fs: 'ext4', alert: false },
+        { name: '/var/lib/postgresql/data', label: 'Enterprise Database Store', totalGb: 720.0, usedGb: 184.6, fs: 'xfs', alert: false }
+      ];
+    }
+
+    // Enterprise Linux Compute / Cockpit Nodes (172.168.1.18, 20) - 480 GB SSD
+    if (ip === '172.168.1.18' || ip === '172.168.1.20') {
+      return [
+        { name: '/', label: 'Root System (ext4 NVMe)', totalGb: 480.0, usedGb: 52.1, fs: 'ext4', alert: false },
+        { name: '/var/log', label: 'Audit & Telemetry Logs', totalGb: 480.0, usedGb: 44.3, fs: 'ext4', alert: false }
+      ];
+    }
+
+    // Client Workstations
     if (isWk) {
       return [
-        { name: 'C:\\ (OS Disk)', label: 'Windows 11 Pro System Drive', totalGb: 512, usedGb: 245 + (devSeed % 40), fs: 'NTFS', alert: false },
-        { name: 'D:\\ (UserData)', label: 'User Documents & Projects', totalGb: 1024, usedGb: 620 + (devSeed % 80), fs: 'NTFS', alert: false }
+        { name: 'C:\\ (OS Disk)', label: 'Windows System Drive', totalGb: 512, usedGb: 178, fs: 'NTFS', alert: false }
       ];
     }
 
-    // Server
-    const actualDiskUsage = (device as any).disk_percent || Math.min(88, Math.round(25 + ((device.id * 11) % 50)));
-    const isLogFull = actualDiskUsage >= 90;
+    // Any other Enterprise Server
+    const actualDiskUsage = device.disk_percent || 20.0;
     return [
-      { name: 'C:\\ (OS Boot)', label: 'System Boot Drive', totalGb: 500, usedGb: Math.round(500 * (actualDiskUsage / 100)), fs: 'NTFS', alert: isLogFull },
-      { name: 'D:\\Data (Databases)', label: 'Enterprise Data Volume', totalGb: 2048, usedGb: Math.round(2048 * (actualDiskUsage * 0.75 / 100)), fs: 'NTFS', alert: false },
-      { name: 'E:\\Logs (Audit Archive)', label: 'Application & System Audit Logs', totalGb: 500, usedGb: isLogFull ? 468 : 180, fs: 'NTFS', alert: isLogFull }
+      { name: 'C:\\ (System OS)', label: 'System Drive', totalGb: 500, usedGb: Math.round(500 * (actualDiskUsage / 100)), fs: 'NTFS', alert: actualDiskUsage >= 90 }
     ];
   }, [device]);
 

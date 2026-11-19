@@ -29,6 +29,7 @@ type Device struct {
 	UptimeSeconds int64      `json:"uptime_seconds"`
 	CPUPercent    *float64   `json:"cpu_percent,omitempty"`
 	MemoryPercent *float64   `json:"memory_percent,omitempty"`
+	DiskPercent   *float64   `json:"disk_percent,omitempty"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 }

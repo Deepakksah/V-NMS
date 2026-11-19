@@ -20,6 +20,7 @@ export interface Device {
   uptime_seconds?: number;
   cpu_percent?: number;
   memory_percent?: number;
+  disk_percent?: number;
   device_group?: string;
 }
 
