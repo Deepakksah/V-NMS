@@ -566,6 +566,43 @@ export const DevicesView: React.FC<DevicesViewProps> = ({
                   </tr>
                 );
               })}
+
+              {filteredDevices.length === 0 && (
+                <tr>
+                  <td colSpan={10} style={{ padding: '48px 24px', textAlign: 'center', backgroundColor: '#ffffff' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '2rem' }}>🔍</span>
+                      <strong style={{ fontSize: '0.95rem', color: '#1e293b' }}>No devices found in inventory</strong>
+                      <span style={{ fontSize: '0.80rem', color: '#64748b', maxWidth: '420px', lineHeight: 1.5 }}>
+                        The inventory has been reset or no devices match your filter. You can initiate an automated subnet discovery to scan and map all live devices.
+                      </span>
+                      {onOpenDiscovery && (
+                        <button
+                          onClick={onOpenDiscovery}
+                          style={{
+                            marginTop: '10px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '8px 16px',
+                            borderRadius: '6px',
+                            backgroundColor: '#0284c7',
+                            color: '#ffffff',
+                            fontWeight: 700,
+                            fontSize: '0.80rem',
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+                          }}
+                        >
+                          <Zap size={15} />
+                          <span>Auto Scan Subnet Now</span>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

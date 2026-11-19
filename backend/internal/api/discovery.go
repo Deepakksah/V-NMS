@@ -57,6 +57,7 @@ func HandleClearAllDevices(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	scanner.ResetStatus()
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "cleared",
 		"message": "All devices and telemetry have been cleared from database. Inventory is now empty.",

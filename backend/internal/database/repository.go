@@ -32,7 +32,7 @@ func GetAllDevices() ([]models.Device, error) {
 	}
 	defer rows.Close()
 
-	var devices []models.Device
+	devices := make([]models.Device, 0)
 	for rows.Next() {
 		var d models.Device
 		err := rows.Scan(

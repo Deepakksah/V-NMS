@@ -105,6 +105,20 @@ func GetStatus() ScanStatus {
 	return res
 }
 
+// ResetStatus clears all in-memory scanner counters and logs upon inventory reset
+func ResetStatus() {
+	statusMutex.Lock()
+	defer statusMutex.Unlock()
+	CurrentStatus = ScanStatus{
+		IsScanning:      false,
+		SubnetScanned:   "",
+		TotalDiscovered: 0,
+		TotalScanned:    0,
+		TotalTargets:    0,
+		Logs:            []string{fmt.Sprintf("[%s] Inventory reset by user. 0 devices mapped.", time.Now().Format("15:04:05"))},
+	}
+}
+
 // DetectLocalSubnet dynamically finds the primary active IPv4 subnet of this machine at runtime
 func DetectLocalSubnet() (string, string) {
 	// 1. Try UDP routing dial to determine outbound interface IP

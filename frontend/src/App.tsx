@@ -173,20 +173,25 @@ export default function App() {
     try {
       setLoading(true);
       const res = await axios.get(`${API_BASE}/devices`, { timeout: 3500 });
-      if (res.data && res.data.devices && res.data.devices.length > 0) {
-        const sorted = [...res.data.devices].sort((a, b) => {
-          const octA = (a.ip_address || '').split('.').map(Number);
-          const octB = (b.ip_address || '').split('.').map(Number);
-          for (let i = 0; i < 4; i++) {
-            if ((octA[i] || 0) !== (octB[i] || 0)) {
-              return (octA[i] || 0) - (octB[i] || 0);
+      if (res.data && Array.isArray(res.data.devices)) {
+        if (res.data.devices.length > 0) {
+          const sorted = [...res.data.devices].sort((a, b) => {
+            const octA = (a.ip_address || '').split('.').map(Number);
+            const octB = (b.ip_address || '').split('.').map(Number);
+            for (let i = 0; i < 4; i++) {
+              if ((octA[i] || 0) !== (octB[i] || 0)) {
+                return (octA[i] || 0) - (octB[i] || 0);
+              }
             }
+            return (a.id || 0) - (b.id || 0);
+          });
+          setDevices(sorted);
+          if (!selectedDevice || !sorted.some(d => d.id === selectedDevice.id)) {
+            setSelectedDevice(sorted[0]);
           }
-          return (a.id || 0) - (b.id || 0);
-        });
-        setDevices(sorted);
-        if (!selectedDevice) {
-          setSelectedDevice(sorted[0]);
+        } else {
+          setDevices([]);
+          setSelectedDevice(null);
         }
       }
       try {
