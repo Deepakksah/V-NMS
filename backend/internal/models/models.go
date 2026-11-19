@@ -27,6 +27,8 @@ type Device struct {
 	LastPingMs    float64    `json:"last_ping_ms"`
 	LastPolledAt  *time.Time `json:"last_polled_at"`
 	UptimeSeconds int64      `json:"uptime_seconds"`
+	CPUPercent    *float64   `json:"cpu_percent,omitempty"`
+	MemoryPercent *float64   `json:"memory_percent,omitempty"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 }

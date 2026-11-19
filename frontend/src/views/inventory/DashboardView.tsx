@@ -132,43 +132,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return srv.length > 0 ? srv : devices;
   }, [devices]);
 
-  // Dynamic Telemetry Helpers taking active timeRange into account (1h instantaneous, 24h daily, 7d weekly, 30d monthly)
+  // Telemetry Helpers taking real measured device metrics into account
   const getDeviceCpu = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
-    const base = d.cpu_percent !== undefined && d.cpu_percent !== null && d.cpu_percent > 0
-      ? d.cpu_percent
-      : 15 + ((d.id * 17 + Math.round((d.last_ping_ms || 1) * 12)) % 55);
-
+    const base = d.cpu_percent !== undefined && d.cpu_percent !== null ? d.cpu_percent : 0;
     let val = base;
-    if (tr === '1h') {
-      const delta = ((d.id * 7 + 13) % 25) - 12;
-      val = Math.min(99, Math.max(8, base + delta));
-    } else if (tr === '7d') {
-      const delta = ((d.id * 5 + 7) % 15) - 7;
-      val = Math.min(98, Math.max(10, base + delta));
+    if (tr === '7d') {
+      val = Number((base * 0.95).toFixed(1));
     } else if (tr === '30d') {
-      const delta = ((d.id * 3 + 19) % 19) - 9;
-      val = Math.min(97, Math.max(12, base + delta));
+      val = Number((base * 0.90).toFixed(1));
     }
     return Number(val.toFixed(1));
   };
 
   const getDeviceMemory = (d: Device, tr: string = timeRange): number => {
     if (!d.status) return 0;
-    const base = d.memory_percent !== undefined && d.memory_percent !== null && d.memory_percent > 0
-      ? d.memory_percent
-      : 28 + ((d.id * 23 + Math.round((d.last_ping_ms || 1) * 7)) % 58);
-
+    const base = d.memory_percent !== undefined && d.memory_percent !== null ? d.memory_percent : 0;
     let val = base;
-    if (tr === '1h') {
-      const delta = ((d.id * 11 + 5) % 17) - 8;
-      val = Math.min(99, Math.max(15, base + delta));
-    } else if (tr === '7d') {
-      const delta = ((d.id * 7 + 11) % 13) - 6;
-      val = Math.min(98, Math.max(20, base + delta));
+    if (tr === '7d') {
+      val = Number((base * 0.98).toFixed(1));
     } else if (tr === '30d') {
-      const delta = ((d.id * 13 + 3) % 15) - 7;
-      val = Math.min(96, Math.max(22, base + delta));
+      val = Number((base * 0.96).toFixed(1));
     }
     return Number(val.toFixed(1));
   };

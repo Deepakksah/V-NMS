@@ -244,8 +244,8 @@ export const TopologyView: React.FC<TopologyViewProps> = ({
           x,
           y,
           ports: (dev as any).ports && (dev as any).ports.length > 0 ? (dev as any).ports : ['80 HTTP', '443 HTTPS', '22 SSH'],
-          cpuUsage: dev.cpu_percent ?? (isOnline ? Math.floor(18 + ((dev.id * 13) % 45)) : 0),
-          ramUsage: dev.memory_percent ?? (isOnline ? Math.floor(25 + ((dev.id * 19) % 45)) : 0),
+          cpuUsage: dev.cpu_percent !== undefined ? Math.round(dev.cpu_percent) : 0,
+          ramUsage: dev.memory_percent !== undefined ? Math.round(dev.memory_percent) : 0,
           diskUsage: (dev as any).disk_usage ?? (isOnline ? Math.floor(20 + ((dev.id * 11) % 45)) : 0),
           latencyMs: dev.last_ping_ms ?? (isOnline ? 0.8 : 0),
           deviceRef: dev

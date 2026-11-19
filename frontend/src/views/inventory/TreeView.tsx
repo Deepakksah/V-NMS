@@ -143,8 +143,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
       const children: TreeNode[] = [];
       const isUp = d.status ? 'up' : 'down';
       const lat = (d.last_ping_ms || 0.5).toFixed(1);
-      const cpuVal = d.cpu_percent ?? Math.min(85, Math.round(18 + ((d.id * 7) % 50)));
-      const memVal = d.memory_percent ?? Math.min(90, Math.round(28 + ((d.id * 9) % 45)));
+      const cpuVal = d.cpu_percent !== undefined && d.cpu_percent !== null ? Math.round(d.cpu_percent) : 0;
+      const memVal = d.memory_percent !== undefined && d.memory_percent !== null ? Math.round(d.memory_percent) : 0;
       const osLower = (d.os || '').toLowerCase();
       const hostLower = (d.hostname || '').toLowerCase();
       const isWin = osLower.includes('windows') || hostLower.startsWith('win-');
@@ -362,8 +362,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
         uptime: d.uptime_seconds ? `${Math.round(d.uptime_seconds / 3600)} Hours` : 'Online',
         metrics: {
           latency: d.last_ping_ms || 0.5,
-          cpu: d.cpu_percent ?? Math.min(85, Math.round(18 + ((d.id * 7) % 50))),
-          mem: d.memory_percent ?? Math.min(90, Math.round(28 + ((d.id * 9) % 45))),
+          cpu: d.cpu_percent !== undefined && d.cpu_percent !== null ? Math.round(d.cpu_percent) : 0,
+          mem: d.memory_percent !== undefined && d.memory_percent !== null ? Math.round(d.memory_percent) : 0,
           traffic: `${((d.last_ping_ms || 1.2) * 8.5 + 4).toFixed(1)} Mbps`
         },
         children: generateDeviceChildren(d)
