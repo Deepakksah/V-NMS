@@ -5,12 +5,39 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"v-nms/internal/database"
 
 	"github.com/gin-gonic/gin"
 )
+
+// --- DB probe cache (populated at startup, refreshed every 5 min) ---
+var (
+	dbCacheMu   sync.RWMutex
+	dbCache     []DatabaseTelemetry
+	dbCacheTime time.Time
+)
+
+// InitDBProbeCache runs once at startup in a goroutine
+func InitDBProbeCache() {
+	go func() {
+		refreshDBCache()
+		ticker := time.NewTicker(5 * time.Minute)
+		for range ticker.C {
+			refreshDBCache()
+		}
+	}()
+}
+
+func refreshDBCache() {
+	result := scanAllDatabases()
+	dbCacheMu.Lock()
+	dbCache = result
+	dbCacheTime = time.Now()
+	dbCacheMu.Unlock()
+}
 
 // dbProbeEntry defines a DB port we scan for
 type dbProbeEntry struct {
@@ -143,16 +170,14 @@ type AppSyntheticTelemetry struct {
 	LastUpdated        time.Time `json:"last_updated"`
 }
 
-// HandleGetDatabaseTelemetry handles GET /api/v1/apps/databases (Points 17.5.1, 17.5.2)
-// Auto-detects databases by: 1) OS name inference, 2) TCP port probing per server device
-func HandleGetDatabaseTelemetry(c *gin.Context) {
+// scanAllDatabases does the actual port-probe work (slow, runs in background)
+func scanAllDatabases() []DatabaseTelemetry {
 	now := time.Now()
-	var databases []DatabaseTelemetry
+	var results []DatabaseTelemetry
 
 	devices, err := database.GetAllDevices()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return results
 	}
 
 	for _, d := range devices {
@@ -160,10 +185,9 @@ func HandleGetDatabaseTelemetry(c *gin.Context) {
 			continue
 		}
 
-		// build set of ports to report (inferred + probed)
 		detectedPorts := map[int]bool{}
 
-		// Step 1: OS name inference (guaranteed – no probe needed)
+		// Step 1: OS name inference (instant, no probe)
 		for _, p := range osInferPorts(d.OS) {
 			detectedPorts[p] = true
 		}
@@ -171,41 +195,37 @@ func HandleGetDatabaseTelemetry(c *gin.Context) {
 		// Step 2: TCP probe remaining DB ports
 		for _, probe := range dbProbes {
 			if detectedPorts[probe.Port] {
-				continue // already added via OS hint
+				continue
 			}
 			if probePort(d.IPAddress, probe.Port) {
 				detectedPorts[probe.Port] = true
 			}
 		}
 
-		// Step 3: build DatabaseTelemetry record for each detected port
+		// Step 3: build records
 		for _, probe := range dbProbes {
 			if !detectedPorts[probe.Port] {
 				continue
 			}
 			bufHit, ple, activeConn, deadlocks, queryMs, queryResult, status := deterministicMetrics(d.ID, probe.Port)
-
 			maxConn := probe.MaxConn
 			if maxConn == 0 {
 				maxConn = 100 + (d.ID*7)%300
 			}
 			activeConn = min(activeConn, maxConn-1)
 
-			dbName := probe.DBName
-			querySensor := probe.QuerySensor
-
-			databases = append(databases, DatabaseTelemetry{
+			results = append(results, DatabaseTelemetry{
 				ID:                 fmt.Sprintf("db-%d-%d", d.ID, probe.Port),
 				Engine:             probe.Engine,
 				HostName:           fmt.Sprintf("%s (%s)", d.Hostname, d.IPAddress),
 				Port:               probe.Port,
-				DatabaseName:       dbName,
+				DatabaseName:       probe.DBName,
 				BufferCacheHitPct:  bufHit,
 				PageLifeExpectancy: ple,
 				ActiveConnections:  activeConn,
 				MaxConnections:     maxConn,
 				DeadlocksPerHour:   deadlocks,
-				CustomQuerySensor:  querySensor,
+				CustomQuerySensor:  probe.QuerySensor,
 				CustomQueryResult:  queryResult,
 				QueryExecutionMs:   queryMs,
 				Status:             status,
@@ -213,8 +233,64 @@ func HandleGetDatabaseTelemetry(c *gin.Context) {
 			})
 		}
 	}
+	return results
+}
 
-	c.JSON(http.StatusOK, gin.H{"databases": databases, "total": len(databases)})
+// HandleGetDatabaseTelemetry handles GET /api/v1/apps/databases
+// Serves from in-memory cache (populated at startup). Never blocks the request.
+func HandleGetDatabaseTelemetry(c *gin.Context) {
+	dbCacheMu.RLock()
+	cached := dbCache
+	dbCacheMu.RUnlock()
+
+	// If cache empty (very first request before background goroutine finishes),
+	// do a quick OS-inference only pass (instant, no TCP probing)
+	if len(cached) == 0 {
+		cached = scanOsInferOnly()
+	}
+
+	c.JSON(http.StatusOK, gin.H{"databases": cached, "total": len(cached)})
+}
+
+// scanOsInferOnly returns DB records using ONLY OS-name hints (no TCP probing, instant)
+func scanOsInferOnly() []DatabaseTelemetry {
+	now := time.Now()
+	var results []DatabaseTelemetry
+	devices, err := database.GetAllDevices()
+	if err != nil {
+		return results
+	}
+	for _, d := range devices {
+		if d.DeviceType != "server" {
+			continue
+		}
+		for _, p := range osInferPorts(d.OS) {
+			var probe dbProbeEntry
+			for _, pr := range dbProbes {
+				if pr.Port == p {
+					probe = pr
+					break
+				}
+			}
+			if probe.Port == 0 {
+				continue
+			}
+			bufHit, ple, activeConn, _, queryMs, queryResult, status := deterministicMetrics(d.ID, probe.Port)
+			maxConn := probe.MaxConn
+			if maxConn == 0 {
+				maxConn = 100
+			}
+			results = append(results, DatabaseTelemetry{
+				ID: fmt.Sprintf("db-%d-%d", d.ID, probe.Port), Engine: probe.Engine,
+				HostName: fmt.Sprintf("%s (%s)", d.Hostname, d.IPAddress), Port: probe.Port,
+				DatabaseName: probe.DBName, BufferCacheHitPct: bufHit, PageLifeExpectancy: ple,
+				ActiveConnections: activeConn, MaxConnections: maxConn,
+				CustomQuerySensor: probe.QuerySensor, CustomQueryResult: queryResult,
+				QueryExecutionMs: queryMs, Status: status, LastCheckedAt: now,
+			})
+		}
+	}
+	return results
 }
 
 func min(a, b int) int {

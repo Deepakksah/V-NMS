@@ -40,7 +40,7 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({ apiBase = '/
     const fetchData = async () => {
       try {
         const [resDb, resFab, resSyn, resWeb, resSpec, resMs] = await Promise.allSettled([
-          axios.get(`${apiBase}/apps/databases`, { timeout: 4000 }),
+          axios.get(`${apiBase}/apps/databases`, { timeout: 10000 }),
           axios.get(`${apiBase}/apps/storage-fabric`, { timeout: 4000 }),
           axios.get(`${apiBase}/apps/synthetics`, { timeout: 4000 }),
           axios.get(`${apiBase}/synthetics/web`, { timeout: 4000 }),

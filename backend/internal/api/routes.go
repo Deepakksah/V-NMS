@@ -9,6 +9,9 @@ import (
 
 // SetupRouter initializes Gin, attaches CORS middleware, and registers all domain routes grouped by Nav section
 func SetupRouter() *gin.Engine {
+	// Start background DB port probe cache (runs async, non-blocking)
+	InitDBProbeCache()
+
 	r := gin.Default()
 
 	// Global CORS Middleware
