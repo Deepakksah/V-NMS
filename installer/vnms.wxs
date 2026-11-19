@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <Package
+    Name="V-NMS Enterprise NOC Dashboard"
+    Manufacturer="Veracity Networks"
+    Version="2.0.0"
+    UpgradeCode="A1B2C3D4-E5F6-7890-ABCD-EF1234567890"
+    Language="1033"
+    Codepage="1252"
+    InstallerVersion="500"
+    Compressed="yes">
+
+    <SummaryInformation Description="V-NMS Enterprise NOC Dashboard Installer" />
+
+    <!-- Allow upgrades, remove old version first -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of V-NMS is already installed." />
+
+    <!-- Media / cabinet -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- ===== DIRECTORIES ===== -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLDIR" Name="V-NMS">
+        <Directory Id="LOGSDIR" Name="logs" />
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="APPDATADIR" Name="V-NMS" />
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="SHORTCUTDIR" Name="V-NMS Enterprise NOC" />
+    </StandardDirectory>
+
+    <!-- ===== COMPONENTS ===== -->
+    <ComponentGroup Id="MainFiles" Directory="INSTALLDIR">
+
+      <!-- Main server executable -->
+      <Component Id="VNMSServer" Guid="B1C2D3E4-F5A6-7890-BCDE-F12345678901">
+        <File Id="vnms_server_exe"
+              Source="stage\vnms-server.exe"
+              KeyPath="yes"
+              Vital="yes" />
+
+        <!-- Windows Service: VNMSService -->
+        <ServiceInstall
+          Id="VNMSServiceInstall"
+          Name="VNMSService"
+          DisplayName="V-NMS Enterprise NOC Server"
+          Description="V-NMS Enterprise Network Monitoring System - Core Server"
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Account="LocalSystem" />
+
+        <ServiceControl
+          Id="VNMSServiceStart"
+          Name="VNMSService"
+          Start="install"
+          Stop="both"
+          Remove="uninstall"
+          Wait="yes" />
+      </Component>
+
+      <!-- Reverse proxy (port 80 → 8081) -->
+      <Component Id="VNMSProxy" Guid="C2D3E4F5-A6B7-8901-CDEF-123456789012">
+        <File Id="vnms_proxy_exe"
+              Source="stage\vnms-proxy.exe"
+              KeyPath="yes" />
+
+        <ServiceInstall
+          Id="VNMSProxyInstall"
+          Name="VNMSProxy"
+          DisplayName="V-NMS Reverse Proxy (Port 80)"
+          Description="Routes http://V-NMS-Dashboard.com to V-NMS on port 8081"
+          Type="ownProcess"
+          Start="auto"
+          ErrorControl="normal"
+          Account="LocalSystem" />
+
+        <ServiceControl
+          Id="VNMSProxyStart"
+          Name="VNMSProxy"
+          Start="install"
+          Stop="both"
+          Remove="uninstall"
+          Wait="yes" />
+      </Component>
+
+      <!-- Config file -->
+      <Component Id="ConfigFile" Guid="D3E4F5A6-B7C8-9012-DEF0-234567890123">
+        <File Id="config_env"
+              Source="stage\config.env"
+              KeyPath="yes" />
+      </Component>
+
+      <!-- Icon -->
+      <Component Id="IconFile" Guid="E4F5A6B7-C8D9-0123-EF01-345678901234">
+        <File Id="logo_ico"
+              Source="stage\Logo.ico"
+              KeyPath="yes" />
+      </Component>
+
+      <!-- Logo PNG -->
+      <Component Id="LogoPng" Guid="F5A6B7C8-D9E0-1234-F012-456789012345">
+        <File Id="veracity_logo_png"
+              Source="stage\Veracity_logo.png"
+              KeyPath="yes" />
+      </Component>
+
+      <!-- Logs directory -->
+      <Component Id="LogsDir" Guid="A6B7C8D9-E0F1-2345-0123-567890123456" Directory="LOGSDIR">
+        <CreateFolder />
+      </Component>
+
+    </ComponentGroup>
+
+    <!-- Start Menu Shortcuts -->
+    <ComponentGroup Id="Shortcuts" Directory="SHORTCUTDIR">
+      <Component Id="ShortcutComp" Guid="B7C8D9E0-F1A2-3456-1234-678901234567">
+        <Shortcut Id="WebShortcut"
+                  Name="V-NMS Dashboard (Browser)"
+                  Description="Open V-NMS Enterprise NOC Dashboard"
+                  Target="[SystemFolder]cmd.exe"
+                  Arguments='/c start http://V-NMS-Dashboard.com'
+                  Icon="AppIcon"
+                  WorkingDirectory="INSTALLDIR" />
+
+        <Shortcut Id="UninstallShortcut"
+                  Name="Uninstall V-NMS"
+                  Description="Remove V-NMS Enterprise NOC Dashboard"
+                  Target="[SystemFolder]msiexec.exe"
+                  Arguments="/x [ProductCode]" />
+
+        <RemoveFolder Id="RemoveShortcutDir" Directory="SHORTCUTDIR" On="uninstall" />
+        <RegistryValue Root="HKCU"
+                       Key="Software\Veracity\V-NMS"
+                       Name="ShortcutInstalled"
+                       Type="integer"
+                       Value="1"
+                       KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Hosts file entry via custom action -->
+    <ComponentGroup Id="HostsEntry" Directory="INSTALLDIR">
+      <Component Id="HostsScript" Guid="C8D9E0F1-A2B3-4567-2345-789012345678">
+        <File Id="hosts_script"
+              Source="stage\add-hosts.ps1"
+              KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- Icon reference -->
+    <Icon Id="AppIcon" SourceFile="stage\Logo.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPHELPLINK" Value="http://V-NMS-Dashboard.com" />
+    <Property Id="ARPURLINFOABOUT" Value="http://V-NMS-Dashboard.com" />
+
+    <!-- Features -->
+    <Feature Id="Complete" Title="V-NMS Enterprise NOC" Level="1">
+      <ComponentGroupRef Id="MainFiles" />
+      <ComponentGroupRef Id="Shortcuts" />
+      <ComponentGroupRef Id="HostsEntry" />
+    </Feature>
+
+    <!-- Custom actions: add hosts entry after install -->
+    <CustomAction Id="AddHostsEntry"
+                  Directory="INSTALLDIR"
+                  ExeCommand='[SystemFolder]WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File "[INSTALLDIR]add-hosts.ps1"'
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
+    <InstallExecuteSequence>
+      <Custom Action="AddHostsEntry" After="InstallFiles" Condition="NOT Installed" />
+    </InstallExecuteSequence>
+
+    <!-- UI -->
+    <WixVariable Id="WixUILicenseRtf" Value="stage\license.rtf" />
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+  </Package>
+</Wix>

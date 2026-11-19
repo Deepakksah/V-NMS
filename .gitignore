@@ -68,3 +68,8 @@ credentials/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+*.msi
+installer/stage/
+proxy/vnms-proxy.exe
+
