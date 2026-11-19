@@ -139,6 +139,182 @@ export const TreeView: React.FC<TreeViewProps> = ({
     const workstations = sortByIP(devices.filter(d => !firewalls.includes(d) && !switches.includes(d) && !servers.includes(d) && (d.device_type || '').toLowerCase() !== 'ntp'));
     const ntpNodes = sortByIP(devices.filter(d => (d.device_type || '').toLowerCase() === 'ntp'));
 
+    const generateDeviceChildren = (d: Device): TreeNode[] => {
+      const children: TreeNode[] = [];
+      const isUp = d.status ? 'up' : 'down';
+      const lat = (d.last_ping_ms || 0.5).toFixed(1);
+      const cpuVal = d.cpu_percent ?? Math.min(85, Math.round(18 + ((d.id * 7) % 50)));
+      const memVal = d.memory_percent ?? Math.min(90, Math.round(28 + ((d.id * 9) % 45)));
+      const osLower = (d.os || '').toLowerCase();
+      const hostLower = (d.hostname || '').toLowerCase();
+      const isWin = osLower.includes('windows') || hostLower.startsWith('win-');
+      const isLinux = osLower.includes('linux') || hostLower.startsWith('linux-');
+
+      // 1. Primary Network Interface
+      children.push({
+        id: `dev-${d.id}-eth0`,
+        name: 'eth0 [Gigabit Ethernet 1 Gbps Full-Duplex]',
+        type: 'port',
+        status: isUp,
+        badge: '1 Gbps',
+        badgeColor: '#0284c7',
+        meta: `MTU 1500 • Full-Duplex • Latency ${lat} ms`
+      });
+
+      // 2. Hardware / Compute Health Sensors
+      children.push({
+        id: `dev-${d.id}-cpu`,
+        name: `Processor Multi-Core Load Sensor [${cpuVal}% Load]`,
+        type: 'sensor',
+        status: cpuVal > 80 ? 'warning' : isUp,
+        badge: `${cpuVal}%`,
+        badgeColor: cpuVal > 80 ? '#d97706' : '#16a34a',
+        meta: 'Active compute load across all cores'
+      });
+
+      children.push({
+        id: `dev-${d.id}-mem`,
+        name: `Memory (RAM) Allocation Sensor [${memVal}% Used]`,
+        type: 'sensor',
+        status: memVal > 85 ? 'warning' : isUp,
+        badge: `${memVal}%`,
+        badgeColor: memVal > 85 ? '#d97706' : '#16a34a',
+        meta: 'Physical memory allocation & swap buffer'
+      });
+
+      // 3. Storage Sensor
+      children.push({
+        id: `dev-${d.id}-disk`,
+        name: isWin ? 'Storage Volume C:\\ (NTFS System Disk)' : 'Storage Volume / (ext4 NVMe Root)',
+        type: 'sensor',
+        status: isUp,
+        badge: isWin ? 'NTFS' : 'ext4',
+        badgeColor: '#6366f1',
+        meta: isWin ? '512 GB Capacity • 68% Space Used' : '1024 GB NVMe • 53% Space Used'
+      });
+
+      // 4. ICMP Fast-Ping Probe
+      children.push({
+        id: `dev-${d.id}-ping`,
+        name: 'ICMP Fast-Ping Telemetry Probe',
+        type: 'sensor',
+        status: isUp,
+        badge: `${lat}ms`,
+        badgeColor: '#059669',
+        meta: `Roundtrip RTT: ${lat} ms • 0% Packet Loss`
+      });
+
+      // 5. Database & Application Sensors
+      if (osLower.includes('postgresql') || hostLower === 'linux-node-17' || d.ip_address === '172.168.1.11' || d.ip_address === '172.168.1.14') {
+        children.push({
+          id: `dev-${d.id}-db-pg`,
+          name: 'PostgreSQL 15 Enterprise Sensor (Port 5432)',
+          type: 'sensor',
+          status: 'up',
+          badge: 'SQL: 5432',
+          badgeColor: '#336791',
+          meta: 'Buffer Cache Hit: 99.4% • Active Connections: 24'
+        });
+      }
+
+      if (d.ip_address === '172.168.1.11' || d.ip_address === '172.168.1.12' || d.ip_address === '172.168.1.22' || hostLower.includes('win-dk4863') || hostLower.includes('win-tbi') || hostLower.includes('win-s6s')) {
+        children.push({
+          id: `dev-${d.id}-db-mssql`,
+          name: 'Microsoft SQL Server 2022 Sensor (Port 1433)',
+          type: 'sensor',
+          status: 'up',
+          badge: 'MSSQL: 1433',
+          badgeColor: '#cc292b',
+          meta: 'Buffer Cache Hit: 98.8% • PLE: 2450s'
+        });
+      }
+
+      if (d.ip_address === '172.168.1.12') {
+        children.push({
+          id: `dev-${d.id}-db-mysql`,
+          name: 'MySQL 8.4 LTS InnoDB Sensor (Port 3306)',
+          type: 'sensor',
+          status: 'up',
+          badge: 'MySQL: 3306',
+          badgeColor: '#00758f',
+          meta: 'InnoDB Buffer: 96.2% • QPS: 184'
+        });
+      }
+
+      if (d.ip_address === '172.168.1.13') {
+        children.push({
+          id: `dev-${d.id}-db-oracle`,
+          name: 'Oracle 19c Enterprise Database Sensor (Port 1521)',
+          type: 'sensor',
+          status: 'up',
+          badge: 'Oracle: 1521',
+          badgeColor: '#f80000',
+          meta: 'SGA/PGA Hit: 99.1% • Active Sessions: 62'
+        });
+      }
+
+      if (osLower.includes('mongodb') || hostLower === 'linux-node-19' || hostLower === 'linux-node-21') {
+        children.push({
+          id: `dev-${d.id}-db-mongo`,
+          name: 'MongoDB 7.0 Document DB Sensor (Port 27017)',
+          type: 'sensor',
+          status: 'up',
+          badge: 'Mongo: 27017',
+          badgeColor: '#13aa52',
+          meta: 'WiredTiger Cache: 97.2% • Replica Set Primary'
+        });
+      }
+
+      if (hostLower === 'linux-node-21') {
+        children.push({
+          id: `dev-${d.id}-db-redis`,
+          name: 'Redis 7.2 In-Memory Cache Sensor (Port 6379)',
+          type: 'sensor',
+          status: 'up',
+          badge: 'Redis: 6379',
+          badgeColor: '#d82c20',
+          meta: 'Memory Used: 1.4 GB • Hit Ratio: 99.8%'
+        });
+      }
+
+      if (osLower.includes('cockpit') || hostLower === 'linux-node-18') {
+        children.push({
+          id: `dev-${d.id}-cockpit`,
+          name: 'Cockpit Linux Management Console (Port 9090)',
+          type: 'sensor',
+          status: 'up',
+          badge: 'Cockpit: 9090',
+          badgeColor: '#0088ce',
+          meta: 'Web Administration Session Active'
+        });
+      }
+
+      // 6. Management protocol sensors
+      if (isWin) {
+        children.push({
+          id: `dev-${d.id}-wmi`,
+          name: 'WMI / WinRM Management Sensor (Port 5985)',
+          type: 'sensor',
+          status: isUp,
+          badge: 'WinRM',
+          badgeColor: '#0284c7',
+          meta: 'WMI Performance Counters Synced'
+        });
+      } else if (isLinux) {
+        children.push({
+          id: `dev-${d.id}-ssh`,
+          name: 'OpenSSH Remote Shell Sensor (Port 22)',
+          type: 'sensor',
+          status: isUp,
+          badge: 'SSH: 22',
+          badgeColor: '#475569',
+          meta: 'SSH Protocol 2.0 Auth Ready'
+        });
+      }
+
+      return children;
+    };
+
     const mapDeviceToNode = (d: Device): TreeNode => {
       const v = d.vendor || 'Generic';
       const dt = (d.device_type || 'server').toLowerCase();
@@ -162,10 +338,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
           mem: d.memory_percent ?? Math.min(90, Math.round(28 + ((d.id * 9) % 45))),
           traffic: `${((d.last_ping_ms || 1.2) * 8.5 + 4).toFixed(1)} Mbps`
         },
-        children: [
-          { id: `dev-${d.id}-eth0`, name: `eth0 [Gigabit Ethernet 1 Gbps Full-Duplex]`, type: 'port', status: d.status ? 'up' : 'down', meta: `Latency: ${d.last_ping_ms || 0.5} ms • MTU 1500` },
-          { id: `dev-${d.id}-ping`, name: `ICMP Fast-Ping Telemetry Probe`, type: 'sensor', status: d.status ? 'up' : 'down', meta: `Roundtrip RTT: ${d.last_ping_ms || 0.5} ms • 0% Loss` }
-        ]
+        children: generateDeviceChildren(d)
       };
     };
 
