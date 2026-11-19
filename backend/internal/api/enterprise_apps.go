@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"v-nms/internal/database"
+	"v-nms/internal/models"
 
 	"github.com/gin-gonic/gin"
 )
@@ -170,69 +171,96 @@ type AppSyntheticTelemetry struct {
 	LastUpdated        time.Time `json:"last_updated"`
 }
 
-// scanAllDatabases does the actual port-probe work (slow, runs in background)
+// scanAllDatabases does the actual port-probe work concurrently across all devices
 func scanAllDatabases() []DatabaseTelemetry {
 	now := time.Now()
 	var results []DatabaseTelemetry
+	var mu sync.Mutex
 
 	devices, err := database.GetAllDevices()
 	if err != nil {
 		return results
 	}
 
+	var wg sync.WaitGroup
+
 	for _, d := range devices {
-		if d.DeviceType != "server" {
+		if d.DeviceType == "switch" {
 			continue
 		}
 
-		detectedPorts := map[int]bool{}
+		wg.Add(1)
+		go func(dev models.Device) {
+			defer wg.Done()
 
-		// Step 1: OS name inference (instant, no probe)
-		for _, p := range osInferPorts(d.OS) {
-			detectedPorts[p] = true
-		}
+			detectedPorts := map[int]bool{}
 
-		// Step 2: TCP probe remaining DB ports
-		for _, probe := range dbProbes {
-			if detectedPorts[probe.Port] {
-				continue
+			// Step 1: OS name inference (instant, no probe)
+			for _, p := range osInferPorts(dev.OS) {
+				detectedPorts[p] = true
 			}
-			if probePort(d.IPAddress, probe.Port) {
-				detectedPorts[probe.Port] = true
-			}
-		}
 
-		// Step 3: build records
-		for _, probe := range dbProbes {
-			if !detectedPorts[probe.Port] {
-				continue
-			}
-			bufHit, ple, activeConn, deadlocks, queryMs, queryResult, status := deterministicMetrics(d.ID, probe.Port)
-			maxConn := probe.MaxConn
-			if maxConn == 0 {
-				maxConn = 100 + (d.ID*7)%300
-			}
-			activeConn = min(activeConn, maxConn-1)
+			// Step 2: TCP probe remaining DB ports concurrently per port
+			var portWg sync.WaitGroup
+			var portMu sync.Mutex
 
-			results = append(results, DatabaseTelemetry{
-				ID:                 fmt.Sprintf("db-%d-%d", d.ID, probe.Port),
-				Engine:             probe.Engine,
-				HostName:           fmt.Sprintf("%s (%s)", d.Hostname, d.IPAddress),
-				Port:               probe.Port,
-				DatabaseName:       probe.DBName,
-				BufferCacheHitPct:  bufHit,
-				PageLifeExpectancy: ple,
-				ActiveConnections:  activeConn,
-				MaxConnections:     maxConn,
-				DeadlocksPerHour:   deadlocks,
-				CustomQuerySensor:  probe.QuerySensor,
-				CustomQueryResult:  queryResult,
-				QueryExecutionMs:   queryMs,
-				Status:             status,
-				LastCheckedAt:      now,
-			})
-		}
+			for _, probe := range dbProbes {
+				if detectedPorts[probe.Port] {
+					continue
+				}
+				portWg.Add(1)
+				go func(pEntry dbProbeEntry) {
+					defer portWg.Done()
+					if probePort(dev.IPAddress, pEntry.Port) {
+						portMu.Lock()
+						detectedPorts[pEntry.Port] = true
+						portMu.Unlock()
+					}
+				}(probe)
+			}
+			portWg.Wait()
+
+			// Step 3: build records for detected ports
+			var localDbs []DatabaseTelemetry
+			for _, probe := range dbProbes {
+				if !detectedPorts[probe.Port] {
+					continue
+				}
+				bufHit, ple, activeConn, deadlocks, queryMs, queryResult, status := deterministicMetrics(dev.ID, probe.Port)
+				maxConn := probe.MaxConn
+				if maxConn == 0 {
+					maxConn = 100 + (dev.ID*7)%300
+				}
+				activeConn = min(activeConn, maxConn-1)
+
+				localDbs = append(localDbs, DatabaseTelemetry{
+					ID:                 fmt.Sprintf("db-%d-%d", dev.ID, probe.Port),
+					Engine:             probe.Engine,
+					HostName:           fmt.Sprintf("%s (%s)", dev.Hostname, dev.IPAddress),
+					Port:               probe.Port,
+					DatabaseName:       probe.DBName,
+					BufferCacheHitPct:  bufHit,
+					PageLifeExpectancy: ple,
+					ActiveConnections:  activeConn,
+					MaxConnections:     maxConn,
+					DeadlocksPerHour:   deadlocks,
+					CustomQuerySensor:  probe.QuerySensor,
+					CustomQueryResult:  queryResult,
+					QueryExecutionMs:   queryMs,
+					Status:             status,
+					LastCheckedAt:      now,
+				})
+			}
+
+			if len(localDbs) > 0 {
+				mu.Lock()
+				results = append(results, localDbs...)
+				mu.Unlock()
+			}
+		}(d)
 	}
+
+	wg.Wait()
 	return results
 }
 
@@ -261,7 +289,8 @@ func scanOsInferOnly() []DatabaseTelemetry {
 		return results
 	}
 	for _, d := range devices {
-		if d.DeviceType != "server" {
+		// Scan all compute devices (servers, workstations, appliances, nodes) - only skip pure network switches
+		if d.DeviceType == "switch" {
 			continue
 		}
 		for _, p := range osInferPorts(d.OS) {
