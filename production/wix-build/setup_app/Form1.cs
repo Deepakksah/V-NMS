@@ -582,22 +582,46 @@ namespace setup_app
 
             // Check if V-NMS is currently installed on this system
             bool isVnmsInstalled = File.Exists(@"C:\Program Files\V-NMS\vnms-server.exe");
-            bool isVnmsPortListening = IsPortListening("127.0.0.1", 8081) || IsPortListening("127.0.0.1", 80);
+            bool isVnmsPortListening = IsPortListening("127.0.0.1", 8081);
 
             if (isVnmsInstalled || isVnmsPortListening)
             {
-                AppendLog("✔ V-NMS Enterprise is already installed on this computer.");
+                AppendLog("✔ V-NMS Enterprise is already installed and running on this computer.");
+                AppendLog("ℹ Duplicate install blocked to avoid duplicate services and port conflicts.");
+
+                chkVnms.Checked = false;
+                lblVnmsBadge.Text = "✔ Already Installed";
+                lblVnmsBadge.ForeColor = Color.FromArgb(22, 163, 74);
+
+                chkService.Checked = false;
+                lblServiceBadge.Text = "✔ Service Active";
+                lblServiceBadge.ForeColor = Color.FromArgb(22, 163, 74);
+
+                chkDbInit.Checked = false;
+                lblDbInitBadge.Text = "✔ Database Active";
+                lblDbInitBadge.ForeColor = Color.FromArgb(22, 163, 74);
+
+                chkFirewall.Checked = false;
+                lblFirewallBadge.Text = "✔ Rules Active";
+                lblFirewallBadge.ForeColor = Color.FromArgb(22, 163, 74);
+
                 btnRepair.Visible = true;
                 btnRemovePrompt.Visible = true;
-                btnInstall.Text = "🔄 Reinstall Clean";
-                lblStatus.Text = "V-NMS is installed. Options available: [Reinstall], [Repair], or [Remove / Uninstall].";
+                btnInstall.Text = "✔ Already Installed";
+                btnInstall.BackColor = Color.FromArgb(100, 116, 139);
+                lblStatus.Text = "V-NMS is already installed. Use [Repair] to update or [Remove / Uninstall] to uninstall.";
             }
             else
             {
+                chkVnms.Checked = true;
+                chkService.Checked = true;
+                chkDbInit.Checked = true;
+                chkFirewall.Checked = true;
                 btnRepair.Visible = false;
                 btnRemovePrompt.Visible = false;
-                btnInstall.Text = "✔ Install V-NMS Enterprise Now";
-                lblStatus.Text = "Ready for fresh installation. Click 'Install V-NMS Enterprise Now'.";
+                btnInstall.Text = "✔ Install V-NMS Now";
+                btnInstall.BackColor = Color.FromArgb(2, 132, 199);
+                lblStatus.Text = "Ready for fresh installation. Click 'Install V-NMS Now'.";
             }
         }
 
@@ -786,6 +810,21 @@ namespace setup_app
                     });
                 }
                 catch { }
+                return;
+            }
+
+            // Guard: Prevent duplicate installation if already installed
+            bool isVnmsInstalled = File.Exists(@"C:\Program Files\V-NMS\vnms-server.exe") || IsPortListening("127.0.0.1", 8081);
+            if (isVnmsInstalled)
+            {
+                MessageBox.Show(
+                    "V-NMS Enterprise is already installed and running on this system!\n\n" +
+                    "Duplicate installation is blocked to prevent duplicate services and port conflicts.\n\n" +
+                    "• To repair or refresh the current installation, click '🔧 Repair V-NMS'.\n" +
+                    "• To perform a clean reinstall, click '🗑️ Remove / Uninstall' first to remove existing components.",
+                    "V-NMS — Already Installed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 

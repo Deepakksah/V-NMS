@@ -70,24 +70,6 @@
         <File Id="vnms_proxy_exe"
               Source="stage\vnms-proxy.exe"
               KeyPath="yes" />
-
-        <ServiceInstall
-          Id="VNMSProxyInstall"
-          Name="VNMSProxy"
-          DisplayName="V-NMS Reverse Proxy (Port 80)"
-          Description="Routes http://V-NMS-Dashboard.com to V-NMS on port 8081"
-          Type="ownProcess"
-          Start="auto"
-          ErrorControl="normal"
-          Account="LocalSystem" />
-
-        <ServiceControl
-          Id="VNMSProxyStart"
-          Name="VNMSProxy"
-          Start="install"
-          Stop="both"
-          Remove="uninstall"
-          Wait="yes" />
       </Component>
 
       <!-- Config file -->

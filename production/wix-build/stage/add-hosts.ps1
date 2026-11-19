@@ -15,3 +15,18 @@ if ($current -notmatch "V-NMS-Dashboard") {
 }
 ipconfig /flushdns | Out-Null
 
+# Ensure VNMSProxy scheduled task exists without duplicate service creation
+$taskName = "VNMSProxy"
+$proxyExe = "C:\Program Files\V-NMS\vnms-proxy.exe"
+if (Test-Path $proxyExe) {
+    $existingTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    if (-not $existingTask) {
+        $action = New-ScheduledTaskAction -Execute $proxyExe
+        $trigger = New-ScheduledTaskTrigger -AtStartup
+        $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Force -ErrorAction SilentlyContinue | Out-Null
+        Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    }
+}
+
+
