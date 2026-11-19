@@ -96,6 +96,13 @@ func HandleGetDatabaseTelemetry(c *gin.Context) {
 			CustomQuerySensor: "SELECT sum(amount) FROM ledger_pending_trans", CustomQueryResult: 184500.0,
 			QueryExecutionMs: 6.5, Status: "OPTIMAL", LastCheckedAt: now,
 		},
+		{
+			ID: "db-mssql-bi", Engine: "Microsoft SQL Server 2022 Enterprise (Reporting & BI)", HostName: "WIN-DK4863L7MVJ (172.168.1.22)",
+			Port: 1433, DatabaseName: "BI_ANALYTICS_DW", BufferCacheHitPct: 97.6, PageLifeExpectancy: 3100,
+			ActiveConnections: 76, MaxConnections: 400, DeadlocksPerHour: 0,
+			CustomQuerySensor: "SELECT count(*) FROM dbo.fact_sales WHERE report_date = CAST(GETDATE() AS DATE)", CustomQueryResult: 8842.0,
+			QueryExecutionMs: 5.9, Status: "OPTIMAL", LastCheckedAt: now,
+		},
 	}
 
 	c.JSON(http.StatusOK, gin.H{"databases": databases, "total": len(databases)})
